@@ -20,20 +20,17 @@ Usamos el comando grep para buscar las apariciones de 'molino'. Como queremos qu
 Además para incluir las lineas donde aparece, usamos -C 1 indicando así que deseamos que se incluya una línea de contexto. Finalmente redireccionamos usando >>
 en vez de > para que se añada al contenido ya existente en vez de borrarlo.
 
-2b) ls | grep -e .txt -c
-
-La salida de ls es una lista con los ficheros del actual directorio. Esta lista la usamos como input del comando wc, que acompañado de la opción -l, cuenta las lineas de dicha lista.
+2b)
 
 ls | wc -l
-
-cuenta todos los archivos
-
+La salida de ls es una lista (fichero) con los ficheros del actual directorio. Esta lista la usamos como input del comando wc, que acompañado de la opción -l, 
+cuenta las lineas de dicha lista.
 
 2c)  
 
 cat lista\ de\ la\ compra\ Pepe.txt lista\ de\ la\ compra\ Elena.txt 2>/dev/null | uniq > numcompra.txt
 
-Si no existe algún archivo de los dos, se produce un error al concatenar, ahi usamos el redireccionamiento a /dev/null en caso de error.
+Si no existe algún archivo de los dos, se produce un error al concatenar, ahí es donde usamos el redireccionamiento a /dev/null en caso de error.
 Si no ha sucedido ningún error al concatenar, usamos la salida de cat como input del comando uniq (usando pipeline). Finalmente, 
 la salida del comando uniq la redireccionamos a "numcompra.txt"
 
