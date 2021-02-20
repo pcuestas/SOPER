@@ -49,14 +49,14 @@ El mensaje de error es "Permissoon denied". Corresponde al valor de errno 13.
 
 3c) 
 
-Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable para asegurar que la llamada a perror() no modifique la variable global errno.
+Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable ya que la llamada a perror() podría modificar la variable global errno.
 
         pf=fopen(args[1],"r);
         x=errno;
         perror();
 
 
-_________________________________________________________________________________________________________-
+_________________________________________________________________________________________________________
 
 4a) Durante los 10 segundos de espera el proceso asociado al programa está en estado "R" (runnable), es decir se está ejecutando (intercalandose con otros).
 
