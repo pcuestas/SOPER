@@ -37,8 +37,56 @@
 
 \section*{Semana 1}
 \subsection*{Ejercicio 1}
+a) Para buscar las funciones relacionadas con hilos, buscamos todas aquellas que contengan "pthread$"$ usando la opción -k en el comando man. El comando a usar es \textbf{man -k pthread}
+\\
+\\ b) Consultar en el manual en qué sección se encuentran las llamadas a sistema y buscar infromación sobre write:
+\\* \textbf{man man}: con este comando averiguamos que la sección relacionada a \textit{system calls} es la 2. Por lo tanto usamos el comando \textbf{man 2 write}.
+
+\subsection*{Ejercico 2}
+
+\noindent a) El comando empleado es: \textbf{grep -C 1 -w molino don $\backslash$ quijote.txt $>$$>$ aventuras.txt}.
+
+Usamos el comando grep para buscar las apariciones de 'molino'. Como queremos que sea la palabra molino y no el grama molino añadimos el parámetro -w.
+Además para incluir las lineas donde aparece, usamos -C 1 indicando así que deseamos que se incluya una línea de contexto. Finalmente redireccionamos usando $>$$>$
+en vez de $>$ para que se añada al contenido ya existente en vez de borrarlo.
+\\
+
+b) El \textit{pipeline} es el siguiente \textbf{ls $|$ wc -l}
+
+La salida de ls es una lista (fichero) con los ficheros del actual directorio. Esta lista la usamos como input del comando wc, que acompañado de la opción -l, 
+cuenta las lineas de dicha lista.
+\\
+
+c) En este caso el \textit{pipeline} es \textbf{cat lista$\backslash$ de$\backslash$ la$\backslash$ compra$\backslash$ Pepe.txt lista$\backslash$ de$\backslash$ la$\backslash$ compra$\backslash$ Elena.txt 2$>$/dev/null $|$ uniq $>$ numcompra.txt}
 
 
+Si no existe algún archivo de los dos, se produce un error al concatenar, ahí es donde usamos el redireccionamiento a /dev/null en caso de error.
+Si no ha sucedido ningún error al concatenar, usamos la salida de cat como input del comando uniq (usando pipeline). Finalmente, 
+la salida del comando uniq la redireccionamos a "numcompra.txt"
+
+\subsection*{Ejercicio 3}
+
+a) Si intentamos abrir un fichero inexistente recibimos el mensanje ""No such file or directory". El código errno asociado es 2.
+\\
+
+b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es "Permissoon denied" que corresponde al valor de errno 13.
+\\
+
+c) Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable ya que la llamada a perror() podría modificar la variable global errno.
+
+pf=fopen(args[1],"r); 
+x=errno; 
+perror();
+
+\subsection*{Ejercicio 4}
+
+a) Durante los 10 segundos de espera el proceso asociado al programa está en estado $"$R$"$ (runnable), es decir se está ejecutando (intercalándose con otros).
+\\
+
+b) En este caso el proceso está en estado "S" (interruptible sleep) o lo que es lo mismo, esperando a un suceso (el fin de la espera marcada por sleep()). 
+
+
+\subsection*{Ejercicio 5}
 
 
 
