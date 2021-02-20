@@ -17,7 +17,8 @@
 2a) grep -C 1 -w molino don\ quijote.txt >> aventuras.txt
 
 Usamos el comando grep para buscar las apariciones de 'molino'. Como queremos que sea la palabra molino y no el grama molino añadimos el parámetro -w.
-Además para incluir las lineas donde aparece, usamos -C 1 indicando así que deseamos que se incluya una línea de contexto. Finalmente redireccionamos usando >
+Además para incluir las lineas donde aparece, usamos -C 1 indicando así que deseamos que se incluya una línea de contexto. Finalmente redireccionamos usando >>
+en vez de > para que se añada al contenido ya existente en vez de borrarlo.
 
 2b) ls | grep -e .txt -c
 
