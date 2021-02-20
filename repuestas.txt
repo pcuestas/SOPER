@@ -1,0 +1,98 @@
+)Buscar  en  el  manual  la  lista  de  funciones  disponibles  para  el  manejo  de  hilos  ycopiarla en la memoria junto con el comando usado para mostrarla.
+ Las funcionesde manejo de hilos comienzan por “pthread”.
+
+ man -k pthread > Mem.txt
+
+
+ b) llamadas al sistema
+
+ man man  
+
+ Aquí vemos que la sección de llamadas al sistema es la 2. Es por ello que es el párametro que incluimos en la siguiente instrucción.
+
+ man 2 write
+
+ ___________________________________
+
+2a) grep -C 1 -w molino don\ quijote.txt >> aventuras.txt
+
+Usamos el comando grep para buscar las apariciones de 'molino'. Como queremos que sea la palabra molino y no el grama molino añadimos el parámetro -w.
+Además para incluir las lineas donde aparece, usamos -C 1 indicando así que deseamos que se incluya una línea de contexto. Finalmente redireccionamos usando >
+
+2b) ls | grep -e .txt -c
+
+La salida de ls es una lista con los ficheros del actual directorio. Esta lista la usamos como input del comando wc, que acompañado de la opción -l, cuenta las lineas de dicha lista.
+
+ls | wc -l
+
+cuenta todos los archivos
+
+
+2c)  
+
+cat lista\ de\ la\ compra\ Pepe.txt lista\ de\ la\ compra\ Elena.txt 2>/dev/null | uniq > numcompra.txt
+
+Si no existe algún archivo de los dos, se produce un error al concatenar, ahi usamos el redireccionamiento a /dev/null en caso de error.
+Si no ha sucedido ningún error al concatenar, usamos la salida de cat como input del comando uniq (usando pipeline). Finalmente, 
+la salida del comando uniq la redireccionamos a "numcompra.txt"
+
+
+
+_______________________________________________________________________________________________________________
+
+
+3a)
+
+Se imprime el error "No such file or directory". El código errno asociado es 2.
+
+3b) 
+
+El mensaje de error es "Permissoon denied". Corresponde al valor de errno 13.
+
+3c) 
+
+Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable para asegurar que la llamada a perror() no modifique la variable global errno.
+
+        pf=fopen(args[1],"r);
+        x=errno;
+        perror();
+
+
+_________________________________________________________________________________________________________-
+
+4a) Durante los 10 segundos de espera el proceso asociado al programa está en estado "R" (runnable), es decir se está ejecutando (intercalandose con otros).
+
+4b) En este caso el proceso está en estado "S" (interruptible sleep) o lo que es lo mismo, esperando a un suceso (el fin de la espera marcada por sleep()). 
+
+_________________________________________________________________________________________________________
+
+5a) Si el proceso no hubiese esperado a los hilos, cuando el hilo principal llegase al exit(), el programa finalizaría matando los hilos que no tendrían por que haber acabado.
+De hecho, si quitamos del código la instruccion pthread_join(), vemos que el hilo1 y el hilo2 solo tienen tiempo de escribir una letra antes de que el hilo princiapl llegué al exit y, por ende, finalice el programa.
+
+5b)
+
+
+
+5c)
+
+en la función void al final
+
+if(first==0){
+		first=1;
+		return NULL;
+	}else{
+		check=1;
+	}
+
+	return NULL;
+
+en el main al final
+
+	while(check!=1){}
+
+	printf("El programa %s termino correctamente \n", argv[0]);
+	return 0;
+
+
+Sinedo first y check variables globales. Usando estas dos variables podemos estar seguros de cuando han acabado los dos hilos h1 y h2.
+
