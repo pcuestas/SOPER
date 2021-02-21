@@ -119,7 +119,7 @@ c) En este caso el \textit{pipeline} es:
 $ cat "lista de la compra Pepe.txt" "lista de la compra Elena.txt" 2> /dev/null | sort | uniq | wc -l > "num compra.txt"
 \end{lstlisting}
 
-Primero concatenamos los dos ficheros (redirigiendo el mensaje error, en caso de haberlo). Después, dirigimos la salida a \texttt{sort}, para que luego \texttt{uniq} quite las líneas repetidas. Finalmente, contamos el número de líneas distintas con \texttt{wc -l} y dirigimos la salida al fichero \texttt{"num compra.txt"}.
+Primero concatenamos los dos ficheros (redirigiendo el mensaje error, en caso de haberlo). Después, dirigimos la salida para que sea el input de \texttt{sort}, para que luego \texttt{uniq} quite las líneas repetidas. Finalmente, contamos el número de líneas distintas con \texttt{wc -l} y dirigimos la salida al fichero \texttt{"num compra.txt"}.
 
 \subsection*{Ejercicio 3}
 
