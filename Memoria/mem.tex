@@ -98,10 +98,10 @@ $ man 2 write
 a) El comando empleado es: 
 
 \begin{lstlisting}[language=bash]
-$ grep -C 1 -w molino don \ quijote.txt >> aventuras.txt
+$ grep -w molino don\ quijote.txt >> aventuras.txt
 \end{lstlisting}
 
-Usamos el comando grep para buscar las apariciones de ``molino''. Como queremos que sea la palabra ``molino'' y no el grama molino añadimos el parámetro \texttt{-w}. Además para incluir las lineas donde aparece, usamos \texttt{-C} 1 indicando así que deseamos que se incluya una línea de contexto. Finalmente redireccionamos usando \texttt {>}\texttt {>} en vez de \texttt {>} para que se añada al contenido ya existente en vez de borrarlo.
+Usamos el comando grep para buscar las apariciones de ``molino''. Como queremos que sea la palabra \textit{molino} y no el grama \textit{molino}, añadimos el parámetro \texttt{-w}. Finalmente redireccionamos la salida con \texttt {>}\texttt {>} en vez de \texttt {>} para que se añada al final del fichero, en lugar de reemplazarlo.
 
 
 b) El \textit{pipeline} es el siguiente \textbf{ls $|$ wc -l}
@@ -110,12 +110,15 @@ La salida de ls es una lista (fichero) con los ficheros del actual directorio.
 Esta lista la usamos como input del comando wc, que acompañado de la opción -l, cuenta las lineas de dicha lista.
 
 
-c) En este caso el \textit{pipeline} es \textbf{cat lista$\backslash$ de$\backslash$ la$\backslash$ compra$\backslash$ Pepe.txt lista$\backslash$ de$\backslash$ la$\backslash$ compra$\backslash$ Elena.txt 2$>$/dev/null $|$ uniq $>$ numcompra.txt}
+c) En este caso el \textit{pipeline} es: 
+
+\begin{lstlisting}[language=bash]
+$ cat "lista de la compra Pepe.txt" "lista de la compra Elena.txt" > "num compra.txt" 2> /dev/null
+\end{lstlisting}
 
 
 Si no existe algún archivo de los dos, se produce un error al concatenar, ahí es donde usamos el redireccionamiento a /dev/null en caso de error.
-Si no ha sucedido ningún error al concatenar, usamos la salida de cat como input del comando uniq (usando pipeline). Finalmente, 
-la salida del comando uniq la redireccionamos a "numcompra.txt"
+Finalmente, la salida del comando uniq la redireccionamos a "num compra.txt".
 
 \subsection*{Ejercicio 3}
 
