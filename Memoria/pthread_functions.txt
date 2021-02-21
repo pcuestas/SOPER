@@ -1,0 +1,72 @@
+pthread_attr_destroy (3) - initialize and destroy thread attributes object
+pthread_attr_getaffinity_np (3) - set/get CPU affinity attribute in thread attributes object
+pthread_attr_getdetachstate (3) - set/get detach state attribute in thread attributes object
+pthread_attr_getguardsize (3) - set/get guard size attribute in thread attributes object
+pthread_attr_getinheritsched (3) - set/get inherit-scheduler attribute in thread attributes object
+pthread_attr_getschedparam (3) - set/get scheduling parameter attributes in thread attributes object
+pthread_attr_getschedpolicy (3) - set/get scheduling policy attribute in thread attributes object
+pthread_attr_getscope (3) - set/get contention scope attribute in thread attributes object
+pthread_attr_getstack (3) - set/get stack attributes in thread attributes object
+pthread_attr_getstackaddr (3) - set/get stack address attribute in thread attributes object
+pthread_attr_getstacksize (3) - set/get stack size attribute in thread attributes object
+pthread_attr_init (3) - initialize and destroy thread attributes object
+pthread_attr_setaffinity_np (3) - set/get CPU affinity attribute in thread attributes object
+pthread_attr_setdetachstate (3) - set/get detach state attribute in thread attributes object
+pthread_attr_setguardsize (3) - set/get guard size attribute in thread attributes object
+pthread_attr_setinheritsched (3) - set/get inherit-scheduler attribute in thread attributes object
+pthread_attr_setschedparam (3) - set/get scheduling parameter attributes in thread attributes object
+pthread_attr_setschedpolicy (3) - set/get scheduling policy attribute in thread attributes object
+pthread_attr_setscope (3) - set/get contention scope attribute in thread attributes object
+pthread_attr_setstack (3) - set/get stack attributes in thread attributes object
+pthread_attr_setstackaddr (3) - set/get stack address attribute in thread attributes object
+pthread_attr_setstacksize (3) - set/get stack size attribute in thread attributes object
+pthread_cancel (3)   - send a cancellation request to a thread
+pthread_cleanup_pop (3) - push and pop thread cancellation clean-up handlers
+pthread_cleanup_pop_restore_np (3) - push and pop thread cancellation clean-up handlers while saving cancelability type
+pthread_cleanup_push (3) - push and pop thread cancellation clean-up handlers
+pthread_cleanup_push_defer_np (3) - push and pop thread cancellation clean-up handlers while saving cancelability type
+pthread_create (3)   - create a new thread
+pthread_detach (3)   - detach a thread
+pthread_equal (3)    - compare thread IDs
+pthread_exit (3)     - terminate calling thread
+pthread_getaffinity_np (3) - set/get CPU affinity of a thread
+pthread_getattr_default_np (3) - get or set default thread-creation attributes
+pthread_getattr_np (3) - get attributes of created thread
+pthread_getconcurrency (3) - set/get the concurrency level
+pthread_getcpuclockid (3) - retrieve ID of a thread's CPU time clock
+pthread_getname_np (3) - set/get the name of a thread
+pthread_getschedparam (3) - set/get scheduling policy and parameters of a thread
+pthread_join (3)     - join with a terminated thread
+pthread_kill (3)     - send a signal to a thread
+pthread_kill_other_threads_np (3) - terminate all other threads in process
+pthread_mutex_consistent (3) - make a robust mutex consistent
+pthread_mutex_consistent_np (3) - make a robust mutex consistent
+pthread_mutexattr_getpshared (3) - get/set process-shared mutex attribute
+pthread_mutexattr_getrobust (3) - get and set the robustness attribute of a mutex attributes object
+pthread_mutexattr_getrobust_np (3) - get and set the robustness attribute of a mutex attributes object
+pthread_mutexattr_setpshared (3) - get/set process-shared mutex attribute
+pthread_mutexattr_setrobust (3) - get and set the robustness attribute of a mutex attributes object
+pthread_mutexattr_setrobust_np (3) - get and set the robustness attribute of a mutex attributes object
+pthread_rwlockattr_getkind_np (3) - set/get the read-write lock kind of the thread read-write lock attribute object
+pthread_rwlockattr_setkind_np (3) - set/get the read-write lock kind of the thread read-write lock attribute object
+pthread_self (3)     - obtain ID of the calling thread
+pthread_setaffinity_np (3) - set/get CPU affinity of a thread
+pthread_setattr_default_np (3) - get or set default thread-creation attributes
+pthread_setcancelstate (3) - set cancelability state and type
+pthread_setcanceltype (3) - set cancelability state and type
+pthread_setconcurrency (3) - set/get the concurrency level
+pthread_setname_np (3) - set/get the name of a thread
+pthread_setschedparam (3) - set/get scheduling policy and parameters of a thread
+pthread_setschedprio (3) - set scheduling priority of a thread
+pthread_sigmask (3)  - examine and change mask of blocked signals
+pthread_sigqueue (3) - queue a signal and data to a thread
+pthread_spin_destroy (3) - initialize or destroy a spin lock
+pthread_spin_init (3) - initialize or destroy a spin lock
+pthread_spin_lock (3) - lock and unlock a spin lock
+pthread_spin_trylock (3) - lock and unlock a spin lock
+pthread_spin_unlock (3) - lock and unlock a spin lock
+pthread_testcancel (3) - request delivery of any pending cancellation request
+pthread_timedjoin_np (3) - try to join with a terminated thread
+pthread_tryjoin_np (3) - try to join with a terminated thread
+pthread_yield (3)    - yield the processor
+pthreads (7)         - POSIX threads
