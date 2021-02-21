@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1613920423 "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf" "mem" 1613920423
+["pdflatex"] 1613920572 "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf" "mem" 1613920572
   "/etc/texmf/web2c/texmf.cnf" 1599481107 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.aux" 1613920423 8 a94a2480d3289e625eea47cd1b285758 ""
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" 1613920421 7486 00d075919db917f27daebc4676e04734 ""
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.aux" 1613920572 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" 1613920571 7520 345f8c2fe3ca45ec82f364cbc1624223 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tctt0800.tfm" 1136768653 1536 3d9caa7b59d4d3f96d272d1de68d8742 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
@@ -88,12 +88,12 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1604067199 8260270 12e86638b940676d0ad795a76aca21c2 ""
   "mem.aux" 0 -1 0 "pdflatex"
   "mem.out" 0 -1 0 "pdflatex"
-  "mem.tex" 1613920421 7486 00d075919db917f27daebc4676e04734 ""
+  "mem.tex" 1613920571 7520 345f8c2fe3ca45ec82f364cbc1624223 ""
   "pthread_functions.txt" 1613893402 5445 c6998ec89cbcbe8cda69bc8543f9934b ""
   (generated)
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.log"
   "mem.out"
   "mem.log"
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.log"
-  "mem.pdf"
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf"
   "mem.aux"
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf"
+  "mem.pdf"

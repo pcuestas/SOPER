@@ -133,7 +133,7 @@ c) Justo después de la instrucción fopen() se debería guardar el valor de err
 pf=fopen(args[1],"r"); 
 x=errno;
 printf("El valor de errno es %i",x);
-errno=x; /* Aqu'i aseguramos que la función perror() va a imprimir el c\'odigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen() */
+errno=x; /*Aqu'i aseguramos que la función perror() va a imprimir el c\'odigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen()*/
 perror();
 \end{lstlisting}
 
@@ -142,7 +142,7 @@ perror();
 
 a) Durante los 10 segundos de espera el proceso asociado al programa está en estado ``R''(runnable), es decir se está ejecutando (intercalándose con otros).
 
-b) En este caso el proceso está en estado ``S'' (interruptible sleep) o lo que es lo mismo, esperando a un suceso (el fin de la espera marcada por sleep()). 
+b) En este caso el proceso está en estado ``S'' (interruptible sleep) o lo que es lo mismo, esperando a un suceso (el fin de la espera marcada por sleep()), mientras se ejecutan otros procesos.
 
 
 \subsection*{Ejercicio 5}
