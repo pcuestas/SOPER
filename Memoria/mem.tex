@@ -125,9 +125,9 @@ Primero concatenamos los dos ficheros (redirigiendo el mensaje error, en caso de
 
 a) Si intentamos abrir un fichero inexistente recibimos el mensanje \texttt{"No such file or directory"}. El código errno asociado es 2.
 
-b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \texttt{"Permissoon denied"}, que corresponde al valor de errno 13.
+b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \texttt{"Permission denied"}, que corresponde al valor de errno 13.
 
-c) Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable ya que la llamada a perror() podría modificar la variable global errno.
+c) Justo después de la instrucción \texttt{fopen()} se debería guardar el valor de errno en otra variable ya que la llamada a \texttt{printf()} podría modificar la variable global errno.
 
 \begin{lstlisting}[language=C]
 pf=fopen(args[1],"r"); 
