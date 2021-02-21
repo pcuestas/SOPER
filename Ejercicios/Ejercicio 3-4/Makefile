@@ -1,11 +1,12 @@
 EXE=main
 CC=gcc
 OBJ=$(EXE).o
+LIB=-lpthread
 
 all: $(EXE)
 
 $(EXE): $(OBJ)
-	$(CC) $(OBJ) -o $(EXE) 
+	$(CC) $(OBJ) $(LIB) -o $(EXE) 
 	rm *.o
 
 run: $(EXE)

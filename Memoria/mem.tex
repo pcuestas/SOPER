@@ -123,7 +123,7 @@ Primero concatenamos los dos ficheros (redirigiendo el mensaje error, en caso de
 
 \subsection*{Ejercicio 3}
 
-a) Si intentamos abrir un fichero inexistente recibimos el mensanje ``\texttt{No such file or directory}''. El código errno asociado es 2.
+a) Si intentamos abrir un fichero inexistente recibimos el mensanje \texttt{"No such file or directory"}. El código errno asociado es 2.
 
 b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \texttt{"Permissoon denied"}, que corresponde al valor de errno 13.
 
@@ -133,7 +133,7 @@ c) Justo después de la instrucción fopen() se debería guardar el valor de err
 pf=fopen(args[1],"r"); 
 x=errno;
 printf("El valor de errno es %i",x);
-errno=x; /*Aqu'i aseguramos que la función perror() va a imprimir el c\'odigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen()*/
+errno=x; /*Aqu\`i aseguramos que la funci\`on perror() va a imprimir el c\`odigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen()*/
 perror();
 \end{lstlisting}
 
@@ -145,9 +145,15 @@ a) Durante los 10 segundos de espera el proceso asociado al programa está en es
 b) En este caso el proceso está en estado ``S'' (interruptible sleep) o lo que es lo mismo, esperando a un suceso (el fin de la espera marcada por sleep()), mientras se ejecutan otros procesos.
 
 
-\subsection*{Ejercicio 5}
+\subsection*{Ejercicio 5}\label{ej5}
 
+a) Si el proceso no hubiese esperado a los hilos, cuando el hilo principal llegase a \texttt{exit()}, el programa finalizaría matando los hilos que no tendrían por qué haber acabado. De hecho, si quitamos del código las instrucciones \texttt{pthread\_join}, vemos que cada hilo solo tiene tiempo de escribir una letra antes de que el hilo principal llegue al exit y finalice, por tanto, la ejecución de todos los hilos.
 
+b) En este caso, ocurre exactamente lo mismo que en anterior (se imprimen las dos primeras letras--una de cada hilo--, luego se imprime el mensaje de la línea 51 en el código dado). Sin embargo, después de esto, continúan ejecutándose los dos hilos hasta que cada uno de ellos llega a su función \texttt{exit()}.
+
+Es decir, \texttt{pthread\_exit()} termina la ejecución del hilo principal, pero permite que se terminen todos los hilos que del proceso antes de terminarlo. Lo cual no pasa si se llama directamente a \texttt{exit()}, como hemos visto en el apratado 5a).
+
+c) Para que los otros hilos puedan terminar su ejecución, tenemos que sustituir la llamada en \texttt{main()} de \texttt{exit()} por una llamada a \texttt{pthread\_exit()}.
 
 
 

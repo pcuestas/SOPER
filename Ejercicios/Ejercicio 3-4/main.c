@@ -1,19 +1,60 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include  <pthread.h>
+#include  <stdio.h>
+#include  <stdlib.h>
+#include  <string.h>
+#include  <unistd.h>
+
+int first=0;
+int second=0;
+
+void *slow_printf(void *arg) {
+    const  char *msg = arg;
+    size_t i;
+    
+    for (i = 0; i < strlen(msg); i++) {
+        printf(" %c ", msg[i]);
+        fflush(stdout);
+        sleep (1);
+    }
+    
+    if(first==0){first=1;}
+    else{second=1;}
+
+    return  NULL;
+}
 
 int main(int argc, char **argv){
-    long s;
-    clock_t t0=clock(), t1=clock();
+    void *i;
 
-    while((t1-t0)/CLOCKS_PER_SEC<10){
-        t1=clock();
+    pthread_t h1, h2;
+    char *hola="Hola";
+    char *mundo="Mundo";
+    int error;
+
+    error = pthread_create(&h1, NULL, slow_printf, hola);
+    if(error != 0){
+        fprintf(stderr, "pthread_create: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
     }
 
-    printf("change\n");
-    fflush(stdout);
+    error = pthread_create(&h2, NULL, slow_printf, mundo);
+    if(error != 0){
+        fprintf(stderr, "pthread_create: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
 
-    sleep(10);
+    /*error = pthread_detach(h1);
+    if(error != 0){
+        fprintf(stderr, "pthread_detach: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
 
-    return 0;
+    error = pthread_detach(h2);
+    if(error != 0){
+        fprintf(stderr, "pthread_detach: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }*/
+
+    printf("El programa %s terminó correctamente\n", argv[0]);
+    pthread_exit(EXIT_SUCCESS);
 }

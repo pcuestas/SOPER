@@ -107,6 +107,12 @@ INPUT /usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
 INPUT /usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 INPUT /usr/share/texlive/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
+INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
+INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
+INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
+INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
+INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
+INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 OUTPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 OUTPUT /home/pablo/repos/SOPER_p1/Memoria/mem.pdf
 INPUT /usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map
