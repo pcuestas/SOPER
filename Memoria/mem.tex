@@ -129,11 +129,13 @@ b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \
 
 c) Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable ya que la llamada a perror() podría modificar la variable global errno.
 
-pf=fopen(args[1],"r); 
+\begin{lstlisting}[language=C]
+pf=fopen(args[1],"r"); 
 x=errno;
 printf("El valor de errno es %i",x);
-errno=x; /*Aquí aseguramos que la función perror() va a imprimir el código de error de fopen ya que hemos restaurado el valor de errno asociado a fopen() */
+errno=x; /* Aqu'i aseguramos que la función perror() va a imprimir el código de error de fopen ya que hemos restaurado el valor de errno asociado a fopen() */
 perror();
+\end{lstlisting}
 
 
 \subsection*{Ejercicio 4}
