@@ -98,33 +98,34 @@ $ man 2 write
 a) El comando empleado es: 
 
 \begin{lstlisting}[language=bash]
-$ grep -w molino don\ quijote.txt >> aventuras.txt
+$ grep -w molino "don quijote.txt" >> aventuras.txt
 \end{lstlisting}
 
 Usamos el comando grep para buscar las apariciones de ``molino''. Como queremos que sea la palabra \textit{molino} y no el grama \textit{molino}, añadimos el parámetro \texttt{-w}. Finalmente redireccionamos la salida con \texttt {>}\texttt {>} en vez de \texttt {>} para que se añada al final del fichero, en lugar de reemplazarlo.
 
+b) El \textit{pipeline} es el siguiente:
 
-b) El \textit{pipeline} es el siguiente \textbf{ls $|$ wc -l}
+\begin{lstlisting}[language=bash]
+$ ls | wc -l
+\end{lstlisting}
 
-La salida de ls es una lista (fichero) con los ficheros del actual directorio.
+La salida de \texttt{ls} es una lista (fichero) con los ficheros del actual directorio.
 Esta lista la usamos como input del comando wc, que acompañado de la opción -l, cuenta las lineas de dicha lista.
 
 
 c) En este caso el \textit{pipeline} es: 
 
 \begin{lstlisting}[language=bash]
-$ cat "lista de la compra Pepe.txt" "lista de la compra Elena.txt" > "num compra.txt" 2> /dev/null
+$ cat "lista de la compra Pepe.txt" "lista de la compra Elena.txt" 2> /dev/null | sort | uniq | wc -l > "num compra.txt"
 \end{lstlisting}
 
-
-Si no existe algún archivo de los dos, se produce un error al concatenar, ahí es donde usamos el redireccionamiento a /dev/null en caso de error.
-Finalmente, la salida del comando uniq la redireccionamos a "num compra.txt".
+Primero concatenamos los dos ficheros (redirigiendo el mensaje error, en caso de haberlo). Después, dirigimos la salida a \texttt{sort}, para que luego \texttt{uniq} quite las líneas repetidas. Finalmente, contamos el número de líneas distintas con \texttt{wc -l} y dirigimos la salida al fichero \texttt{"num compra.txt"}.
 
 \subsection*{Ejercicio 3}
 
-a) Si intentamos abrir un fichero inexistente recibimos el mensanje ""No such file or directory". El código errno asociado es 2.
+a) Si intentamos abrir un fichero inexistente recibimos el mensanje ``\texttt{No such file or directory}''. El código errno asociado es 2.
 
-b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es "Permissoon denied" que corresponde al valor de errno 13.
+b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \texttt{"Permissoon denied"}, que corresponde al valor de errno 13.
 
 c) Justo después de la instrucción fopen() se debería guardar el valor de errno en otra variable ya que la llamada a perror() podría modificar la variable global errno.
 
