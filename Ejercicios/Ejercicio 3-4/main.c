@@ -4,8 +4,9 @@
 #include  <string.h>
 #include  <unistd.h>
 
-int first=0;
-int second=0;
+#define max(a,b) ((a)>(b)?(a):(b))
+
+int _h_count=0;
 
 void *slow_printf(void *arg) {
     const  char *msg = arg;
@@ -15,17 +16,12 @@ void *slow_printf(void *arg) {
         printf(" %c ", msg[i]);
         fflush(stdout);
         sleep (1);
-    }
-    
-    if(first==0){first=1;}
-    else{second=1;}
-
+    }    
+    _h_count++; /*para saber cuántos han terminado (0, 1, o 2)*/
     return  NULL;
 }
 
 int main(int argc, char **argv){
-    void *i;
-
     pthread_t h1, h2;
     char *hola="Hola";
     char *mundo="Mundo";
@@ -43,6 +39,12 @@ int main(int argc, char **argv){
         exit (EXIT_FAILURE);
     }
 
+    sleep(max(strlen(hola), strlen(mundo))); /*esto es lo que tardarán como máximo-evitamos que el hilo principal compruebe constantemente*/
+    while (_h_count!=2);/*nos aseguramos de que han terminado*/
+    printf("El programa %s terminó correctamente\n", argv[0]);
+    exit(EXIT_SUCCESS);
+}
+
     /*error = pthread_detach(h1);
     if(error != 0){
         fprintf(stderr, "pthread_detach: %s\n", strerror(error));
@@ -54,7 +56,3 @@ int main(int argc, char **argv){
         fprintf(stderr, "pthread_detach: %s\n", strerror(error));
         exit (EXIT_FAILURE);
     }*/
-
-    printf("El programa %s terminó correctamente\n", argv[0]);
-    pthread_exit(EXIT_SUCCESS);
-}
