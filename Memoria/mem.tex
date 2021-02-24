@@ -155,6 +155,27 @@ Es decir, \texttt{pthread\_exit()} termina la ejecución del hilo principal, per
 
 c) Para que los otros hilos puedan terminar su ejecución, tenemos que sustituir la llamada en \texttt{main()} de \texttt{exit()} por una llamada a \texttt{pthread\_exit()}.
 
+\subsection*{Ejercicio 6}
+
+a) No se puede saber ya que después de cada \texttt{fork()} el planificador puede establecer que el proceso padre siga en ejecución o su hijo.
+
+b) Como queremos que sea el hijo el que imprima su PID y el de su padre, hay que modificar el bloque if correspondiente al hijo (\texttt{fork()} devuelve 0 en el hijo). En el printf llamamos a las funciones \texttt{getpid()} y \texttt{gepppid()} haciendo cast de sus valores de retorno.
+
+c) El código se corresponde al diagrama a) ya que los hijos depués de imprimir acaban (llamada a \texttt{exit()}) y en cambio el padre vuelve a crear un nuevo hijo en la siguiente iteración. Para obtener el otro diagrama habría que hacer los bloques de control simétricos; el proceso padre es el que llama a \texttt{exit()} y el hijo es el que crea un nuevo proceso (y se convierte en padre).
+
+d) El código original puede dejar huérfanos ya que nada asegura que sus 3 hijos vayan a finalizar antes que él. En cuanto el proceso padre se encuentre en la línea de ejecución del \texttt{wait()} y un hijo suyo finalice, el proceso padre finalizará también dejando huérfano a los posibles hijos restantes. 
+
+e) Una forma de evitar esto es cambiar esa línea de código por la siguiente expresión \texttt{while(wait()!=-1);} que hará NUM\_PROC \textit{waits} y el siguiente retornará -1 al no haber procesos hijos no esperados (\textit{unwaited-for children}) 
+
+\subsection*{Ejercicio 7}
+
+a) Al ejecutar vemos que la cadena \textit{sentence} que imprime el padre está vacía. El error del programa es no teneer en cuenta que al crear el proceso hijo, éste tiene una memoria separada del padre  por lo que los cambios que se hagan desde el hijo no son visibles desde el padre. Cada puntero \textit{sentence} apunta a una dirección de memoria distinta.
+(debido al \textit{Copy on write} podría ser que si no se trata de modificar la información de ese bloque de memoria no se llegase a crear una copia. No obstante en este caso no hay dudas ya que estamos modificando la memoria apuntada por \textit{sentence} al llamar a la función \texttt{strcpy()}).
+
+b) Habría que liberar memoria tanto en el padre como en el hijo ya que se está creando una nueva copia del bloque de memoria alocado en el proceso padre como hemos explicado en el apartado anterior.
+
+
+\subsection*{Ejercicio 8}
 
 
 \end{document}

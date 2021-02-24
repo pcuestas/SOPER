@@ -39,7 +39,7 @@ int main(int argc, char **argv){
         exit (EXIT_FAILURE);
     }
 
-    sleep(max(strlen(hola), strlen(mundo))); /*esto es lo que tardarán como máximo-evitamos que el hilo principal compruebe constantemente*/
+    sleep(max(strlen(hola), strlen(mundo))); /*esto es lo que tardarán como mínimo-evitamos que el hilo principal compruebe constantemente*/
     while (_h_count!=2);/*nos aseguramos de que han terminado*/
     printf("El programa %s terminó correctamente\n", argv[0]);
     exit(EXIT_SUCCESS);
