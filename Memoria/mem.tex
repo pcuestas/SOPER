@@ -133,7 +133,7 @@ c) Justo después de la instrucción \texttt{fopen()} se debería guardar el val
 pf=fopen(args[1],"r"); 
 x=errno;
 printf("El valor de errno es %i",x);
-errno=x; /*Aqu\`i aseguramos que la funci\`on perror() va a imprimir el c\`odigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen()*/
+errno=x; /*Aqui aseguramos que la funcion perror() va a imprimir el codigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen()*/
 perror();
 \end{lstlisting}
 
@@ -155,7 +155,7 @@ Es decir, \texttt{pthread\_exit()} termina la ejecución del hilo principal, per
 
 c) Para que se espere la terminación de los hilos sin que el hilo principal ocupe al procesador, pero sin utilizar ni \texttt{pthread\_exit()} ni \texttt{pthread\_join()}, podemos hacer lo siguiente:
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C, texcl=true]
 #define max(a,b) ((a)>(b)?(a):(b))
 
 int _h_count=0;
@@ -169,7 +169,7 @@ void *slow_printf(void *arg) {
         fflush(stdout);
         sleep (1);
     }    
-    _h_count++; /*para saber cu\`antos han terminado (0, 1, o 2)*/
+    _h_count++; //para saber cuántos han terminado (0, 1, o 2)
     return  NULL;
 }
 
@@ -191,9 +191,9 @@ int main(int argc, char **argv){
         exit (EXIT_FAILURE);
     }
 
-    sleep(max(strlen(hola), strlen(mundo))); /*esto es lo que tardar\`an como m\`inimo-evitamos que el hilo principal compruebe constantemente*/
+    sleep(max(strlen(hola), strlen(mundo))); /*evitamos que el hilo principal compruebe constantemente*/
     while (_h_count != 2);/*nos aseguramos de que han terminado*/
-    printf("El programa %s termin\'o correctamente\n", argv[0]);
+    printf("El programa %s termino correctamente\n", argv[0]);
     exit(EXIT_SUCCESS);
 }
 \end{lstlisting}
