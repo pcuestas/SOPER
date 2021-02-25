@@ -9,18 +9,21 @@
 \usepackage{listings}
 \usepackage{xcolor}
 
-\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegreen}{rgb}{.2,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeblue}{rgb}{0,0.4,0.82}
+\definecolor{codeorange}{rgb}{0.94,0.34,0.0}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{backcolourgray}{rgb}{0.92,0.92,0.92}
 \definecolor{codewhite}{rgb}{1,1,1}
 
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
+    backgroundcolor=\color{backcolourgray},   
     commentstyle=\color{codegreen},
-    keywordstyle=\color{codepurple},
+    keywordstyle=\color{codeblue},
     numberstyle=\tiny\color{codegray},
-    stringstyle=\color{magenta},
+    stringstyle=\color{codeorange},
     basicstyle=\ttfamily\footnotesize,
     breakatwhitespace=false,         
     breaklines=true,                 
@@ -32,6 +35,7 @@
     showstringspaces=false,
     showtabs=false,                  
     tabsize=2
+    %, basicstyle=\footnotesize
 }
 
 \lstset{
@@ -188,34 +192,79 @@ int main(int argc, char **argv){
         fprintf(stderr, "pthread_create: %s\n", strerror(error));
         exit (EXIT_FAILURE);
     }
+    error = pthread_detach(h1);
+    if(error != 0){
+        fprintf(stderr, "pthread_detach: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
+    error = pthread_detach(h2);
+    if(error != 0){
+        fprintf(stderr, "pthread_detach: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
 
-    sleep(max(strlen(hola), strlen(mundo))); /*evitamos que el hilo principal compruebe constantemente*/
+    sleep(max(strlen(hola), strlen(mundo))); 
     while (_h_count != 2);/*nos aseguramos de que han terminado*/
     printf("El programa %s termino correctamente\n", argv[0]);
     exit(EXIT_SUCCESS);
 }
 \end{lstlisting}
 
-De este modo, se guarda una variable global que guarda cuántos hilos han terminado, y por la orden: \texttt{while(\_h\_count!=2);}, nos aseugramos que el hilo principal no termina antes de que los otros dos no hayan terminado. Para evitar que el hilo principal no esté comprobando esta variable cuando sabemos que no pueden haber terminado, llamamos justo antes a \texttt{sleep()}, para que el hilo principal se quede esperando un suceso (que el tiempo máximo que tarda uno de los hilos pase), en lugar de estar ejecutándose sin sentido.
+Si no llamamos a \texttt{pthread\_join()}, tenemos que desilgar los hilos (llamando a \texttt{pthread\_detach()}).
+
+Además, guardamos una variable global que cuenta los que hilos han terminado, y por la orden: \texttt{while(\_h\_count!=2);}, nos aseugramos que el hilo principal no termina antes de que los otros dos no hayan terminado. Para evitar que el hilo principal esté comprobando esta variable cuando sabemos que no pueden haber terminado, llamamos justo antes a \texttt{sleep()}, para que el hilo principal se quede esperando un suceso (que el tiempo máximo que tarda uno de los hilos pase), en lugar de estar ejecutándose sin sentido.
+
 
 \subsection*{Ejercicio 6}
 
-a) No se puede saber ya que después de cada \texttt{fork()} el planificador puede establecer que el proceso padre siga en ejecución o su hijo.
+a) No se puede saber ya que después de cada \texttt{fork()} el planificador puede establecer un orden de ejecución distinto de los cuatro procesos que hay en total.
 
-b) Como queremos que sea el hijo el que imprima su PID y el de su padre, hay que modificar el bloque if correspondiente al hijo (\texttt{fork()} devuelve 0 en el hijo). En el printf llamamos a las funciones \texttt{getpid()} y \texttt{gepppid()} haciendo cast de sus valores de retorno.
+b) Como queremos que sea el hijo el que imprima su PID y el de su padre, hay que modificar el bloque if correspondiente al hijo (\texttt{fork()} devuelve 0 en el hijo). En el printf llamamos a las funciones \texttt{getpid()} y \texttt{gepppid()} haciendo cast de sus valores de retorno:
 
-c) El código se corresponde al diagrama a) ya que los hijos depués de imprimir acaban (llamada a \texttt{exit()}) y en cambio el padre vuelve a crear un nuevo hijo en la siguiente iteración. Para obtener el otro diagrama habría que hacer los bloques de control simétricos; el proceso padre es el que llama a \texttt{exit()} y el hijo es el que crea un nuevo proceso (y se convierte en padre).
+\begin{lstlisting}[language=C, numbers=left]
+    else if(pid==0){
+        printf("Hijo: pid=%ld, ppid=%ld\n", (intmax_t)getpid(), (intmax_t)getppid());
+        exit(EXIT_SUCCESS);
+    }
+\end{lstlisting}
 
-d) El código original puede dejar huérfanos ya que nada asegura que sus 3 hijos vayan a finalizar antes que él. En cuanto el proceso padre se encuentre en la línea de ejecución del \texttt{wait()} y un hijo suyo finalice, el proceso padre finalizará también dejando huérfano a los posibles hijos restantes. 
+c) El código se corresponde al diagrama (a); ya que los hijos depués de imprimir finalizan (llamada a \texttt{exit()}) y en cambio el padre vuelve a crear un nuevo hijo en la siguiente iteración. Para obtener el otro diagrama habría que modificar los bloques de control: el proceso padre es el que llama a \texttt{exit()} y el hijo no lo hace, para crear un nuevo proceso en la siguiente iteración del bucle:
 
-e) Una forma de evitar esto es cambiar esa línea de código por la siguiente expresión \texttt{while(wait()!=-1);} que hará NUM\_PROC \textit{waits} y el siguiente retornará -1 al no haber procesos hijos no esperados (\textit{unwaited-for children}) 
+\begin{lstlisting}[language=C, numbers=left]
+    else if(pid==0){
+        printf("Hijo: pid=%ld, ppid=%ld\n", (intmax_t)getpid(), (intmax_t)getppid());
+    }
+    else if(pid > 0) {
+        printf("Padre %d\n", i);
+        exit(EXIT_SUCCESS);
+    }
+\end{lstlisting}
+
+d) El código original puede dejar huérfanos ya que nada asegura que sus 3 hijos vayan a finalizar antes que él. En cuanto el proceso padre se encuentre en la línea de ejecución del \texttt{wait()} y un hijo suyo finalice, el proceso padre finalizará también dejando huérfano a los posibles hijos restantes. Es decir, \texttt{wait()}, usado como en el código dado, tan solo espera al primer hijo que finalice.
+
+e) Una forma de evitar esto es cambiar esa línea de código por: la línea: \texttt{while(wait(NULL)!=-1);}. El padre esperará a un hijo hasta que no haya procesos hijos que esperar (\textit{unwaited-for children}), cuando devolverá -1 y podrá finalizar el padre.  
 
 \subsection*{Ejercicio 7}
 
-a) Al ejecutar vemos que la cadena \textit{sentence} que imprime el padre está vacía. El error del programa es no teneer en cuenta que al crear el proceso hijo, éste tiene una memoria separada del padre  por lo que los cambios que se hagan desde el hijo no son visibles desde el padre. Cada puntero \textit{sentence} apunta a una dirección de memoria distinta.
+a) Al ejecutar vemos que la cadena \textit{sentence} que imprime el padre está vacía. El error del programa es no tener en cuenta que al crear el proceso hijo, éste tiene una memoria separada del padre  por lo que los cambios que se hagan desde el hijo no son visibles desde el padre. Cada puntero \textit{sentence} apunta a una dirección de memoria distinta.
 (debido al \textit{Copy on write} podría ser que si no se trata de modificar la información de ese bloque de memoria no se llegase a crear una copia. No obstante en este caso no hay dudas ya que estamos modificando la memoria apuntada por \textit{sentence} al llamar a la función \texttt{strcpy()}).
 
-b) Habría que liberar memoria tanto en el padre como en el hijo ya que se está creando una nueva copia del bloque de memoria alocado en el proceso padre como hemos explicado en el apartado anterior.
+b) Habría que liberar memoria tanto en el padre como en el hijo ya que se está creando una nueva copia del bloque de memoria alocado en el proceso padre como hemos explicado en el apartado anterior:
+
+\begin{lstlisting}[language=C, numbers=left]
+    else if(pid==0){
+        strcpy(sentence, MESSAGE);
+        free(sentence);
+        exit(EXIT_SUCCESS);
+    }
+    else {
+        wait(NULL);
+        printf("Padre: %s\n", sentence);
+        free(sentence);
+        exit(EXIT_SUCCESS);
+    }
+\end{lstlisting}
+
 
 
 \subsection*{Ejercicio 8}

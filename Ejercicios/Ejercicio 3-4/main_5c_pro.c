@@ -26,14 +26,25 @@ int main(int argc, char **argv){
     char *hola="Hola";
     char *mundo="Mundo";
     int error;
+    pthread_attr_t attr_detached;/*atributo usado para llamar a pthread_create*/
 
-    error = pthread_create(&h1, NULL, slow_printf, hola);
+    error = pthread_attr_init(&attr_detached);/*inicializamos el atributo*/
+    if(error!=0){
+        fprintf(stderr, "pthread_attr_getdetachstate: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
+    error = pthread_attr_setdetachstate(&attr_detached, PTHREAD_CREATE_DETACHED);/*para tener el atributo con el que se inicializa el hilo ya desligado*/
+    if(error!=0){
+        fprintf(stderr, "pthread_attr_getdetachstate: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
+
+    error = pthread_create(&h1, &attr_detached, slow_printf, hola);
     if(error != 0){
         fprintf(stderr, "pthread_create: %s\n", strerror(error));
         exit (EXIT_FAILURE);
     }
-
-    error = pthread_create(&h2, NULL, slow_printf, mundo);
+    error = pthread_create(&h2, &attr_detached, slow_printf, mundo);
     if(error != 0){
         fprintf(stderr, "pthread_create: %s\n", strerror(error));
         exit (EXIT_FAILURE);
@@ -45,14 +56,3 @@ int main(int argc, char **argv){
     exit(EXIT_SUCCESS);
 }
 
-    /*error = pthread_detach(h1);
-    if(error != 0){
-        fprintf(stderr, "pthread_detach: %s\n", strerror(error));
-        exit (EXIT_FAILURE);
-    }
-
-    error = pthread_detach(h2);
-    if(error != 0){
-        fprintf(stderr, "pthread_detach: %s\n", strerror(error));
-        exit (EXIT_FAILURE);
-    }*/
