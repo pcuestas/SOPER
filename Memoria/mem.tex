@@ -153,7 +153,52 @@ b) En este caso, ocurre exactamente lo mismo que en anterior (se imprimen las do
 
 Es decir, \texttt{pthread\_exit()} termina la ejecución del hilo principal, pero permite que se terminen todos los hilos que del proceso antes de terminarlo. Lo cual no pasa si se llama directamente a \texttt{exit()}, como hemos visto en el apratado 5a).
 
-c) Para que los otros hilos puedan terminar su ejecución, tenemos que sustituir la llamada en \texttt{main()} de \texttt{exit()} por una llamada a \texttt{pthread\_exit()}.
+c) Para que se espere la terminación de los hilos sin que el hilo principal ocupe al procesador, pero sin utilizar ni \texttt{pthread\_exit()} ni \texttt{pthread\_join()}, podemos hacer lo siguiente:
+
+\begin{lstlisting}[language=C]
+#define max(a,b) ((a)>(b)?(a):(b))
+
+int _h_count=0;
+
+void *slow_printf(void *arg) {
+    const  char *msg = arg;
+    size_t i;
+    
+    for (i = 0; i < strlen(msg); i++) {
+        printf(" %c ", msg[i]);
+        fflush(stdout);
+        sleep (1);
+    }    
+    _h_count++; /*para saber cu\`antos han terminado (0, 1, o 2)*/
+    return  NULL;
+}
+
+int main(int argc, char **argv){
+    pthread_t h1, h2;
+    char *hola="Hola";
+    char *mundo="Mundo";
+    int error;
+
+    error = pthread_create(&h1, NULL, slow_printf, hola);
+    if(error != 0){
+        fprintf(stderr, "pthread_create: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
+
+    error = pthread_create(&h2, NULL, slow_printf, mundo);
+    if(error != 0){
+        fprintf(stderr, "pthread_create: %s\n", strerror(error));
+        exit (EXIT_FAILURE);
+    }
+
+    sleep(max(strlen(hola), strlen(mundo))); /*esto es lo que tardar\`an como m\`inimo-evitamos que el hilo principal compruebe constantemente*/
+    while (_h_count != 2);/*nos aseguramos de que han terminado*/
+    printf("El programa %s termin\'o correctamente\n", argv[0]);
+    exit(EXIT_SUCCESS);
+}
+\end{lstlisting}
+
+De este modo, se guarda una variable global que guarda cuántos hilos han terminado, y por la orden: \texttt{while(\_h\_count!=2);}, nos aseugramos que el hilo principal no termina antes de que los otros dos no hayan terminado. Para evitar que el hilo principal no esté comprobando esta variable cuando sabemos que no pueden haber terminado, llamamos justo antes a \texttt{sleep()}, para que el hilo principal se quede esperando un suceso (que el tiempo máximo que tarda uno de los hilos pase), en lugar de estar ejecutándose sin sentido.
 
 \subsection*{Ejercicio 6}
 
