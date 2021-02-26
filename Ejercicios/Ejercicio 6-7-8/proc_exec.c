@@ -19,7 +19,7 @@ int main(void) {
             perror("execvp");
             exit(EXIT_FAILURE);
         }*/
-		if (execl("ls", argv)) {
+		if (execl("/bin/ls", "ls", "./", (char*)NULL)) {
             perror("execvp");
             exit(EXIT_FAILURE);
         }
@@ -29,3 +29,4 @@ int main(void) {
 	}
     exit(EXIT_SUCCESS);
 }
+

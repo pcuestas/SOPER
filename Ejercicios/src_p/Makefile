@@ -10,7 +10,11 @@ $(EXE): $(OBJ)
 	rm *.o
 
 run: $(EXE)
+	@echo "------------"
 	./$(EXE)
 
 %.o: %.c 
 	$(CC) -c $< -o $@
+
+clean:
+	$(RM) ./$(EXE) *.o

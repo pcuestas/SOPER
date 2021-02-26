@@ -111,10 +111,10 @@ INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
+OUTPUT /home/pablo/repos/SOPER_p1/Memoria/mem.pdf
 INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 INPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
 OUTPUT /home/pablo/repos/SOPER_p1/Memoria/mem.out
-OUTPUT /home/pablo/repos/SOPER_p1/Memoria/mem.pdf
 INPUT /usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr17.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
