@@ -2,6 +2,7 @@ EXE=main
 CC=gcc
 OBJ=$(EXE).o
 LIB=-lpthread
+CFLAGS=-ansi -pedantic -Wall -g
 
 all: $(EXE)
 
@@ -14,7 +15,7 @@ run: $(EXE)
 	./$(EXE)
 
 %.o: %.c 
-	$(CC) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	$(RM) ./$(EXE) *.o

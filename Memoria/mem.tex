@@ -225,7 +225,7 @@ b) Como queremos que sea el hijo el que imprima su PID y el de su padre, hay que
 
 \begin{lstlisting}[language=C, numbers=left]
     else if(pid==0){
-        printf("Hijo: pid=%ld, ppid=%ld\n", (intmax_t)getpid(), (intmax_t)getppid());
+        printf("Hijo: pid=%jd, ppid=%jd\n", (intmax_t)getpid(), (intmax_t)getppid());
         exit(EXIT_SUCCESS);
     }
 \end{lstlisting}
@@ -234,7 +234,7 @@ c) El código se corresponde al diagrama (a); ya que los hijos depués de imprim
 
 \begin{lstlisting}[language=C, numbers=left]
     else if(pid==0){
-        printf("Hijo: pid=%ld, ppid=%ld\n", (intmax_t)getpid(), (intmax_t)getppid());
+        printf("Hijo: pid=%jd, ppid=%jd\n", (intmax_t)getpid(), (intmax_t)getppid());
     }
     else if(pid > 0) {
         printf("Padre %d\n", i);

@@ -7,29 +7,28 @@
 #include  <sys/wait.h>
 
 
-#define MESSAGE "Hello"
+#define NUM_PROC 3
 
-int main(void){
-    //char *argv[4]= { "mi-ls" , "-la", "./" , NULL};
-    pid_t pid;
+int main(void) {
+	int i;
+	pid_t pid;
 
-    pid = fork();
-    if(pid<0){
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    else if(pid==0){
-        if(execl("/bin/ls", "ls", "./" , (char*)NULL)){
-            perror("execvp");
-            exit(EXIT_FAILURE);
-        }
-    }
-    else {
-        wait(NULL);
-    }
-    
-
-    exit(EXIT_SUCCESS);
+	for (i = 0; i < NUM_PROC; i++) {
+		pid = fork();
+		if (pid <  0) {
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
+		else if (pid == 0) {
+			printf("Proceso %jd, hijo de %jd\n", (intmax_t)getpid(),(intmax_t)getppid());
+			exit(EXIT_SUCCESS);
+		}
+		else if (pid > 0) {
+			printf("Padre %d\n", i);
+		}
+	}
+	while(wait(NULL)!=-1){}
+	exit(EXIT_SUCCESS);
 }
 
     /*error = pthread_detach(h1);
