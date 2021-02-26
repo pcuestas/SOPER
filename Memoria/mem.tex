@@ -215,6 +215,7 @@ Si no llamamos a \texttt{pthread\_join()}, tenemos que desilgar los hilos (llama
 
 Además, guardamos una variable global que cuenta los que hilos han terminado, y por la orden: \texttt{while(\_h\_count!=2);}, nos aseugramos que el hilo principal no termina antes de que los otros dos no hayan terminado. Para evitar que el hilo principal esté comprobando esta variable cuando sabemos que no pueden haber terminado, llamamos justo antes a \texttt{sleep()}, para que el hilo principal se quede esperando un suceso (que el tiempo máximo que tarda uno de los hilos pase), en lugar de estar ejecutándose sin sentido.
 
+\section*{Semana 2}
 
 \subsection*{Ejercicio 6}
 
@@ -279,6 +280,12 @@ b) Tenemos que cambiar la orden de llamada a \texttt{execvp} por lo siguiente:
 \end{lstlisting}
 
 Debido a que en este caso la función no contiene la letra \texttt{p} tras el sufijo \texttt{exec}, es necesario especificar la ubicación del fichero a ser ejecutado (en este caso: \texttt{/bin/ls}). Después, incluimos los argumentos de la función. En este caso, debido a la \texttt{l} después del prefijo \texttt{exec}, éstos no deben pasarse como un array de cadenas, sino uno a uno (las funciones que tienen el prefijo \texttt{execl} son funciones variádicas). Como antes, por convención, el primero de ellos es el nombre del fichero que se va a ejecutar (\texttt{"ls"}), y luego los argumentos: en este caso, solamente \texttt{"./"}. Finalizando con un puntero a \texttt{NULL} (además, debemos hacer cast a \texttt{(char*)}).
+
+\section*{Semana 3}
+
+\subsection*{Ejercicio 9}
+
+
 
 \end{document}
 
