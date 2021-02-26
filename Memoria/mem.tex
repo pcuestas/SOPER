@@ -6,14 +6,6 @@
 \usepackage{fancyhdr}
 \usepackage{fancyvrb}
 
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-}
-
 \usepackage{listings}
 \usepackage{xcolor}
 
@@ -46,8 +38,14 @@
     %, basicstyle=\footnotesize
 }
 
-\lstset{
-    style=mystyle
+\lstset{style=mystyle}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
 }
 
 \pagestyle{fancy}
@@ -57,13 +55,7 @@
 \cfoot{\thepage}
 
 
-\usepackage{xcolor}   %May be necessary if you want to color links
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true, %set true if you want colored links
-    linktoc=all,     %set to all if you want both sections and subsections linked
-    linkcolor=blue,  %choose some color if you want links to stand out
-}
+
 
 \title{Sistemas Operativos. Práctica 1.}
 \author{Pablo Cuesta Sierra y Álvaro Zamanillo Sáez }

@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1614331407 "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf" "mem" 1614331408
+["pdflatex"] 1614331630 "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf" "mem" 1614331631
   "/etc/texmf/web2c/texmf.cnf" 1599481107 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.aux" 1614331408 967 8338b14de810cfe27c1b23bbbc9f1c51 ""
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" 1614331407 15749 d97eda44d0bcb1708c425b03a31bb1cf ""
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.aux" 1614331631 967 8338b14de810cfe27c1b23bbbc9f1c51 ""
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.tex" 1614331630 15430 15bcfa10c24177b3baa9fffd142c00b1 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tctt0800.tfm" 1136768653 1536 3d9caa7b59d4d3f96d272d1de68d8742 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
@@ -86,14 +86,14 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1604067133 4770781 1ed1abab22da9c3e2cc82e4db562318b ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1604067199 8260270 12e86638b940676d0ad795a76aca21c2 ""
-  "mem.aux" 1614331408 967 8338b14de810cfe27c1b23bbbc9f1c51 "pdflatex"
-  "mem.out" 1614331408 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "mem.tex" 1614331407 15749 d97eda44d0bcb1708c425b03a31bb1cf ""
+  "mem.aux" 1614331631 967 8338b14de810cfe27c1b23bbbc9f1c51 "pdflatex"
+  "mem.out" 1614331631 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "mem.tex" 1614331630 15430 15bcfa10c24177b3baa9fffd142c00b1 ""
   "pthread_functions.txt" 1613893402 5445 c6998ec89cbcbe8cda69bc8543f9934b ""
   (generated)
-  "mem.out"
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.log"
-  "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf"
-  "mem.pdf"
   "mem.log"
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.log"
+  "mem.pdf"
   "mem.aux"
+  "/home/pablo/repos/SOPER_p1/Memoria/mem.pdf"
+  "mem.out"
