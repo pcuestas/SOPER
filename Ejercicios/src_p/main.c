@@ -9,22 +9,23 @@
 
 #define MESSAGE "Hello"
 
-int main(int argc, char **argv){
+int main(void){
+    //char *argv[4]= { "mi-ls" , "-la", "./" , NULL};
     pid_t pid;
-    char * sentence = calloc(sizeof(MESSAGE), 1);
 
     pid = fork();
-    if(pid<0){perror("fork");exit(EXIT_FAILURE);}
+    if(pid<0){
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
     else if(pid==0){
-        strcpy(sentence, MESSAGE);
-        free(sentence);
-        exit(EXIT_SUCCESS);
+        if(execl("/bin/ls", "ls", "../" , (char*)NULL)){
+            perror("execvp");
+            exit(EXIT_FAILURE);
+        }
     }
     else {
         wait(NULL);
-        printf("Padre: %s\n", sentence);
-        free(sentence);
-        exit(EXIT_SUCCESS);
     }
     
 

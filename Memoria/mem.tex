@@ -6,6 +6,14 @@
 \usepackage{fancyhdr}
 \usepackage{fancyvrb}
 
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
 \usepackage{listings}
 \usepackage{xcolor}
 
@@ -133,11 +141,13 @@ b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \
 
 c) Justo después de la instrucción \texttt{fopen()} se debería guardar el valor de errno en otra variable ya que la llamada a \texttt{printf()} podría modificar la variable global errno.
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C, texcl=true]
 pf=fopen(args[1],"r"); 
 x=errno;
 printf("El valor de errno es %i",x);
-errno=x; /*Aqui aseguramos que la funcion perror() va a imprimir el codigo de error de fopen ya que hemos restaurado el valor de errno asociado a fopen()*/
+errno=x; //Aquí aseguramos que la función perror() va a imprimir el código 
+         //de error de fopen ya que hemos restaurado el valor de errno 
+         //asociado a fopen()
 perror();
 \end{lstlisting}
 
@@ -269,6 +279,15 @@ b) Habría que liberar memoria tanto en el padre como en el hijo ya que se está
 
 \subsection*{Ejercicio 8}
 
+a) El resultado es el mismo. Según el manual de \href{man:execvp(3)}{execvp}, el hecho de que el primer elemento en el array de argumentos que se pasa (\texttt{const char *argv[]}) sea el nombre del fichero asociado al fichero que se va a ejecutar, es tan solo una convención. Sin embargo, no cambia el resultado, ya que se ejecuta el fichero que se indica en el primer argumento de la llamada a \texttt{execvp()}.
+
+b) Tenemos que cambiar la orden de llamada a \texttt{execvp} por lo siguiente:
+
+\begin{lstlisting}[language=C]
+    execl("/bin/ls", "ls", "./" , (char*)NULL)
+\end{lstlisting}
+
+Debido a que en este caso la función no contiene la letra \texttt{p} tras el sufijo \texttt{exec}, es necesario especificar la ubicación del fichero a ser ejecutado (en este caso: \texttt{/bin/ls}). Después, incluimos los argumentos de la función. En este caso, debido a la \texttt{l} después del prefijo \texttt{exec}, éstos no deben pasarse como un array de cadenas, sino uno a uno (las funciones que tienen el prefijo \texttt{execl} son funciones variádicas). Como antes, por convención, el primero de ellos es el nombre del fichero que se va a ejecutar (\texttt{"ls"}), y luego los argumentos: en este caso, solamente \texttt{"./"}. Finalizando con un puntero a \texttt{NULL} (además, debemos hacer cast a \texttt{(char*)}).
 
 \end{document}
 
