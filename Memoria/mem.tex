@@ -285,6 +285,32 @@ Debido a que en este caso la función no contiene la letra \texttt{p} tras el su
 
 \subsection*{Ejercicio 9}
 
+\subsection*{Ejercicio 10}
+
+a) Encontramos los descriptores de fichero 0,1,2 que corresponden respectivamente a stdin,sdtout y stderr.
+
+b) En el segundo stop vemos que hay un nuevo descriptor que apunta a file1.txt y en el siguiente stop, otro nuevo que apunta esta vez a file2.txt
+
+c) Tras la llamada a unlink vemos que el descriptor de fichero que apuntaba a file1.txt aparece marcado como borrado en la tabla aunque sigue permaneciendo ahí. Esto se debe a que solo hemos eliminado la ruta para acceder al fichero pero no lo hemos cerrado.
+
+d) Tras el stop 5, el descriptor del fichero file1.txt ya se ha eliminado de la tabla (todas sus rutas se han eliminado con \texttt{unlink()} y el proceso lo ha cerrado con \texttt{close()}). En los siguientes stops se abren dos nuevos fichero por lo que aparecen dos nuevas entradas en la tabla de descriptores. Tras la ejecución del programa podemos ver que al abrir un fichero se le asigna el menor entero positivo que no usado en la tabla de descriptores.
+
+\subsection*{Ejercicio 11}
+
+a) El mensaje "Yo soy tu padre" se imprime dos veces en pantalla porque la llamada a \texttt{fork()} se hace sin que se haya vaciado el buffer de salida. Por lo tanto el proceso hijo, cuyos datos son una copia del proceso padre, hereda una copia de este buffer de salida (que no está vacio). Cunado el hijo acaba su ejecución vacia su buffer que contiene tanto el mensaje "Yo soy tu padre" como "Noooo". Por otro lado el padre al terminar también vuelca su buffer; en este caso solo contiene "Yo soy tu padre".
+
+b) Si añadimos el salto de línea ya no ocurre lo mencionado anteriormente. Esto se debe a que cuando se está imprimiendo en \textit{stdout}, el buffer está configurado para volcarse con cada salto de línea o al llenarse. Es por eso que cuando se crea el hijo, el buffer de salida que hereda está vacío.
+
+c) Al redirigir la salida a un fichero, la configuración del buffer ya no es la del apartado anterior (vaciarse con salto de línea), sino que solo se vacía tras una llamada a \texttt{fllush(stdout)} o cuando se llena.
+
+d) Para solucionar los problemas, lo más sencillo es asegurarse que el buffer se vuelca antes de crear el proceso hijo y esto se consigue en todos los casos con la llamada a \texttt{fflush(stdout)}
+
+\subsection*{Ejercicio 12}
+
+a) Tras ejecutar el programa vemos que el hijo imprime por pantalla ``He escrito en el pipe y el padre, He recibido el string Hola a todos!''.
+
+b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero el programa no finaliza ya que el padre sigue esperando a una escritura en la tubería (porque el descriptor de fichero f[1] sigue abierto).
+
 
 
 \end{document}
