@@ -2,6 +2,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <unistd.h>
+#include  <stdint.h>
 #include  <sys/types.h>
 #include  <sys/stat.h>
 
@@ -12,9 +13,10 @@
 #define  FILE3 "file3.txt"
 
 int  main(void) {
-    int file1 , file2 , file3 , file4;
+    int file1 , file2 , file3 , file4, file5;
     size_t  target_size;
     ssize_t  size_written , total_size_written;
+    char file_path[512];
     
     fprintf(stderr , "PID =  %d\nStop 1\n", getpid ()); getchar ();
     
@@ -49,8 +51,28 @@ int  main(void) {
         exit(EXIT_FAILURE);
     }
 
-    fprintf(stderr , "Stop 4\n"); getchar ();
+    fprintf(stderr , "Stop 4.0\n"); getchar ();
+
+/************************************/
+    sprintf(file_path, "/proc/%jd/fd/%d",(intmax_t)getpid(),file1);
+
+    if(!fork())
+        execlp("cp", "cp", file_path, "./");
+
+    if(wait(NULL)==-1){
+        perror("wait");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(file_path, "%d",file1);
+    close(file1);
+    if ((file1 = open(file_path , O_CREAT | O_TRUNC | O_RDWR , S_IRUSR | S_IWUSR| S_IRGRP | S_IWGRP)) ==  -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    fprintf(stderr , "Stop 4.1\n"); getchar ();
     
+/*************************************/
     close(file1);
     
     fprintf(stderr , "Stop 5\n"); getchar ();
