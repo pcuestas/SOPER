@@ -51,26 +51,27 @@ int  main(void) {
         exit(EXIT_FAILURE);
     }
 
-    fprintf(stderr , "Stop 4.0\n"); getchar ();
+    fprintf(stderr , "Stop 4\n"); getchar ();
 
 /************************************/
     sprintf(file_path, "/proc/%jd/fd/%d",(intmax_t)getpid(),file1);
 
     if(!fork())
-        execlp("cp", "cp", file_path, "./");
+        execlp("cp", "cp", file_path, FILE1);
 
     if(wait(NULL)==-1){
         perror("wait");
         exit(EXIT_FAILURE);
     }
-    sprintf(file_path, "%d",file1);
+
+    fprintf(stderr , "Stop 4.1\n"); getchar ();
     close(file1);
-    if ((file1 = open(file_path , O_CREAT | O_TRUNC | O_RDWR , S_IRUSR | S_IWUSR| S_IRGRP | S_IWGRP)) ==  -1) {
+    if ((file1 = open(FILE1 ,  O_TRUNC | O_RDWR , S_IRUSR | S_IWUSR| S_IRGRP | S_IWGRP)) ==  -1) {
         perror("open");
         exit(EXIT_FAILURE);
     }
 
-    fprintf(stderr , "Stop 4.1\n"); getchar ();
+    fprintf(stderr , "Stop 4.2\n"); getchar ();
     
 /*************************************/
     close(file1);
