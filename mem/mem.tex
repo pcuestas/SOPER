@@ -285,6 +285,16 @@ Debido a que en este caso la función no contiene la letra \texttt{p} tras el su
 
 \subsection*{Ejercicio 9}
 
+a) Nombre el ejecutable: en el fichero \texttt{/proc/[pid]/stat}, el segundo campo contiene entre paréntesis el nombre del ejecutable.
+
+b) Ejecutando \texttt{cd /proc/[pid]/cwd; pwd -P}, se recibe el directorio actual del proceso.
+
+c) La línea de comados que se usó para lanzarlo: \texttt{/proc/[pid]/cmdline}
+
+d) 
+
+e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/[pid]/task}, ya que este directorio es donde se encuentran los subdirectorios de los hilos.
+
 \subsection*{Ejercicio 10}
 
 a) Encontramos los descriptores de fichero 0,1,2 que corresponden respectivamente a stdin,sdtout y stderr.
