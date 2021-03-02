@@ -297,11 +297,11 @@ e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/[pid]/ta
 
 \subsection*{Ejercicio 10}
 
-a) Encontramos los descriptores de fichero 0,1,2 que corresponden respectivamente a stdin,sdtout y stderr.
+a) Encontramos los descriptores de fichero 0,1,2 que corresponden respectivamente a stdin, stdout y stderr.
 
-b) En el segundo stop vemos que hay un nuevo descriptor que apunta a file1.txt y en el siguiente stop, otro nuevo que apunta esta vez a file2.txt
+b) En el segundo stop vemos que hay un nuevo descriptor (3) que apunta a file1.txt y en el siguiente stop, otro nuevo (4) que apunta esta vez a file2.txt
 
-c) Tras la llamada a unlink vemos que el descriptor de fichero que apuntaba a file1.txt aparece marcado como borrado en la tabla aunque sigue permaneciendo ahí. Esto se debe a que solo hemos eliminado la ruta para acceder al fichero pero no lo hemos cerrado.
+c) Tras la llamada a unlink vemos que el descriptor de fichero que apuntaba a file1.txt aparece marcado como borrado --texttt{(deleted)}-- en la tabla aunque permanece ahí. Esto se debe a que solo hemos eliminado la ruta para acceder al fichero pero no lo hemos cerrado.
 
 d) Tras el stop 5, el descriptor del fichero file1.txt ya se ha eliminado de la tabla (todas sus rutas se han eliminado con \texttt{unlink()} y el proceso lo ha cerrado con \texttt{close()}). En los siguientes stops se abren dos nuevos fichero por lo que aparecen dos nuevas entradas en la tabla de descriptores. Tras la ejecución del programa podemos ver que al abrir un fichero se le asigna el menor entero positivo que no usado en la tabla de descriptores.
 
