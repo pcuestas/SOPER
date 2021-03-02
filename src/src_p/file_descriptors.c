@@ -63,8 +63,8 @@ int  main(void) {
         perror("wait");
         exit(EXIT_FAILURE);
     }
-
     fprintf(stderr , "Stop 4.1\n"); getchar ();
+    
     close(file1);
     if ((file1 = open(FILE1 ,  O_TRUNC | O_RDWR , S_IRUSR | S_IWUSR| S_IRGRP | S_IWGRP)) ==  -1) {
         perror("open");
