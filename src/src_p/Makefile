@@ -1,4 +1,4 @@
-EXE=file_descriptors
+EXE=proc_shell
 CC=gcc
 OBJ=$(EXE).o
 LIB=-lpthread

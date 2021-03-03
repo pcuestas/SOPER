@@ -244,7 +244,7 @@ c) El código se corresponde al diagrama (a); ya que los hijos depués de imprim
 
 d) El código original puede dejar huérfanos ya que nada asegura que sus 3 hijos vayan a finalizar antes que él. En cuanto el proceso padre se encuentre en la línea de ejecución del \texttt{wait()} y un hijo suyo finalice, el proceso padre finalizará también dejando huérfano a los posibles hijos restantes. Es decir, \texttt{wait()}, usado como en el código dado, tan solo espera al primer hijo que finalice.
 
-e) Una forma de evitar esto es cambiar esa línea de código por: la línea: \texttt{while(wait(NULL)!=-1);}. El padre esperará a un hijo hasta que no haya procesos hijos que esperar (\textit{unwaited-for children}), cuando devolverá -1 y podrá finalizar el padre.  
+e) Una forma de evitar esto es cambiar esa línea de código por: la línea: \texttt{while(wait(NULL)!=-1);}. El padre esperará a un hijo hasta que no haya procesos hijos que esperar (\textit{no unwaited-for children}), cuando devolverá -1 y podrá finalizar el padre.  
 
 \subsection*{Ejercicio 7}
 
@@ -285,15 +285,15 @@ Debido a que en este caso la función no contiene la letra \texttt{p} tras el su
 
 \subsection*{Ejercicio 9}
 
-a) Nombre el ejecutable: en el fichero \texttt{/proc/[pid]/stat}, el segundo campo contiene entre paréntesis el nombre del ejecutable.
+a) Nombre el ejecutable: en el fichero \texttt{/proc/\textit{[pid]}/stat}, el segundo campo contiene entre paréntesis el nombre del ejecutable.
 
-b) Ejecutando \texttt{cd /proc/[pid]/cwd; pwd -P}, se recibe el directorio actual del proceso.
+b) Ejecutando \texttt{cd /proc/\textit{[pid]}/cwd; pwd -P}, se recibe el directorio actual del proceso.
 
-c) La línea de comados que se usó para lanzarlo: \texttt{/proc/[pid]/cmdline}
+c) La línea de comados que se usó para lanzarlo: \texttt{/proc/\textit{[pid]}/cmdline}
 
-d) \texttt{cat /proc/[pid]/environ | tr '\textbackslash 0' '\textbackslash n' | grep LANG}
+d) \texttt{cat /proc/\textit{[pid]}/environ | tr '\textbackslash 0' '\textbackslash n' | grep LANG}
 
-e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/[pid]/task}, ya que este directorio es donde se encuentran los subdirectorios de los hilos.
+e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/\textit{[pid]}/task}, ya que este directorio es donde se encuentran los subdirectorios de los hilos.
 
 \subsection*{Ejercicio 10}
 
@@ -303,25 +303,25 @@ b) En el segundo stop vemos que hay un nuevo descriptor (3) que apunta a file1.t
 
 c) Tras la llamada a unlink vemos que el descriptor de fichero que apuntaba a file1.txt aparece marcado como borrado --\texttt{(deleted)}-- en la tabla aunque permanece ahí. Esto se debe a que solo hemos eliminado la ruta para acceder al fichero pero no lo hemos cerrado.
 
-Se sigue podiendo acceder al fichero desde \texttt{/proc/pid/fd}, y podemos acceder a su contenido, por lo que se pueden recuperar los datos
+Se sigue podiendo acceder al fichero desde \texttt{/proc/\textit{[pid]}/fd}, y podemos acceder a su contenido, por lo que se pueden recuperar los datos.
 
-d) Tras el stop 5, el descriptor del fichero file1.txt ya se ha eliminado de la tabla (todas sus rutas se han eliminado con \texttt{unlink()} y el proceso lo ha cerrado con \texttt{close()}). Tras el stop 6, se ha reutilizado el descriptor 3, antes asignado al fichero file1.txt, para el fichero file3.txt. Y tras el stop 7, que se asigna otro descriptor (5) al mismo fichero (file3.txt); por lo que ahora tenemos 0, 1, 2 como al inicio, 3 y 5 apuntando a file3.txt, y 4 apuntando a file2.txt.
+d) Tras el stop 5, el descriptor del fichero file1.txt ya se ha eliminado de la tabla (todas sus rutas se han eliminado con \texttt{unlink()} y el proceso lo ha cerrado con \texttt{close()}). Tras el stop 6, se ha reutilizado el descriptor 3, antes asignado al fichero file1.txt, para el fichero file3.txt. Y tras el stop 7, se asigna otro descriptor (5) al mismo fichero (file3.txt); por lo que ahora tenemos 0, 1, 2 como al inicio, 3 y 5 apuntando a file3.txt, y 4 apuntando a file2.txt.
 
 Por lo que hemos visto, al abrir un nuevo fichero, se asigna el descriptor más pequeño que esté libre tras cada llamada a \texttt{open}.
 
 \subsection*{Ejercicio 11}
 
-a) El mensaje "Yo soy tu padre" se imprime dos veces en pantalla porque la llamada a \texttt{fork()} se hace sin que se haya vaciado el buffer de salida. Por lo tanto el proceso hijo, cuyos datos son una copia del proceso padre, hereda una copia de este buffer de salida (que no está vacio). Cunado el hijo acaba su ejecución vacia su buffer que contiene tanto el mensaje "Yo soy tu padre" como "Noooo". Por otro lado el padre al terminar también vuelca su buffer; en este caso solo contiene "Yo soy tu padre".
+a) El mensaje ``Yo soy tu padre'' se imprime dos veces en pantalla porque la llamada a \texttt{fork()} se hace sin que se haya vaciado el buffer de salida. Por lo tanto el proceso hijo, cuyos datos son una copia del proceso padre, hereda una copia de este buffer de salida (que no está vacio). Cuando el hijo acaba su ejecución vacia su buffer que contiene tanto el mensaje ``Yo soy tu padre'' como ``Noooooo''. Por otro lado el padre al terminar también vuelca su buffer; en este caso solo contiene ``Yo soy tu padre''.
 
 b) Si añadimos el salto de línea ya no ocurre lo mencionado anteriormente. Esto se debe a que cuando se está imprimiendo en \textit{stdout}, el buffer está configurado para volcarse con cada salto de línea o al llenarse. Es por eso que cuando se crea el hijo, el buffer de salida que hereda está vacío.
 
-c) Al redirigir la salida a un fichero, la configuración del buffer ya no es la del apartado anterior (vaciarse con salto de línea), sino que solo se vacía tras una llamada a \texttt{fllush(stdout)} o cuando se llena.
+c) Al redirigir la salida a un fichero, la configuración del buffer ya no es la del apartado anterior (vaciarse con salto de línea), sino que solo se vacía tras una llamada a \texttt{fflush(file)} o cuando se llena.
 
-d) Para solucionar los problemas, lo más sencillo es asegurarse que el buffer se vuelca antes de crear el proceso hijo y esto se consigue en todos los casos con la llamada a \texttt{fflush(stdout)}
+d) Para solucionar los problemas, lo más sencillo es asegurarse que el buffer se vuelca antes de crear el proceso hijo y esto se consigue en todos los casos con la llamada a \texttt{fflush(stdout)}.
 
 \subsection*{Ejercicio 12}
 
-a) Tras ejecutar el programa vemos que el hijo imprime por pantalla ``He escrito en el pipe y el padre, He recibido el string Hola a todos!''.
+a) Tras ejecutar el programa vemos que el padre imprime por pantalla: ``He recibido el string: Hola a todos!'', y el hijo: ``He escrito en el pipe''.
 
 b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero el programa no finaliza ya que el padre sigue esperando a una escritura en la tubería (porque el descriptor de fichero f[1] sigue abierto).
 

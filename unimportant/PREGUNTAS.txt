@@ -1,1 +1,5 @@
+1) ¿copiar TODA la salida...?
+
 5b) ¿Se pide que no se use pthread_join ni pthread_exit?
+
+10d) forma sencilla de recuperar datos
