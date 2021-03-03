@@ -15,7 +15,7 @@ run: $(EXE)
 	./$(EXE)
 
 %.o: %.c 
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LIB) -c $< -o $@
 
 clean:
 	$(RM) ./$(EXE) *.o

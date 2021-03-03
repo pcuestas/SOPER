@@ -22,7 +22,6 @@ void *proc_line(void *line){
     for(a=strtok(l->buf, s); a!=NULL; a=strtok(NULL,s)){
         (l->words)[i++]=a;
     }
-
     (l->words)[i]=NULL;/*indicar que no hay más palabras*/
     return NULL;
 }
@@ -33,6 +32,8 @@ int main(void){
     pthread_t h;
 
     while(fgets(line.buf, BUF_SIZE, stdin)!=NULL){
+        /*eliminar el \n del final*/
+        line.buf[strlen(line.buf)-1]='\0';
         /*crear hilo*/
         if((err = pthread_create(&h, NULL, proc_line, &line)) != 0){
             fprintf(stderr, "pthread_create: %s\n", strerror(err));
@@ -44,8 +45,8 @@ int main(void){
             exit (EXIT_FAILURE);
         }
         
-        for(i=0;line.words[i]!=NULL;i++){
-            printf("%s\n", line.words[i]);
+        for(i=0;line.words[i]!=NULL;i++){/*comprobación*/
+            printf("-%s-\n", line.words[i]);
         }
     }
 
