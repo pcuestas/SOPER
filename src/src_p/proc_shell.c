@@ -56,17 +56,15 @@ int main(void){
                 exit(EXIT_FAILURE);
             }
         }
-        else{
-            /*wait:storing the status of the termination of the child*/
-            if(waitpid(pid,&wstatus,0)==-1){
-                perror("wait");
-                exit(EXIT_FAILURE);
-            }
-            if(WIFEXITED(wstatus)){
-                fprintf(stdout, "Exited with value: %d\n", WEXITSTATUS(wstatus));
-            }else if(WIFSIGNALED(wstatus)){
-                fprintf(stderr, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
-            }
+        /*wait:storing the status of the termination of the child*/
+        if(waitpid(pid,&wstatus,0)==-1){
+            perror("wait");
+            exit(EXIT_FAILURE);
+        }
+        if(WIFEXITED(wstatus)){
+            fprintf(stdout, "Exited with value: %d\n", WEXITSTATUS(wstatus));
+        }else if(WIFSIGNALED(wstatus)){
+            fprintf(stderr, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
         }
     }
 
