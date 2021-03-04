@@ -58,7 +58,7 @@ int main(void){
         }
         else{
             /*wait:storing the status of the termination of the child*/
-            if(wait(&wstatus)==-1){
+            if(waitpid(pid,&wstatus,0)==-1){
                 perror("wait");
                 exit(EXIT_FAILURE);
             }
