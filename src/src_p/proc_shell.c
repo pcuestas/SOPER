@@ -65,7 +65,8 @@ int main(void){
             if(WIFEXITED(wstatus)){
                 fprintf(stdout, "Exited with value: %d\n", WEXITSTATUS(wstatus));
             }else if(WIFSIGNALED(wstatus)){
-                fprintf(stderr, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
+                fprintf(stderr, "Terminated by signal: %i\n",(wstatus));
+                
             }
         }
     }
