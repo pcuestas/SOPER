@@ -51,18 +51,22 @@ int main(void){
             perror("fork");
             exit(EXIT_FAILURE);
         }else if(pid==0){
-            execvp(line.words[0],line.words);/*no se puede usar otra*/
+            if(execvp(line.words[0],line.words)){
+                perror("execvp");
+                exit(EXIT_FAILURE);
+            }
         }
-        /*wait:storing the status of the termination of the child*/
-        if(waitpid(pid,&wstatus,0)==-1){
-            perror("wait");
-            exit(EXIT_FAILURE);
-        }
-        if(WIFEXITED(wstatus)){
-            fprintf(stdout, "Exited with value: %d\n", WEXITSTATUS(wstatus));
-        }
-        if(WIFSIGNALED(wstatus)){
-            fprintf(stderr, "Terminated by signal: %s\n", strsignal (WTERMSIG(wstatus)));
+        else{
+            /*wait:storing the status of the termination of the child*/
+            if(wait(&wstatus)==-1){
+                perror("wait");
+                exit(EXIT_FAILURE);
+            }
+            if(WIFEXITED(wstatus)){
+                fprintf(stdout, "Exited with value: %d\n", WEXITSTATUS(wstatus));
+            }else if(WIFSIGNALED(wstatus)){
+                fprintf(stderr, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
+            }
         }
     }
 
