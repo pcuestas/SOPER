@@ -22,14 +22,15 @@ void *proc_line(void *line){
     for(a=strtok(l->buf, s); a!=NULL; a=strtok(NULL,s)){
         (l->words)[i++]=a;
     }
-    (l->words)[i]=NULL;/*indicar que no hay más palabras*/
+    (l->words)[i]=(char*)NULL;/*indicar que no hay más palabras*/
     return NULL;
 }
 
 int main(void){
     Line_s line;
-    int err, i;
+    int err, wstatus;
     pthread_t h;
+    pid_t pid;
 
     while(fgets(line.buf, BUF_SIZE, stdin)!=NULL){
         /*eliminar el \n del final*/
@@ -45,8 +46,23 @@ int main(void){
             exit (EXIT_FAILURE);
         }
         
-        for(i=0;line.words[i]!=NULL;i++){/*comprobación*/
-            printf("-%s-\n", line.words[i]);
+        pid=fork();
+        if(pid<0){
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }else if(pid==0){
+            execvp(line.words[0],line.words);/*no se puede usar otra*/
+        }
+        /*wait:storing the status of the termination of the child*/
+        if(waitpid(pid,&wstatus,0)==-1){
+            perror("wait");
+            exit(EXIT_FAILURE);
+        }
+        if(WIFEXITED(wstatus)){
+            fprintf(stdout, "Exited with value: %d\n", WEXITSTATUS(wstatus));
+        }
+        if(WIFSIGNALED(wstatus)){
+            fprintf(stderr, "Terminated by signal: %s\n", strsignal (WTERMSIG(wstatus)));
         }
     }
 
