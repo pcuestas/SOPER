@@ -40,7 +40,7 @@ int main(void){
     } else {
         /* Cierre del descriptor de salida en el padre */
         close ( fd[1]);
-        /* Leer algo de la tuber ı́a ... el saludo ! */
+        /* Leer algo de la tuberı́a ... el saludo ! */
         nbytes = 0;
         do {
             nbytes = read(fd[0], readbuffer, sizeof(readbuffer));

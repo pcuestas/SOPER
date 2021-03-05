@@ -194,7 +194,7 @@ int main(int argc, char **argv){
         exit (EXIT_FAILURE);
     }
     error = pthread_detach(h1);
-    if(error != 0){
+    if(error != 0){ 
         fprintf(stderr, "pthread_detach: %s\n", strerror(error));
         exit (EXIT_FAILURE);
     }
@@ -325,10 +325,12 @@ a) Tras ejecutar el programa vemos que el padre imprime por pantalla: ``He recib
 
 b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero el programa no finaliza ya que el padre sigue esperando a una escritura en la tubería (porque el descriptor de fichero f[1] sigue abierto).
 
+\subsection*{Ejercicio 13}
 
+c) Hemos usado la función \texttt{execvp} ya que los argumentos del comando tras la ejecución del hilo, han sido colocados en un vector, la 'p' de la función es para que use la variable local PATH al ejecutar el comando.
 
+Al ejecutar un programa que finaliza llamando a abort, recibimos la señal Aborted (que tiene asociado el código 134).
 \end{document}
-
 
 
 
