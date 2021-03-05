@@ -34,7 +34,7 @@ void *proc_line(void *line){
 
 int main(void){
     Line_s line;
-    int err, wstatus, fd[2], file;
+    int err, wstatus, fd[2], file, nwritten;
     pthread_t h;
     pid_t pid, pid_log;
     char buf, message[BUF_SIZE];
@@ -58,8 +58,9 @@ int main(void){
         }
         
         /*read(fd[0],readbuffer,sizeof(readbuffer)); yo tenia eso*/
-        while(read(fd[0], &buf, 1)>0){
-            write(file, &buf, 1);
+        while((nwritten=read(fd[0], message, BUF_SIZE))>0){
+            message[nwritten]=0;
+            dprintf(file, "%s\n", message);
         } 
         /*marcar fin de escritura?*/
         close(file);
@@ -98,23 +99,23 @@ int main(void){
             }
         }
         /*wait:storing the status of the termination of the child*/
-        if(waitpid(pid,&wstatus,0)==-1){
+        if(wait(&wstatus)==-1){
             perror("wait");
             exit(EXIT_FAILURE);
         }
         if(WIFEXITED(wstatus)){
-            sprintf(message, "Exited with value: %d\n", WEXITSTATUS(wstatus));
-            fprintf(stdout, "%s", message);
+            sprintf(message, "Exited with value: %d", WEXITSTATUS(wstatus));
+            fprintf(stdout, "%s\n", message);
         }else if(WIFSIGNALED(wstatus)){
-            sprintf(message, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
-            fprintf(stderr, "%s", message);
+            sprintf(message, "Terminated by signal: %s", strsignal(WTERMSIG(wstatus)));
+            fprintf(stderr, "%s\n", message);
         }
         dprintf(fd[1], "%s", message);
     }
     close(fd[1]);
     
     /*Esperar al proceso que escribe en log.txt*/
-    if(waitpid(pid_log,NULL,0)==-1){
+    if(wait(NULL)==-1){
         perror("wait");
         exit(EXIT_FAILURE);
     }
