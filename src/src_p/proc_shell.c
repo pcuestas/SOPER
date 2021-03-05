@@ -57,11 +57,11 @@ int main(void){
             exit(EXIT_FAILURE);
         }
         
-        /*read(fd[0],readbuffer,sizeof(readbuffer)); yo tenia eso*/
+        /*read until fd[1] is closed by parent*/
         while((nread=read(fd[0], message, BUF_SIZE))>0){
             write(file, message, nread);
         } 
-        /*marcar fin de escritura?*/
+        
         close(file);
         close(fd[0]);/*cerrar descr. de entrada*/
         exit(EXIT_SUCCESS);
@@ -103,10 +103,10 @@ int main(void){
             exit(EXIT_FAILURE);
         }
         if(WIFEXITED(wstatus)){
-            sprintf(message, "Exited with value: %d\n", WEXITSTATUS(wstatus));
+            snprintf(message, BUF_SIZE, "Exited with value: %d\n", WEXITSTATUS(wstatus));
             fprintf(stdout, "%s", message);
         }else if(WIFSIGNALED(wstatus)){
-            sprintf(message, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
+            snprintf(message, BUF_SIZE, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
             fprintf(stderr, "%s", message);
         }
         dprintf(fd[1], "%s", message);
