@@ -285,15 +285,20 @@ Debido a que en este caso la función no contiene la letra \texttt{p} tras el su
 
 \subsection*{Ejercicio 9}
 
-a) Nombre el ejecutable: en el fichero \texttt{/proc/\textit{[pid]}/stat}, el segundo campo contiene entre paréntesis el nombre del ejecutable.
+a) Nombre el ejecutable: en el fichero \texttt{/proc/\textit{[pid]}/stat}, el segundo campo contiene entre paréntesis el nombre del ejecutable: \texttt{bash}.
 
-b) Ejecutando \texttt{cd /proc/\textit{[pid]}/cwd; pwd -P}, se recibe el directorio actual del proceso.
+b) Hay que ver a dónde apunta el link \texttt{cwd}: \texttt{/proc/6060}
 
-c) La línea de comados que se usó para lanzarlo: \texttt{/proc/\textit{[pid]}/cmdline}
+c) La línea de comados que se usó para lanzarlo se encuentra en el fichero: \texttt{/proc/\textit{[pid]}/cmdline}
 
-d) \texttt{cat /proc/\textit{[pid]}/environ | tr '\textbackslash 0' '\textbackslash n' | grep LANG}
+Y es: \texttt{bash}.
 
-e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/\textit{[pid]}/task}, ya que este directorio es donde se encuentran los subdirectorios de los hilos.
+d) Lo podemos buscar en el fichero \texttt{environ}, y es: \texttt{LANG=es\_ES.UTF-8}
+\begin{lstlisting}[language=bash]
+    cat /proc/6060/environ | tr '\0' '\n' | grep LANG
+\end{lstlisting}
+
+e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/\textit{[pid]}/task}, ya que este directorio es donde se encuentran los subdirectorios de los hilos. En este caso solo hay un hilo: \texttt{6060}.
 
 \subsection*{Ejercicio 10}
 
