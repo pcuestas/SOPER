@@ -1,2 +1,2 @@
-./abort
-Terminated by signal: Aborted
+sh -c inexistente
+Exited with value: 127

@@ -327,9 +327,10 @@ b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mis
 
 \subsection*{Ejercicio 13}
 
-c) Hemos usado la función \texttt{execvp} ya que los argumentos del comando tras la ejecución del hilo, han sido colocados en un vector, la 'p' de la función es para que use la variable local PATH al ejecutar el comando.
+c) Hemos usado la función \texttt{execvp} ya que los argumentos del comando tras la ejecución del hilo, han sido colocados en un vector, la 'p' de la función es para que use la variable local PATH al ejecutar el comando. No se puede usar otra función, ya que no conocemos el número de argumentos que se van a escribir, por lo que tenemos que usar una función con 'v'; y por otro lado, no sabemos el path del comando que se quiere ejecutar.
 
-Al ejecutar un programa que finaliza llamando a abort, recibimos la señal Aborted (que tiene asociado el código 134).
+Al ejecutar un programa que finaliza llamando a \texttt{abort()}, recibimos la señal Aborted (que tiene asociado el código 134).
+
 \end{document}
 
 

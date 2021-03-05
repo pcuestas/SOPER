@@ -4,4 +4,6 @@
 
 10d) forma sencilla de recuperar datos
 
-13) ¿¿¿¿¿¿cómo se compila?????
+13) ¿cómo se compila?
+
+13b) ¿se imprime el mensaje?
