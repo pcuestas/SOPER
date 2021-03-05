@@ -34,7 +34,7 @@ void *proc_line(void *line){
 
 int main(void){
     Line_s line;
-    int err, wstatus, fd[2], file, nwritten;
+    int err, wstatus, fd[2], file, nread;
     pthread_t h;
     pid_t pid, pid_log;
     char buf, message[BUF_SIZE];
@@ -58,9 +58,8 @@ int main(void){
         }
         
         /*read(fd[0],readbuffer,sizeof(readbuffer)); yo tenia eso*/
-        while((nwritten=read(fd[0], message, BUF_SIZE))>0){
-            message[nwritten]=0;
-            dprintf(file, "%s\n", message);
+        while((nread=read(fd[0], message, BUF_SIZE))>0){
+            write(file, message, nread);
         } 
         /*marcar fin de escritura?*/
         close(file);
@@ -104,11 +103,11 @@ int main(void){
             exit(EXIT_FAILURE);
         }
         if(WIFEXITED(wstatus)){
-            sprintf(message, "Exited with value: %d", WEXITSTATUS(wstatus));
-            fprintf(stdout, "%s\n", message);
+            sprintf(message, "Exited with value: %d\n", WEXITSTATUS(wstatus));
+            fprintf(stdout, "%s", message);
         }else if(WIFSIGNALED(wstatus)){
-            sprintf(message, "Terminated by signal: %s", strsignal(WTERMSIG(wstatus)));
-            fprintf(stderr, "%s\n", message);
+            sprintf(message, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
+            fprintf(stderr, "%s", message);
         }
         dprintf(fd[1], "%s", message);
     }

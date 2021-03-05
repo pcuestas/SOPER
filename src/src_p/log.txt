@@ -1,14 +1,14 @@
 ls
-—Exited with value: 0
+Exited with value: 0
 ls -l
- with value: 0
 Exited with value: 0
-cd ..
- with value: 0
-Exited with value: 1
-ls
-ted with value: 1
+ls -ls
 Exited with value: 0
-cd ~/Documentos
-e: 0
-Exited with value: 1
+ls -la
+Exited with value: 0
+./abort
+Terminated by signal: Aborted
+sh .c lasd
+Exited with value: 127
+sh -c lakdfh
+Exited with value: 127
