@@ -39,7 +39,7 @@ void *process_line(void *line){
     char **w, *s=" ";
     int i=0;
 
-    /*con strtok separamos la cadena en palabras y rellenamos el array l->words*/
+    /*separamos la cadena en palabra por palabra y rellenamos el array l->words*/
     w=l->words;
     for((*w)=strtok(l->buf, s); w[i]!=NULL && i<(MAX_WORDS-1); w[++i]=strtok(NULL,s));
 
