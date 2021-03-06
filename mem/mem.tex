@@ -65,6 +65,8 @@
 
 
 
+
+
 \begin{document}
 
 \maketitle
@@ -345,13 +347,15 @@ d) Para solucionar los problemas, lo más sencillo es asegurarse que el buffer s
 
 a) Tras ejecutar el programa vemos que el padre imprime por pantalla: ``He recibido el string: Hola a todos!'', y el hijo: ``He escrito en el pipe''. Como se ha comentado anteriormente, el orden de estos mensajes puede variar.
 
-b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero el programa no finaliza ya que el padre sigue esperando a una escritura en la tubería, ya el descriptor de fichero \texttt{f[1]} sigue abierto: por él mismo.
+b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero no finaliza el proceso, ya que el padre sigue esperando a una escritura en la tubería. El descriptor de fichero \texttt{f[1]} sigue abierto: por él mismo, por lo que se queda bloqueado en la orden \texttt{nbytes=read(...)}. En el anterior caso, como todos los procesos habían cerrado el fichero de salida \texttt{f[1]}, en esa orden el padre leía \texttt{EOF}, por lo que \texttt{read()} devolvía \texttt {0} y el bucle se terminaba. 
 
 \subsection*{Ejercicio 13}
 
-c) Hemos usado la función \texttt{execvp} ya que los argumentos del comando tras la ejecución del hilo, han sido colocados en un vector, la 'p' de la función es para que use la variable local PATH al ejecutar el comando. No se puede usar otra función, ya que no conocemos el número de argumentos que se van a escribir, por lo que tenemos que usar una función con 'v'; y por otro lado, no sabemos el path del comando que se quiere ejecutar.
+c) Hemos usado la función \texttt{execvp} ya que los argumentos del comando tras la ejecución del hilo, han sido colocados en un vector, la 'p' de la función es para que use la variable local PATH al ejecutar el comando. No se puede usar otra función, ya que no conocemos el número de argumentos que se van a escribir, por lo que tenemos que usar una función con 'v'; y por otro lado, no sabemos la ruta del comando que se quiere ejecutar.
 
-Al ejecutar un programa que finaliza llamando a \texttt{abort()}, recibimos la señal Aborted (que tiene asociado el código 134).
+Al ejecutar el comando \texttt{sh -c inexistente} se obtiene la cadena: \texttt{Exited with value: 127}.
+
+Al ejecutar un programa que finaliza llamando a \texttt{abort()}, recibimos la señal Aborted (que tiene asociado el código 134). La cadena en este caso es: \texttt{Terminated by signal: Aborted}.
 
 \end{document}
 

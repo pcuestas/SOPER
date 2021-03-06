@@ -1,0 +1,6 @@
+ls
+Terminated by signal: Segmentation fault
+
+cat Makefile
+Exited with value: 1
+

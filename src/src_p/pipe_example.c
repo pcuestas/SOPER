@@ -39,18 +39,20 @@ int main(void){
         exit(EXIT_SUCCESS);
     } else {
         /* Cierre del descriptor de salida en el padre */
-        close ( fd[1]);
+        //close ( fd[1]);
         /* Leer algo de la tuberı́a ... el saludo ! */
         nbytes = 0;
         do {
+            printf("check antes del read\n");fflush(stdout);
             nbytes = read(fd[0], readbuffer, sizeof(readbuffer));
+            printf("check tras el read\n");fflush(stdout);
             if ( nbytes == -1){
                 perror ("read");
                 exit (EXIT_FAILURE);
             }
             if ( nbytes > 0) {
             printf ( "He recibido el string: %.*s" , (int)nbytes,
-            readbuffer) ;
+            readbuffer);fflush(stdout);
             }
         } while ( nbytes != 0);
     }
