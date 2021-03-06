@@ -357,6 +357,17 @@ Al ejecutar el comando \texttt{sh -c inexistente} se obtiene la cadena: \texttt{
 
 Al ejecutar un programa que finaliza llamando a \texttt{abort()}, recibimos la señal Aborted (que tiene asociado el código 134). La cadena en este caso es: \texttt{Terminated by signal: Aborted}.
 
+
+
+
+
+
+Sobre la implementación de la shell: 
+
+Básicamente el código está estructurado según las indicaciones del enunciado:  un bucle principal en el \textit{main} lee los comandos a ejecutar línea a línea hasta que se introduzca \textit{EOF}. La línea leida forma parte de una estructura que se envía como argumento del hilo (hacemos cast a puntero a void). El hilo va a preparar el \textit{array} que se usará posteriormente en la llamada a \textit{execvp}. Para asegurar que no se lance el proceso nuevo antes de que el procesado de la línea haya finalizado, usamos la función \textit{pthread\_join}.
+Como la función \textit{strtok} altera la \textit{string} original, escribimos en la tubería la línea leída antes de la llamda al hilo. A propósito del uso de la tubería, la creamos antes de empezar a leer en el bucle y por supuesto, antes de lanzar el proceso que tiene que leer de la tubería y escrbir en el fichero log.txt para que este proceso tenga en su tabla de descriptores, los asociados a la tubería. En el proceso padre cerramos el extremo de lectura, y en el hijo, el de escritura.
+Por otro lado, hemos empleado la función \textit{dprintf} para volcar la línea leída y el estado de terminación del proceso lanzado por \textit{execvp}. El estado de terminanción lo recogemos con la función bloqueante \textit{wait}, que va a impedir al proceso padre continuar hasta que finalice el proceso que ejecuta el comando. Una cosa a mencionar es PROBLEMA CON STRSIGNAL!!. El programa finaliza cuando se introduce EOF y el padre cierra su extremo de escritura de la tubería. El proceso en el otro extremo de la tubería finalizará entonces (tras leer todo los datos que pudiesen quedar en la tubería). Como se ve en el código, no pueden quedar procesos huérfanos ya que el proceso padre hace un \textit{wait} por cada proceso lanzado (o lo que es equivalente, por cada llamada a la función \textit{fork})
+
 \end{document}
 
 
