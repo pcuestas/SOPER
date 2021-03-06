@@ -77,7 +77,7 @@
 \addcontentsline{toc}{subsection}{Ejercicio 1}
 \subsection*{Ejercicio 1}
 
-a) Para buscar las funciones relacionadas con hilos, buscamos todas aquellas que contengan ``pthread'' usando la opción -k en el comando man. El comando a usar es: 
+a) Para buscar las funciones relacionadas con hilos, buscamos todas aquellas que contengan ``pthread'' usando la opción -k del comando man. El comando a usar es: 
 
 \begin{lstlisting}[language=bash]
 $ man -k pthread
@@ -99,8 +99,7 @@ Con este comando averiguamos que la sección relacionada a \textit{system calls}
 $ man 2 write
 \end{lstlisting}
 
-\subsection*{Ejercico 2}
-
+\subsection*{Ejercicio 2}
 
 a) El comando empleado es: 
 
@@ -109,6 +108,8 @@ $ grep -w molino "don quijote.txt" >> aventuras.txt
 \end{lstlisting}
 
 Usamos el comando grep para buscar las apariciones de ``molino''. Como queremos que sea la palabra \textit{molino} y no el grama \textit{molino}, añadimos la opción \texttt{-w}. Finalmente redireccionamos la salida con \texttt {>}\texttt {>} en vez de \texttt {>} para que se añada al final del fichero, en lugar de reemplazarlo.
+
+\textit{Nota: podríamos utilizar también la opción \texttt{-i} de \texttt{grep} para que nos salieran también las apariciones de la palabra donde empieza con mayúscula.}
 
 b) El \textit{pipeline} es el siguiente:
 
@@ -132,18 +133,18 @@ Primero concatenamos los dos ficheros (redirigiendo el mensaje error, en caso de
 
 a) Si intentamos abrir un fichero inexistente recibimos el mensanje \texttt{"No such file or directory"}. El código errno asociado es 2.
 
-b) En el caso de intentar abrir el fichero /etc/shadow el  mensaje de error es \texttt{"Permission denied"}, que corresponde al valor de errno 13.
+b) En el caso de intentar abrir el fichero \texttt{/etc/shadow} el  mensaje de error es \texttt{"Permission denied"}, que corresponde al valor de errno 13.
 
 c) Justo después de la instrucción \texttt{fopen()} se debería guardar el valor de errno en otra variable ya que la llamada a \texttt{printf()} podría modificar la variable global errno.
 
 \begin{lstlisting}[language=C, texcl=true]
-pf=fopen(args[1],"r"); 
+pf=fopen(argv[1],"r"); 
 x=errno;
 printf("El valor de errno es %i",x);
 errno=x; //Aquí aseguramos que la función perror() va a imprimir el código 
          //de error de fopen ya que hemos restaurado el valor de errno 
          //asociado a fopen()
-perror();
+perror("fopen");
 \end{lstlisting}
 
 
@@ -217,7 +218,7 @@ int main(int argc, char **argv){
 
 Si no llamamos a \texttt{pthread\_join()}, tenemos que desilgar los hilos (llamando a \texttt{pthread\_detach()}).
 
-Además, guardamos una variable global que cuenta los que hilos han terminado, y por la orden: \texttt{while(\_h\_count!=2);}, nos aseugramos que el hilo principal no termina antes de que los otros dos no hayan terminado. Para evitar que el hilo principal esté comprobando esta variable cuando sabemos que no pueden haber terminado, llamamos justo antes a \texttt{sleep()}, para que el hilo principal se quede esperando un suceso (que el tiempo máximo que tarda uno de los hilos pase), en lugar de estar ejecutándose sin sentido.
+Además, guardamos una variable global que cuenta los que hilos han terminado, y por la orden: \texttt{while(\_h\_count!=2);}, nos aseguramos de que el hilo principal no termina antes de que los otros dos hayan terminado. Para evitar que el hilo principal esté comprobando esta variable cuando sabemos que no pueden haber terminado, llamamos justo antes a \texttt{sleep()}, para que el hilo principal se quede esperando un suceso (que el tiempo máximo que tarda uno de los hilos pase), en lugar de estar ejecutándose sin sentido.
 
 \section*{Semana 2}
 
@@ -234,7 +235,9 @@ b) Como queremos que sea el hijo el que imprima su PID y el de su padre, hay que
     }
 \end{lstlisting}
 
-c) El código se corresponde al diagrama (a); ya que los hijos depués de imprimir finalizan (llamada a \texttt{exit()}) y en cambio el padre vuelve a crear un nuevo hijo en la siguiente iteración. Para obtener el otro diagrama habría que modificar los bloques de control: el proceso padre es el que llama a \texttt{exit()} y el hijo no lo hace, para crear un nuevo proceso en la siguiente iteración del bucle:
+Esta opción es posible que no imprima correctamente el pid del padre (si el proceso se queda huérfano). Sin embargo, si antes de llamar a \texttt{fork()} guardamos en una varibale local el pid del padre: \texttt{ppid=getpid();}, nos aseguramos que todos los hijos tienen guardado el pid del padre y se puede imprimir de esta manera.
+
+c) El código se corresponde al diagrama (a); ya que los hijos depués de imprimir finalizan (llamada a \texttt{exit()}) y en cambio el padre vuelve a crear un nuevo hijo en la siguiente iteración. Para obtener el otro diagrama habría que modificar los bloques del hijo y del padre: el proceso padre es el que llama a \texttt{exit()} y el hijo no lo hace, para crear un nuevo proceso en la siguiente iteración del bucle:
 
 \begin{lstlisting}[language=C, numbers=left]
     else if(pid==0){
@@ -246,14 +249,14 @@ c) El código se corresponde al diagrama (a); ya que los hijos depués de imprim
     }
 \end{lstlisting}
 
-d) El código original puede dejar huérfanos ya que nada asegura que sus 3 hijos vayan a finalizar antes que él. En cuanto el proceso padre se encuentre en la línea de ejecución del \texttt{wait()} y un hijo suyo finalice, el proceso padre finalizará también dejando huérfano a los posibles hijos restantes. Es decir, \texttt{wait()}, usado como en el código dado, tan solo espera al primer hijo que finalice.
+d) El código original puede dejar huérfanos ya que nada asegura que los 3 hijos vayan a finalizar antes que el padre. En cuanto el proceso padre se encuentre en la línea de ejecución del \texttt{wait()} y un hijo suyo finalice (o haya finalizado), el proceso padre finalizará también dejando huérfano a los posibles hijos restantes (máximo 2). Es decir, \texttt{wait()}, usado como en el código dado, tan solo espera al primer hijo que finalice.
 
 e) Una forma de evitar esto es cambiar esa línea de código por: la línea: \texttt{while(wait(NULL)!=-1);}. El padre esperará a un hijo hasta que no haya procesos hijos que esperar (\textit{no unwaited-for children}), cuando devolverá -1 y podrá finalizar el padre.  
 
 \subsection*{Ejercicio 7}
 
 a) Al ejecutar vemos que la cadena \textit{sentence} que imprime el padre está vacía. El error del programa es no tener en cuenta que al crear el proceso hijo, éste tiene una memoria separada del padre  por lo que los cambios que se hagan desde el hijo no son visibles desde el padre. Cada puntero \textit{sentence} apunta a una dirección de memoria distinta.
-(debido al \textit{Copy on write} podría ser que si no se trata de modificar la información de ese bloque de memoria no se llegase a crear una copia. No obstante en este caso no hay dudas ya que estamos modificando la memoria apuntada por \textit{sentence} al llamar a la función \texttt{strcpy()}).
+(debido al \textit{Copy On Write} podría ser que si no se trata de modificar la información de ese bloque de memoria no se llegase a crear una copia. No obstante en este caso no hay dudas ya que estamos modificando la memoria apuntada por \textit{sentence} al llamar a la función \texttt{strcpy()}).
 
 b) Habría que liberar memoria tanto en el padre como en el hijo ya que se está creando una nueva copia del bloque de memoria alocado en el proceso padre como hemos explicado en el apartado anterior:
 
@@ -308,13 +311,23 @@ e) La lista de hilos del proceso se encuentra haciendo \texttt{ls /proc/\textit{
 
 a) Encontramos los descriptores de fichero 0, 1 y 2, que corresponden respectivamente a stdin, stdout y stderr.
 
-b) En el segundo stop vemos que hay un nuevo descriptor (3) que apunta a file1.txt y en el siguiente stop, otro nuevo (4) que apunta esta vez a file2.txt
+b) En el segundo \textit{Stop} vemos que hay un nuevo descriptor (3) que apunta a file1.txt y en el siguiente \textit{Stop}, otro nuevo (4) que apunta a file2.txt
 
 c) Tras la llamada a unlink vemos que el descriptor de fichero que apuntaba a file1.txt aparece marcado como borrado --\texttt{(deleted)}-- en la tabla aunque permanece ahí. Esto se debe a que solo hemos eliminado la ruta para acceder al fichero pero no lo hemos cerrado.
 
 Se sigue podiendo acceder al fichero desde \texttt{/proc/\textit{[pid]}/fd}, y podemos acceder a su contenido, por lo que se pueden recuperar los datos.
 
-d) Tras el stop 5, el descriptor del fichero file1.txt ya se ha eliminado de la tabla (todas sus rutas se han eliminado con \texttt{unlink()} y el proceso lo ha cerrado con \texttt{close()}). Tras el stop 6, se ha reutilizado el descriptor 3, antes asignado al fichero file1.txt, para el fichero file3.txt. Y tras el stop 7, se asigna otro descriptor (5) al mismo fichero (file3.txt); por lo que ahora tenemos 0, 1, 2 como al inicio, 3 y 5 apuntando a file3.txt, y 4 apuntando a file2.txt.
+Una manera sencilla de recuperarlo (cambiando el código) después de la orden \texttt{unlink(FILE1)} sería hacer lo siguiente:
+\begin{lstlisting}[language=C]
+    sprintf(file_path, "/proc/%jd/fd/%d",(intmax_t)getpid(),file1);
+    if(!fork())
+        execlp("cp", "cp", file_path, FILE1, (char*)NULL);
+\end{lstlisting}
+
+De este modo se copia el fichero que no se ha cerrado al directorio desde el que se está ejecutando el programa, y cuando se cierra no se pierde su contenido.
+
+
+d) Tras el \textit{Stop 5}, el descriptor del fichero file1.txt ya se ha eliminado de la tabla (todas sus rutas se han eliminado con \texttt{unlink()} y el proceso lo ha cerrado con \texttt{close()}). Tras el \textit{Stop 6}, se ha reutilizado el descriptor 3, antes asignado al fichero file1.txt, para el fichero file3.txt. Y tras el \textit{Stop 7}, se asigna otro descriptor (5) al mismo fichero (file3.txt); por lo que ahora tenemos 0, 1, 2 como al inicio, 3 y 5 apuntando a file3.txt, y 4 apuntando a file2.txt.
 
 Por lo que hemos visto, al abrir un nuevo fichero, se asigna el descriptor más pequeño que esté libre tras cada llamada a \texttt{open}.
 
@@ -330,9 +343,9 @@ d) Para solucionar los problemas, lo más sencillo es asegurarse que el buffer s
 
 \subsection*{Ejercicio 12}
 
-a) Tras ejecutar el programa vemos que el padre imprime por pantalla: ``He recibido el string: Hola a todos!'', y el hijo: ``He escrito en el pipe''.
+a) Tras ejecutar el programa vemos que el padre imprime por pantalla: ``He recibido el string: Hola a todos!'', y el hijo: ``He escrito en el pipe''. Como se ha comentado anteriormente, el orden de estos mensajes puede variar.
 
-b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero el programa no finaliza ya que el padre sigue esperando a una escritura en la tubería (porque el descriptor de fichero f[1] sigue abierto).
+b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mismo pero el programa no finaliza ya que el padre sigue esperando a una escritura en la tubería, ya el descriptor de fichero \texttt{f[1]} sigue abierto: por él mismo.
 
 \subsection*{Ejercicio 13}
 

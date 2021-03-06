@@ -13,9 +13,9 @@ int main(int argc, char **argv){
 
     f=fopen(argv[1],"r"); 
     x=errno;
-    printf("El valor de errno es %i",x);
+    printf("El valor de errno es %i\n",x);fflush(stdout);
     errno=x; /* Aqu'i aseguramos que la función perror() va a imprimir el código de error de fopen ya que hemos restaurado el valor de errno asociado a fopen() */
-    perror();
+    perror("");
 
     if (f != NULL)
         fclose(f);
