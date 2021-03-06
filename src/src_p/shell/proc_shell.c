@@ -96,7 +96,7 @@ int main(void){
 
         line.buf[strlen(line.buf)-1]='\0';/*eliminar el \n del final*/
 
-        if((err = pthread_create(&h, NULL, process_line, &line)) != 0){
+        if((err = pthread_create(&h, NULL, process_line, (void*)(&line))) != 0){
             fprintf(stderr, "pthread_create: %s\n", strerror(err));
             exit (EXIT_FAILURE);
         }
