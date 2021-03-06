@@ -29,9 +29,11 @@ typedef struct Line_s_{
 } Line_s;
 
 /**
- * @brief función que procesa el comando leído separando las palabras. 
- * Al terminar, la estructura contiene las palabras del comando escrito 
- * en la cadena line->words, con un puntero a NULL tras la última palabra.
+ * @brief función para un hilo que procesa el comando leído 
+ * separando las palabras. Al terminar, la estructura 
+ * contiene las palabras del comando escrito en la cadena 
+ * line->words, con un puntero a NULL tras la última palabra.
+ * 
  * @param line estructura Line_s que contiene la línea del comando leída
  */
 void *process_line(void *line){
