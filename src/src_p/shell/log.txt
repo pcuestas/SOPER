@@ -1,6 +1,20 @@
-ls
-Terminated by signal: Segmentation fault
+./abort
+Terminated by signal: Aborted
 
-cat Makefile
-Exited with value: 1
+ls
+Exited with value: 0
+
+value: 0
+
+ls -l
+Exited with value: 0
+
+ls -a
+Exited with value: 0
+
+ls -s
+Exited with value: 0
+
+sh -c daskfj
+Exited with value: 127
 
