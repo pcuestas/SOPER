@@ -2,7 +2,7 @@ EXE=proc_shell
 CC=gcc
 OBJ=$(EXE).o
 LIB=-lpthread
-CFLAGS= -pedantic -Wall -g
+CFLAGS=
 
 all: $(EXE)
 
