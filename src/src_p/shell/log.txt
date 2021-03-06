@@ -1,20 +1,9 @@
-./abort
-Terminated by signal: Aborted
-
 ls
 Exited with value: 0
 
-value: 0
-
-ls -l
+ls -ls
 Exited with value: 0
 
-ls -a
-Exited with value: 0
-
-ls -s
-Exited with value: 0
-
-sh -c daskfj
-Exited with value: 127
+./abort
+Terminated by signal: Aborted
 

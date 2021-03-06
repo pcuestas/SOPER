@@ -29,9 +29,11 @@ typedef struct Line_s_{
 } Line_s;
 
 /**
- * @brief función que procesa el comando leído separando las palabras. 
- * Al terminar, la estructura contiene las palabras del comando escrito 
- * en la cadena line->words, con un puntero a NULL tras la última palabra.
+ * @brief función para un hilo que procesa el comando leído 
+ * separando las palabras. Al terminar, la estructura 
+ * contiene las palabras del comando escrito en la cadena 
+ * line->words, con un puntero a NULL tras la última palabra.
+ * 
  * @param line estructura Line_s que contiene la línea del comando leída
  */
 void *process_line(void *line){
@@ -94,7 +96,7 @@ int main(void){
 
         line.buf[strlen(line.buf)-1]='\0';/*eliminar el \n del final*/
 
-        if((err = pthread_create(&h, NULL, process_line, &line)) != 0){
+        if((err = pthread_create(&h, NULL, process_line, (void*)(&line))) != 0){
             fprintf(stderr, "pthread_create: %s\n", strerror(err));
             exit (EXIT_FAILURE);
         }
