@@ -1,12 +1,3 @@
-./abort
-Terminated by signal: Aborted
-
-sh -c 
-Exited with value: 2
-
-sh -c aldsfh
-Exited with value: 127
-
-./abort
-Terminated by signal: Aborted
+ls
+Exited with value: 0
 
