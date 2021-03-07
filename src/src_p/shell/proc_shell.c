@@ -9,14 +9,16 @@
 #include <fcntl.h>
 
 /**
- * Implementación de una shell sencilla - sin redirecciones ni estructuras de control.
- * Con registro de los comandos ejecutados y sus mensajes de salida.
+ * @file proc_shell.c
+ *
+ * @brief Implementación de una shell sencilla - sin 
+ * redirecciones ni estructuras de control. Con registro
+ * de los comandos ejecutados y sus mensajes de salida.
  * (SOPER. Práctica 1. Ejercicio 13.)
- * 
+ *
  * @authors Pablo Cuesta Sierra, Álvaro Zamanillo Sáez 
- * 
+ *
  **/
-
 
 #define BUF_SIZE 1024
 #define MAX_WORDS 200
@@ -29,7 +31,7 @@ typedef struct Line_s_{
 } Line_s;
 
 /**
- * @brief función para un hilo que procesa el comando leído 
+ * @brief función para el hilo que procesa el comando leído 
  * separando las palabras. Al terminar, la estructura 
  * contiene las palabras del comando escrito en la cadena 
  * line->words, con un puntero a NULL tras la última palabra.
@@ -58,7 +60,7 @@ int main(void){
     pid_t pid, pid_log;
     char message[BUF_SIZE];
 
-    if (pipe(fd)==-1){
+    if (pipe(fd)==-1){/*apertura de los ficheros de la tubería*/
         perror("pipe");
         exit(EXIT_FAILURE);
     }
@@ -67,11 +69,11 @@ int main(void){
     if(pid_log<0){
         perror("fork");
         exit(EXIT_FAILURE);
-    }else if(pid_log==0){/*hijo que escribe en el fichero*/
+    }else if(pid_log==0){/*hijo que escribe en el fichero leyendo de la tubería*/
         close(fd[1]);
 
         /*abrir el fichero para escribir los comandos y los mensajes de la salida del hijo*/
-        if ((file = open(LOG_FILE, O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) == -1){
+        if((file = open(LOG_FILE, O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP))==-1){
             perror("open");
             exit(EXIT_FAILURE);
         }
@@ -88,12 +90,15 @@ int main(void){
 
     close(fd[0]);/*cerrar el descriptor de entrada en el padre*/
 
-    printf("proc_shell: $ ");fflush(stdout);
+    printf("proc_shell: ");
 
     /*bucle principal*/
     while(fgets(line.buf, BUF_SIZE, stdin)!=NULL){
+        if((line.buf)[0]=='\n'){
+            printf("proc_shell: ");
+            continue;/*no se ha escrito nada*/
+        }
         dprintf(fd[1], "%s", line.buf);/*mandar por la tubería el comando leído*/
-
         line.buf[strlen(line.buf)-1]='\0';/*eliminar el \n del final*/
 
         if((err = pthread_create(&h, NULL, process_line, (void*)(&line))) != 0){
@@ -125,7 +130,7 @@ int main(void){
         }else if(WIFSIGNALED(wstatus)){
             snprintf(message, BUF_SIZE, "Terminated by signal: %s\n", strsignal(WTERMSIG(wstatus)));
         }
-        fprintf(stderr, "\n%s\nproc_shell: $ ", message);
+        fprintf(stderr, "\n%s\nproc_shell: ", message);
         dprintf(fd[1], "%s\n", message);/*mandar el mensaje por la tubería*/
     }
     close(fd[1]);

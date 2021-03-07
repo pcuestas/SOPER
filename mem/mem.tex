@@ -351,27 +351,36 @@ b) Si no cierra el extremo de escritura el mensaje impreso en pantalla es el mis
 
 \subsection*{Ejercicio 13}
 
+a) Para el bucle principal utilizamos \texttt{fgets}, que devuelve \texttt{NULL} al leer \texttt{EOF}. El hilo prepara después en la estructura el argumento del comando que posteriormente se pasará en la llamada a \texttt{execvp}. Para asegurar que no se lanza el proceso que ejecuta el comando antes de que finalice el hilo, utilizamos \texttt{pthread\_join}.
+
+b) Para crear la cadena que se pide, al esperar en el hilo principal al proceso que lanza el comando, usamos el argumento de \texttt{wait()}. De ahí sacamos los distintos posibles casos (si el hijo ha terminado correctamente y su valor de salida, o si ha mandado alguna señal).
+
+\textit{ Nota: hemos tenido un problema con \texttt{strsignal}, que interpreta la señal de terminación del proceso hijo, al compilar con la bandera \texttt{-ansi}, por lo que hemos dejado de compilar con banderas.}
+
 c) Hemos usado la función \texttt{execvp} ya que los argumentos del comando tras la ejecución del hilo, han sido colocados en un vector, la 'p' de la función es para que use la variable local PATH al ejecutar el comando. No se puede usar otra función, ya que no conocemos el número de argumentos que se van a escribir, por lo que tenemos que usar una función con 'v'; y por otro lado, no sabemos la ruta del comando que se quiere ejecutar.
 
 Al ejecutar el comando \texttt{sh -c inexistente} se obtiene la cadena: \texttt{Exited with value: 127}.
 
-Al ejecutar un programa que finaliza llamando a \texttt{abort()}, recibimos la señal Aborted (que tiene asociado el código 134). La cadena en este caso es: \texttt{Terminated by signal: Aborted}.
+Al ejecutar un programa que finaliza llamando a \texttt{abort()}, recibimos la señal ``Aborted'' (que tiene asociado el código 134). La cadena en este caso es: \texttt{Terminated by signal: Aborted}.
+
+d) En cuanto al uso de la tubería, el proceso que recibe los mensajes del padre y los escribe en el registro de la ejecución se crea antes del bucle principal. El fichero \textit{log.txt} lo abrimos con la opción \texttt{O\_TRUNC}, que borra todo su contenido al llamar a \texttt{open} porque era más cómodo para hacer las pruebas y no se especifica nada. Para conservar los anteriores mensajes habría que sutituir esta opción por \texttt{O\_APPEND}, que hace que se comience a escribir al final del fichero.
+
+Como \texttt{strtok} altera la cadena original, el comando leído por \texttt{fgets} se manda por la tubería antes de crear el hilo. El padre manda los jes que se quieren imprimir en el fichero \textit{log.txt} con \texttt{dprintf}. Y se leen los mensajes de la tubería en un bucle que termina cuando el padre cierra su fichero de escritura al terminar el bucle principal. Como se ve en el código, no pueden quedar procesos huérfanos ni en estado \textit{zombie}, ya que el padre espera a cada hijo que crea.
 
 
 
 
-
-
-Sobre la implementación de la shell: 
-
-Básicamente el código está estructurado según las indicaciones del enunciado:  un bucle principal en el \textit{main} lee los comandos a ejecutar línea a línea hasta que se introduzca \textit{EOF}. La línea leida forma parte de una estructura que se envía como argumento del hilo (hacemos cast a puntero a void). El hilo va a preparar el \textit{array} que se usará posteriormente en la llamada a \textit{execvp}. Para asegurar que no se lance el proceso nuevo antes de que el procesado de la línea haya finalizado, usamos la función \textit{pthread\_join}.
-Como la función \textit{strtok} altera la \textit{string} original, escribimos en la tubería la línea leída antes de la llamda al hilo. A propósito del uso de la tubería, la creamos antes de empezar a leer en el bucle y por supuesto, antes de lanzar el proceso que tiene que leer de la tubería y escrbir en el fichero log.txt para que este proceso tenga en su tabla de descriptores, los asociados a la tubería. En el proceso padre cerramos el extremo de lectura, y en el hijo, el de escritura.
-Por otro lado, hemos empleado la función \textit{dprintf} para volcar la línea leída y el estado de terminación del proceso lanzado por \textit{execvp}. El estado de terminanción lo recogemos con la función bloqueante \textit{wait}, que va a impedir al proceso padre continuar hasta que finalice el proceso que ejecuta el comando. Una cosa a mencionar es PROBLEMA CON STRSIGNAL!!. El programa finaliza cuando se introduce EOF y el padre cierra su extremo de escritura de la tubería. El proceso en el otro extremo de la tubería finalizará entonces (tras leer todo los datos que pudiesen quedar en la tubería). Como se ve en el código, no pueden quedar procesos huérfanos ya que el proceso padre hace un \textit{wait} por cada proceso lanzado (o lo que es equivalente, por cada llamada a la función \textit{fork})
 
 \end{document}
 
 
+Sobre la implementación de la shell: 
+---
+Básicamente el código está estructurado según las indicaciones del enunciado:  un bucle principal en el \textit{main} lee los comandos a ejecutar línea a línea hasta que se introduzca \textit{EOF}. La línea leida forma parte de una estructura que se envía como argumento del hilo (hacemos cast a puntero a void). El hilo va a preparar el \textit{array} que se usará posteriormente en la llamada a \textit{execvp}. Para asegurar que no se lance el proceso nuevo antes de que el procesado de la línea haya finalizado, usamos la función \textit{pthread\_join}.
 
+Como la función \textit{strtok} altera la \textit{string} original, escribimos en la tubería la línea leída antes de la llamda al hilo. A propósito del uso de la tubería, la creamos antes de empezar a leer en el bucle y por supuesto, antes de lanzar el proceso que tiene que leer de la tubería y escrbir en el fichero log.txt para que este proceso tenga en su tabla de descriptores, los asociados a la tubería. En el proceso padre cerramos el extremo de lectura, y en el hijo, el de escritura.
+
+Por otro lado, hemos empleado la función \textit{dprintf} para volcar la línea leída y el estado de terminación del proceso lanzado por \textit{execvp}. El estado de terminanción lo recogemos con la función bloqueante \textit{wait}, que va a impedir al proceso padre continuar hasta que finalice el proceso que ejecuta el comando. Una cosa a mencionar es PROBLEMA CON STRSIGNAL!!. El programa finaliza cuando se introduce EOF y el padre cierra su extremo de escritura de la tubería. El proceso en el otro extremo de la tubería finalizará entonces (tras leer todo los datos que pudiesen quedar en la tubería). Como se ve en el código, no pueden quedar procesos huérfanos ya que el proceso padre hace un \textit{wait} por cada proceso lanzado (o lo que es equivalente, por cada llamada a la función \textit{fork})
 
 
 
