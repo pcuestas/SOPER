@@ -1,0 +1,27 @@
+
+accion antigua:
+
+
+accion:
+    manejador: rutina de codigo que se ejecuta
+    mascara: bloquea las señales especificadas
+    flags: modifica el comportamiento. por defecto bloquear señales nuevas (se puede hacer lo contrario con SA_NODEFER)
+
+las mascaras se modifican con sig____set. set-> un bit para cada señal (activada/desactivada)
+
+establecer mascara con sigprocmask. (con SIG_BLOCK la mascara resultante es la union de al antigua y el nuevo set)
+
+el manejador queda establecido a partir de sigaction();
+
+NO SE PUEDEN CAPTURAR --> SIGKILL y SIGSTOP
+
+kill(pid,señal); 
+
+
+
+
+para destruir el semaforo hacer sem_close. Si hay segmentation fault el semaforo no se va a eliminar. Los semaforos no se destruyen al morir el procestablecido
+sem_unlink cuando 0 procesos esten usando ese semaforo, el S.O. borrara el semaforo.
+
+CUANDO LLAMAR A SEM_UNLINK? 
+    - creo que hay que llamarlo después de sem_open si no queremos usarlo en más procesos hijos
