@@ -1,0 +1,194 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{fancyvrb}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{.2,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeblue}{rgb}{0,0.4,0.82}
+\definecolor{codeorange}{rgb}{0.94,0.34,0.0}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{backcolourgray}{rgb}{0.92,0.92,0.92}
+\definecolor{codewhite}{rgb}{1,1,1}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolourgray},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codeorange},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    %numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+    %, basicstyle=\footnotesize
+}
+
+\lstset{style=mystyle}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Sistemas Operativos. Práctica 2.}
+\lhead{Pablo Cuesta Sierra y Álvaro Zamanillo Sáez}
+\cfoot{\thepage}
+
+
+\title{Sistemas Operativos. Práctica 2.}
+\author{Pablo Cuesta Sierra y Álvaro Zamanillo Sáez}
+%\date{}
+
+
+
+
+
+\begin{document}
+
+\maketitle
+
+%\tableofcontents
+
+\addcontentsline{toc}{section}{Semana 1}
+\section*{Semana 1}
+
+\addcontentsline{toc}{subsection}{Ejercicio 1}
+\subsection*{Ejercicio 1}
+
+a) Basta con añadir el siguiente código en el hueco señalado: 
+\begin{lstlisting}[language=C]
+    if(kill(pid, sig)!=0){
+        perror("kill");
+        exit(EXIT_FAILURE);
+    }
+\end{lstlisting}
+
+b) Si mandamos la señal \texttt{SIGSTOP}, al intentar excribir en la terminal, el texto que se introduce por el teclado, no aparece. Cuando mandamos la señal \texttt{SIGCONT}, el texto que habíamos intentado insertar antes aparece de golpe y la terminal vuelve a la normalidad.
+
+
+\end{document}
+
+
+%%%%%%%%%%%%%
+\begin{lstlisting}[language=C, texcl=true, numbers=left]
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{Verbatim}[frame=single]
+cosas
+\end{Verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[h]
+\caption{Search 8.}
+\bigskip
+\includegraphics[scale=0.4]{ser8}
+\centering
+\label{fig:ser8}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codepurple},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{magenta},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{lstlisting}[language=C]
+bool findKey(const char * book_id, const char *indexName, int * nodeIDOrDataOffset){
+    FILE *pf=NULL;
+    int pos, comp;
+    Node node;
+    bool found = false;
+    char b_id[5], search[5];
+
+    if(!indexName)
+        return false;
+
+    if((pf=fopen(indexName,"rb"))==NULL)
+        return false;
+
+    memcpy(search, book_id, PK_SIZE);
+    search[PK_SIZE] = '\0';
+    /*read the root's position*/
+    fread(&pos, sizeof(int), 1, pf);
+
+    if(pos==-1){/*empty*/
+        *nodeIDOrDataOffset=-1;
+    }
+
+    while(pos != -1 && found == false){
+        /*find the node's offset in the file*/
+        fseek(pf, INDEX_HEADER_SIZE+pos*sizeof(Node), SEEK_SET);
+        /*read the node*/
+        fread(&node, sizeof(Node), 1, pf);
+        memcpy(b_id, node.book_id, PK_SIZE);
+        b_id[PK_SIZE] = '\0';
+        /*compare the primary key*/
+        comp=strcmp(search, b_id);
+        
+        if(comp < 0){
+            if(node.left==-1)/*not found*/
+                (*nodeIDOrDataOffset) = pos;
+            pos = node.left;            
+        }
+        else if(comp > 0){
+            if(node.right==-1)/*not found*/
+                (*nodeIDOrDataOffset) = pos;
+            pos = node.right;            
+        }
+        else{/*found*/
+            (*nodeIDOrDataOffset) = node.offset;
+            found = true;
+        }
+    }
+    fclose(pf);
+    return found;
+}
+
+\end{lstlisting}
+

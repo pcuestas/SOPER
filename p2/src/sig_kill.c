@@ -1,6 +1,8 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[]) {
     int sig;
@@ -14,7 +16,10 @@ int main(int argc, char *argv[]) {
     sig = atoi(argv[1] + 1);
     pid = (pid_t)atoi(argv[2]);
 
-    /* Rellenar Código */
+    if(kill(pid, sig)!=0){
+        perror("kill");
+        exit(EXIT_FAILURE);
+    }
 
     exit(EXIT_SUCCESS);
 }

@@ -24,4 +24,4 @@ para destruir el semaforo hacer sem_close. Si hay segmentation fault el semaforo
 sem_unlink cuando 0 procesos esten usando ese semaforo, el S.O. borrara el semaforo.
 
 CUANDO LLAMAR A SEM_UNLINK? 
-    - creo que hay que llamarlo después de sem_open si no queremos usarlo en más procesos hijos
+    - ecreo que hay que llamarlo después de sem_open si no queremos usarlo en más procesos hijos
