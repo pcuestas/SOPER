@@ -1,0 +1,108 @@
+
+
+EJERCICIO 1
+
+a) Buscamos la página del comando kill en el manual (man kill) y vemos que con kill -l obtenemos la lista. 
+
+b) Para ver el número de una señal podemos buscarlo en la tabla mostrada con kill -l o usar directamente kill -l <Nombre_de_la_señal>
+
+kill -l SIGKILL --> 9
+kill -l SIGSTOP --> 19
+
+EJERCICIO 2
+
+a) Añadir
+
+ if(kill(pid,sig)==-1){
+        perror("Error with kill: ");
+    }
+
+b) Tras enviar la señal y tratar de escribir, no aparece el texto excrito. No obstante, cunado se manda la señal SIGCONT el texto introducido aparece en pantalla de golpe.
+
+EJERCICIO 3
+
+a) No. La llamada a sigaction establece como ha de capturarse la señal cuando se reciba. En el momento en el que se reciba es cuando se ejecuta el manejador.
+
+b) No se bloquea ninguna ya que la máscara que  de la estructura sigaction es la máscara vacia (empty mask).
+
+c) EL printf aparece una vez al ejecutar el programa cuando se llega al bucle while. A partir de ahí aparecerá una vez por cada vez que se mande la señal SIGINT, ya que en ese momento se bifurca la ejecución al manjedaor (que imprime el código de la señal) y después se vuelve al bucle while. A parte de esto, si no se envia la señal SIGINT, cada 9999 segundos se volverá a ejecutar el printf.
+
+d) Si modificamos el programa para que no se capture SIGINT, al recibir la señal se ejecuta se realiza la acción por defecto que consiste en terminar el proceso. En general las acciones por defecto al recibir una señal implican la finalización del proceso.
+
+e) Si intentamos iterar la instrucción sigaction sobre los valores de señal comprendidos entre el 1 y el 31, vemos que sigaction devuelve error para los valores 9 y 19. Estos valores corresponden a la señal SIGKILL y SIGSTOP que no se pueden capturar.
+ 
+EJERCICIO 4
+
+a) La gestión de la señal se realiza en el main dentro del bloque if(got_signal).
+
+b) 
+
+EJERCICIO 5
+
+a) Si se envia SIGUSR1 o SIGUSR2 no ocurre nadaa ya que la señal está bloqueada y por ende, se queda pendiente. En cambio, si se envia la señal SIGINT, el proceso finaliza puesto que ésta no está bloqueada.
+
+b) Tras la espera (y restaurar la máscara origianl, es decir, el conjunto vacío), la señal que se recibió durante la espera y estaba pendiente, se resuelve. La acción que provoca la señal SIGUSR1 es la finalización del proceso por lo que el mensaje del último printf no se llega a imprimir (no se ejecuta esa línea de código, el proceso ya ha finalizado).
+
+EJERCICIO 6
+
+a) Si se manda la señal SIGALRM se ejecutará el manejador y por consiguiente, el proceso finaliza. Si no se envia manualmente la señal, al cabo de 10 segundos se manda debido a la alarma que se había "programdo" con alarm.
+
+b) A los 10 segundos, la función alarm envía la señal SIGALRM que se atiende con la rutina por defecto (ya que no se ha establecido un manejador específico). La acción asociada a esta señal es la finalización. En pantalla se imprime el mensaje "Temporizador"
+
+EJERCICIO 7
+
+a) Se puede llamar en cualquier momento después de que se haya creado.?????
+
+
+EJERCICIO 8
+
+a) Cuando se ejecuta sem_wait() el semáforo tiene valor 0 por lo que el proceso se bloquea hasta que el semáforo tenga valor > 0 o un manejador interrumpa la llamada. Es por eso que tras ejecutarse el manejador se imprime "Fin de la espera" a pesar de que el semáforo no se ha puesto a 1 en ningún momento.
+
+b) En este caso el proceso se queda esperando a que el semáforo se ponga a 1 (cosa que no va a suceder). Esto ocurre porque al ignorar la señal no se está ejecutando el manejador y por ende, no se interrumpe la llamda a sem_wait().
+
+(Como hay que forzar a que acabe el programa, no se hace sem_unlink. El semaforo no se borra, al intentar ejecutarlo otra vez salta el error de que ya existe el semaforo --> no se han liberado sus recursos).
+
+c) Podemos usar la función sem_trywait() en un bucle de forma que cuando se intente bajar el semáforo y esté a cero, en vez de quedarse bloqueado (y que pueda ser interrumpido por una señal), devuelva -1 y se vuelva a iterar. De esta forma no hay espera que pueda ser interrumpida por una señal. 
+
+Habría que cambiar la línea de sem_wait(sem) por:
+
+while(sem_trywait(sem)==-1);
+
+
+EJERCICIO 9
+
+Una posible solución es la siguiente
+
+Como se ve en el código comentado, padre e hijo se van avisando de cuando han acabado. Los avisos se hacen levantando el semáforo, y los bloqueos de la rama usando la llamada a sem_wait().
+
+if (pid == 0) {
+
+        /*No ponemos ningún bloque al primer printf del hijo*/
+		printf("1\n"); 
+		sem_post(sem1); /*Avisar al padre de que imprima el número 2*/
+		
+		sem_wait(sem2); /*Bloquearse hasta que el padre indique que hay ha escrtito el 2*/
+
+		printf("3\n");
+		sem_post(sem1); /*Avisar de que ya ha escrito*/
+
+		sem_close(sem1);
+		sem_close(sem2);
+	}
+	else {
+        /*Obligamos al padre a esperar a que el hijo imprima por primera vez*/
+		sem_wait(sem1);
+		printf("2\n");
+  
+		sem_post(sem2); /*Avisar al hijo*/
+		sem_wait(sem1); /*Esperar a que el hijo escriba*/
+		printf("4\n");
+      
+
+		sem_close(sem1);
+		sem_close(sem2);
+		sem_unlink(SEM_NAME_A);
+		sem_unlink(SEM_NAME_B);
+		wait(NULL);
+		exit(EXIT_SUCCESS);
+	}
