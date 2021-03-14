@@ -78,6 +78,15 @@
 
 \addcontentsline{toc}{subsection}{Ejercicio 1}
 \subsection*{Ejercicio 1}
+a) La lista de señales se obtiene con el comando: 
+
+\begin{lstlisting}[language=bash]
+$ kill -l
+\end{lstlisting}
+
+b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$.
+
+\subsection*{Ejercicio 2}
 
 a) Basta con añadir el siguiente código en el hueco señalado: 
 \begin{lstlisting}[language=C]
@@ -88,7 +97,18 @@ a) Basta con añadir el siguiente código en el hueco señalado:
 \end{lstlisting}
 
 b) Si mandamos la señal \texttt{SIGSTOP}, al intentar excribir en la terminal, el texto que se introduce por el teclado, no aparece. Cuando mandamos la señal \texttt{SIGCONT}, el texto que habíamos intentado insertar antes aparece de golpe y la terminal vuelve a la normalidad.
+De hecho, si excribimos algún comando y presionamos enter después de haberle mandado la señal \texttt{SIGSTOP}, en cuanto se mande la señal \texttt{SIGCONT}, se ejecuta el mismo de inmediato.
 
+\subsection*{Ejercicio 3}
+a) La llamada a \texttt{sigaction} no supone que se ejecute la función \texttt{manejador}, sino que establece que esa es la función que este proceso ejecutará para manejar la interrupción causada por la señal indicada en el primer argumento de \texttt{sigaction}.
+
+b) En este caso, la única señal que se bloquea durante la ejecución de \texttt{manejador} es la señal que ha provocado su ejecución: \texttt{SIGINT}. Esto se debe a que \texttt{act.sa\_mask} con contiene ninguna señal.
+
+c) Lo primero que aparece en pantalla es el \texttt{printf} del bucle. Luego el proceso se bloquea en la orden \texttt{sleep(9999)}, y cuando se manda la señal \texttt{SIGINT} con el teclado, aparece el \texttt{printf} de la función \texttt{manejador}. Como el manejador no termina el proceso, éste continúa por la orden siguiente a la que ejecutó por última vez, es decir, vuelve a empezar el bucle, imprimiendo el \texttt{printf} del \texttt{while}.
+
+d) Si modificamos el programa para que no capture \texttt{SIGINT}, cuando pulsemos \texttt{Ctrl}$+$\texttt{C}, terminará la ejecución. Esto se debe a que si un proceso recibe una señal y no la captura, se ejecutará el manejador por defecto, el cual, en general, termina el proceso.
+
+e) Las señales \texttt{SIGKILL} y \texttt{SIGSTOP} no pueden ser capturadas, ya que sólo las puede manejar el núcleo. Si no fuera así, el sistema operativo no tendría posibilidad de parar un proceso que no responde. 
 
 \end{document}
 

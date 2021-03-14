@@ -17,9 +17,14 @@ int main(void) {
     sigemptyset(&(act.sa_mask));
     act.sa_flags = 0;
 
-    if (sigaction(SIGINT, &act, NULL) < 0) {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
+    int i;
+    // capturamos todas las señales de [1..31]
+    for(i=1;i<31;i++){
+        if (sigaction(i, &act, NULL) < 0) {
+            printf("%d",i);
+            perror("sigaction");
+            exit(EXIT_FAILURE);
+        }
     }
 
     while(1) {

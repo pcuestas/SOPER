@@ -2,7 +2,7 @@ EXE=sig_kill
 CC=gcc
 OBJ=$(EXE).o
 LIB=#-lpthread
-CFLAGS=-ansi -pedantic -Wall -g #### revisar banderas
+CFLAGS= -pedantic -g #### revisar banderas
 
 all: $(EXE)
 
