@@ -13,6 +13,7 @@ void manejador(int sig) {
 
 int main(void) {
     struct sigaction act;
+    int _aux=0;
 
     act.sa_handler = manejador;
     sigemptyset(&(act.sa_mask));
@@ -28,6 +29,8 @@ int main(void) {
 		if(got_signal) {
 		  got_signal = 0;
 		  printf("Señal recibida.\n");
+          
+          (_aux<10)?_aux++:exit(EXIT_SUCCESS);
 		}
         sleep(9999);
     }

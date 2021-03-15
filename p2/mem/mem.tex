@@ -110,6 +110,25 @@ d) Si modificamos el programa para que no capture \texttt{SIGINT}, cuando pulsem
 
 e) Las señales \texttt{SIGKILL} y \texttt{SIGSTOP} no pueden ser capturadas, ya que sólo las puede manejar el núcleo. Si no fuera así, el sistema operativo no tendría posibilidad de parar un proceso que no responde. 
 
+\subsection*{Ejercicio 4}
+a) La gestión de la señal se realiza cuando el programa llega al bloque \texttt{if(got\_signal)\{...\}}
+
+b)
+
+\subsubsection*{Ejercicio 5}
+a) Si se envia SIGUSR1 o SIGUSR2, no ocurre nada, ya que las señales están bloqueadas y, por ende, quedan pendientes. En cambio, si se envía la señal SIGINT, el proceso finaliza puesto que esta no está bloqueada.
+
+b) Cuando acaba la espera, finaliza el proceso. No se imprime el mensaje. Si mandamos una de estas señales que están bloqueadas, en cuanto finaliza la espera y se desbloquean las señales, que estaban pendientes, se lleva a cabo la rutina que la maneja, que termina el programa sin que se imprima el mensaje de despedida.
+
+\subsubsection*{Ejercicio 6}
+
+\subsubsection*{Ejercicio 7}
+
+\subsubsection*{Ejercicio 8}
+
+\subsubsection*{Ejercicio 9}
+
+\subsubsection*{Ejercicio 10}
 \end{document}
 
 
