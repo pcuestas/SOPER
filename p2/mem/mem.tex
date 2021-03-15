@@ -121,6 +121,9 @@ a) Si se envia SIGUSR1 o SIGUSR2, no ocurre nada, ya que las señales están blo
 b) Cuando acaba la espera, finaliza el proceso. No se imprime el mensaje. Si mandamos una de estas señales que están bloqueadas, en cuanto finaliza la espera y se desbloquean las señales, que estaban pendientes, se lleva a cabo la rutina que la maneja, que termina el programa sin que se imprima el mensaje de despedida.
 
 \subsubsection*{Ejercicio 6}
+a) Si se le manda al proceso la señal \texttt{SIGALRM} antes de que terminen los 10 segundos, ocurre lo mismo que si se acabara de terminar el tiempo, se ejecuta el manejador establecido por \texttt{sigaction} (que finaliza el proceso tras imprimir un mensaje).
+
+b) Si no se ejecuta \texttt{sigaction}, al recibir la señal \texttt{SIGALRM}, se atiende con la rutina por defecto, que imprime el mensaje `\texttt{Temporizador}' y finaliza el proceso.
 
 \subsubsection*{Ejercicio 7}
 

@@ -3,7 +3,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define SECS 10
+#define SECS 2
 
 /* manejador_SIGALRM: muestra un mensaje y termina el proceso. */
 void manejador_SIGALRM(int sig) {
@@ -20,10 +20,10 @@ int main(void) {
 
     /* Se arma la señal SIGALRM. */
     act.sa_handler = manejador_SIGALRM;
-    if (sigaction(SIGALRM, &act, NULL) < 0) {
+   /* if (sigaction(SIGALRM, &act, NULL) < 0) {
         perror("sigaction");
         exit(EXIT_FAILURE);
-    }
+    }*/
 
     if (alarm(SECS)) {
         fprintf(stderr, "Existe una alarma previa establecida\n");
