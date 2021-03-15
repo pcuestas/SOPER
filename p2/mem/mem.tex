@@ -84,7 +84,7 @@ a) La lista de señales se obtiene con el comando:
 $ kill -l
 \end{lstlisting}
 
-b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$.
+b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$. En este caso lo podemos ver directamente usando: \texttt{kill -l <Nombre\_de\_la\_señal>}
 
 \subsection*{Ejercicio 2}
 
@@ -102,7 +102,7 @@ De hecho, si excribimos algún comando y presionamos enter después de haberle m
 \subsection*{Ejercicio 3}
 a) La llamada a \texttt{sigaction} no supone que se ejecute la función \texttt{manejador}, sino que establece que esa es la función que este proceso ejecutará para manejar la interrupción causada por la señal indicada en el primer argumento de \texttt{sigaction}.
 
-b) En este caso, la única señal que se bloquea durante la ejecución de \texttt{manejador} es la señal que ha provocado su ejecución: \texttt{SIGINT}. Esto se debe a que \texttt{act.sa\_mask} con contiene ninguna señal.
+b) En este caso, la única señal que se bloquea durante la ejecución de \texttt{manejador} es la señal que ha provocado su ejecución: \texttt{SIGINT}. Esto se debe a que \texttt{act.sa\_mask} no contiene ninguna señal.
 
 c) Lo primero que aparece en pantalla es el \texttt{printf} del bucle. Luego el proceso se bloquea en la orden \texttt{sleep(9999)}, y cuando se manda la señal \texttt{SIGINT} con el teclado, aparece el \texttt{printf} de la función \texttt{manejador}. Como el manejador no termina el proceso, éste continúa por la orden siguiente a la que ejecutó por última vez, es decir, vuelve a empezar el bucle, imprimiendo el \texttt{printf} del \texttt{while}.
 

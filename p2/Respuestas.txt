@@ -21,7 +21,7 @@ b) Tras enviar la señal y tratar de escribir, no aparece el texto excrito. No o
 
 EJERCICIO 3
 
-a) No. La llamada a sigaction establece como ha de capturarse la señal cuando se reciba. En el momento en el que se reciba es cuando se ejecuta el manejador.
+a) No. La llamada a sigaction establece cómo ha de capturarse la señal cuando se reciba. En el momento en el que se reciba es cuando se ejecuta el manejador.
 
 b) No se bloquea ninguna ya que la máscara que  de la estructura sigaction es la máscara vacia (empty mask).
 
