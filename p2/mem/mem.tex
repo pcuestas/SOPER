@@ -10,6 +10,8 @@
 \usepackage{fancyhdr}
 \usepackage{fancyvrb}
 
+\usepackage{tcolorbox}
+
 \usepackage{listings}
 \usepackage{xcolor}
 
@@ -71,13 +73,14 @@
 
 \maketitle
 
-%\tableofcontents
+\begin{tcolorbox}
+\tableofcontents
+\end{tcolorbox}
 
-\addcontentsline{toc}{section}{Semana 1}
-\section*{Semana 1}
+
 
 \addcontentsline{toc}{subsection}{Ejercicio 1}
-\subsection*{Ejercicio 1}
+\section*{Ejercicio 1}
 a) La lista de señales se obtiene con el comando: 
 
 \begin{lstlisting}[language=bash]
@@ -86,7 +89,8 @@ $ kill -l
 
 b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$. En este caso lo podemos ver directamente usando: \texttt{kill -l <Nombre\_de\_la\_señal>}
 
-\subsection*{Ejercicio 2}
+\addcontentsline{toc}{subsection}{Ejercicio 2}
+\section*{Ejercicio 2}
 
 a) Basta con añadir el siguiente código en el hueco señalado: 
 \begin{lstlisting}[language=C]
@@ -99,7 +103,8 @@ a) Basta con añadir el siguiente código en el hueco señalado:
 b) Si mandamos la señal \texttt{SIGSTOP}, al intentar excribir en la terminal, el texto que se introduce por el teclado, no aparece. Cuando mandamos la señal \texttt{SIGCONT}, el texto que habíamos intentado insertar antes aparece de golpe y la terminal vuelve a la normalidad.
 De hecho, si excribimos algún comando y presionamos enter después de haberle mandado la señal \texttt{SIGSTOP}, en cuanto se mande la señal \texttt{SIGCONT}, se ejecuta el mismo de inmediato.
 
-\subsection*{Ejercicio 3}
+\addcontentsline{toc}{subsection}{Ejercicio 3}
+\section*{Ejercicio 3}
 a) La llamada a \texttt{sigaction} no supone que se ejecute la función \texttt{manejador}, sino que establece que esa es la función que este proceso ejecutará para manejar la interrupción causada por la señal indicada en el primer argumento de \texttt{sigaction}.
 
 b) En este caso, la única señal que se bloquea durante la ejecución de \texttt{manejador} es la señal que ha provocado su ejecución: \texttt{SIGINT}. Esto se debe a que \texttt{act.sa\_mask} no contiene ninguna señal.
@@ -110,28 +115,43 @@ d) Si modificamos el programa para que no capture \texttt{SIGINT}, cuando pulsem
 
 e) Las señales \texttt{SIGKILL} y \texttt{SIGSTOP} no pueden ser capturadas, ya que sólo las puede manejar el núcleo. Si no fuera así, el sistema operativo no tendría posibilidad de parar un proceso que no responde. 
 
-\subsection*{Ejercicio 4}
+\addcontentsline{toc}{subsection}{Ejercicio 4}
+\section*{Ejercicio 4}
 a) La gestión de la señal se realiza cuando el programa llega al bloque \texttt{if(got\_signal)\{...\}}
 
 b)
 
-\subsubsection*{Ejercicio 5}
+\addcontentsline{toc}{subsection}{Ejercicio 5}
+\section*{Ejercicio 5}
 a) Si se envia SIGUSR1 o SIGUSR2, no ocurre nada, ya que las señales están bloqueadas y, por ende, quedan pendientes. En cambio, si se envía la señal SIGINT, el proceso finaliza puesto que esta no está bloqueada.
 
 b) Cuando acaba la espera, finaliza el proceso. No se imprime el mensaje. Si mandamos una de estas señales que están bloqueadas, en cuanto finaliza la espera y se desbloquean las señales, que estaban pendientes, se lleva a cabo la rutina que la maneja, que termina el programa sin que se imprima el mensaje de despedida.
 
-\subsubsection*{Ejercicio 6}
+\addcontentsline{toc}{subsection}{Ejercicio 6}
+\section*{Ejercicio 6}
 a) Si se le manda al proceso la señal \texttt{SIGALRM} antes de que terminen los 10 segundos, ocurre lo mismo que si se acabara de terminar el tiempo, se ejecuta el manejador establecido por \texttt{sigaction} (que finaliza el proceso tras imprimir un mensaje).
 
 b) Si no se ejecuta \texttt{sigaction}, al recibir la señal \texttt{SIGALRM}, se atiende con la rutina por defecto, que imprime el mensaje `\texttt{Temporizador}' y finaliza el proceso.
 
-\subsubsection*{Ejercicio 7}
+\addcontentsline{toc}{subsection}{Ejercicio 7}
+\section*{Ejercicio 7}
+\texttt{sem\_unlink} se puede llamar en cualquier momento después de que se cree el semáforo. Como pone en el manual, \texttt{sem\_unlink} borra el nombre del semáforo, de modo que si algún otro proceso quiere abrir un semáforo con ese mismo nombre desupés de que se llame a \texttt{sem\_unlink}, tendrá que crearlo. Sin ambargo, estos dos procesos (padre e hijo) tendrán acceso a este semáforo hasta que lo cierren. 
 
-\subsubsection*{Ejercicio 8}
 
-\subsubsection*{Ejercicio 9}
+\addcontentsline{toc}{subsection}{Ejercicio 8}
+\section*{Ejercicio 8}
+a) Si se realiza una llamada a \texttt{sem\_wait} y el semáforo está a cero, esta llamada bloquea el proceso hasta que el semáforo aumente o hasta que algún manejador interrumpa esta espera. Esto último es lo que pasa en este caso. 
 
-\subsubsection*{Ejercicio 10}
+b) Como mandamos que se ignore la señal, ningún manejador interrumpe la llamada a \texttt{sem\_wait}. En este caso, no se imprime el mensaje tras la espera.
+
+c) Habría que sustituir la línea en la que se llama a \texttt{sem\_wait} por: \texttt{while(se\_wait(sem)==-1);}. De este modo, si un manejador interrumpe la llamada, la función devolverá error (-1) y se volverá a realizar la espera.
+
+
+\addcontentsline{toc}{subsection}{Ejercicio 9}
+\section*{Ejercicio 9}
+
+\addcontentsline{toc}{subsection}{Ejercicio 10}
+\section*{Ejercicio 10}
 \end{document}
 
 

@@ -1,8 +1,9 @@
-EXE=sig_kill
+
+EXE=sem_create
 CC=gcc
 OBJ=$(EXE).o
-LIB=#-lpthread
-CFLAGS= -pedantic -g #### revisar banderas
+LIB=-lpthread
+CFLAGS=#-pedantic -g #### revisar banderas
 
 all: $(EXE)
 
@@ -14,8 +15,11 @@ run: $(EXE)
 	@echo "------------"
 	./$(EXE)
 
-%.o: %.c 
-	$(CC) $(CFLAGS) -c $< -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
 	$(RM) ./$(EXE) *.o
+
+test: 
+	@echo $(LIB)
