@@ -153,11 +153,18 @@ int main(int argc, char *argv[]) {
     for (i = 0, term = 0; !term; i++){
         sigsuspend(&set);/*bloquea todas las señales menos las que espera cada proceso*/
       
-        if (got_sigint){
+        if (got_sigusr1){
+            got_sigusr1 = 0;
+
+            sem_wait(sem);
+            kill_(pid,SIGUSR1);
+            printf("Ciclo: %d (PID=%jd)\n", i, (intmax_t)this_pid);
+            sem_post(sem);
+        }else if (got_sigint){
             got_sigint = 0;
 
             kill_(pid,SIGTERM);
-            term=1;            
+            term = 1;
         }
         else if(got_sigterm){
             got_sigterm = 0;
@@ -165,15 +172,7 @@ int main(int argc, char *argv[]) {
             if(pid!=p1){
                 kill_(pid,SIGTERM);
             }
-            term=1;
-        }
-        else if (got_sigusr1){
-            got_sigusr1=0;
-
-            sem_wait(sem);
-            kill_(pid,SIGUSR1);
-            printf("Ciclo: %d (PID=%jd)\n", i, (intmax_t)this_pid);
-            sem_post(sem);
+            term = 1;
         }
     }
 

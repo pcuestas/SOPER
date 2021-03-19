@@ -11,4 +11,4 @@ PREGUNTAS
 
 6) funciones aux?
 
-CAMBIAR ORDEN DE FINALIZACIÓN(usr1<->term)
+got_sigterm========got_sigint
