@@ -28,7 +28,7 @@
     backgroundcolor=\color{backcolourgray},   
     commentstyle=\color{codegreen},
     keywordstyle=\color{codeblue},
-    numberstyle=\tiny\color{codegray},
+    numberstyle=\tiny\color{black},
     stringstyle=\color{codeorange},
     basicstyle=\ttfamily\footnotesize,
     breakatwhitespace=false,         
@@ -144,14 +144,26 @@ a) Si se realiza una llamada a \texttt{sem\_wait} y el semáforo está a cero, e
 
 b) Como mandamos que se ignore la señal, ningún manejador interrumpe la llamada a \texttt{sem\_wait}. En este caso, no se imprime el mensaje tras la espera.
 
-c) Habría que sustituir la línea en la que se llama a \texttt{sem\_wait} por: \texttt{while(se\_wait(sem)==-1);}. De este modo, si un manejador interrumpe la llamada, la función devolverá error (-1) y se volverá a realizar la espera.
+c) Habría que sustituir la línea en la que se llama a \texttt{sem\_wait} por: \texttt{while(sem\_wait(sem)==-1);}. De este modo, si un manejador interrumpe la llamada, la función devolverá error (-1) y se volverá a realizar la espera.
 
 
 \addcontentsline{toc}{subsection}{Ejercicio 9}
 \section*{Ejercicio 9}
+La siguiente sería una posible solución. Ambos semáforos se inicializan a $0$ en el código dado, por lo que cualquier \texttt{sem\_wait} que se realize a cada uno de ellos por primera vez bloqueará el proceso hasta que el otro le de permiso a continuar (con \texttt{sem\_post}).
+
+%Lo primero que tiene el bloque del padre es una llamada a \texttt{sem\_wait(sem1)}, por lo que se bloquea hasta que el hijo le permita continuar. El hijo imprime el número $1$, levanta el semáforo (\texttt{sem1}) para que el padre escriba, y llama a \texttt{sem\_wait(sem2)}, bloqueándose hasta que el padre escriba. Como el padre se ha desbloqueado, imprime el número $2$, levanta el semáforo (\texttt{sem2}) para que el hijo escriba, y llama a \texttt{sem\_wait(sem1)}, bloqueándose hasta que el hijo escriba. (etc.)
+
+En resumen, cuando el padre tiene que esperar algo del hijo, llama a \texttt{sem\_wait(sem1)} y cuando le tiene que dar permiso al hijo a continuar, llama a \texttt{sem\_post(sem2)}. El hijo incrementa (\texttt{sem\_post}) el semáforo \texttt{sem1} cuando ya da permiso al padre a continuar, y decrementa (\texttt{sem\_wait}) el semáforo \texttt{sem2} cuando espera que el padre haga algo.
+
+\begin {tcolorbox}[colback=green!5!white]
+\lstinputlisting[language=C, firstline=32, lastline=54, firstnumber=32, numbers=left,frame=single]
+{../src/conc_alternate.c}
+\end{tcolorbox}
 
 \addcontentsline{toc}{subsection}{Ejercicio 10}
 \section*{Ejercicio 10}
+
+
 \end{document}
 
 

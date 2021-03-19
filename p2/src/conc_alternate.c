@@ -26,31 +26,30 @@ int main(void) {
 	pid = fork();
 	if (pid < 0) {
 		perror("fork");
-		exit(EXIT_FAILURE);
+	    exit(EXIT_FAILURE);
 	}
 
-	if (pid == 0) {
-        /* Rellenar Código A */
-		printf("1\n");
-        /* Rellenar Código B */
-		printf("3\n");
-        /* Rellenar Código C */
+    if (pid == 0) {
+        printf("1\n");
+        sem_post(sem1); /*up for parent to print 2*/
+        sem_wait(sem2); /*wait for parent to print 2*/
+        printf("3\n");
+        sem_post(sem1); /*up for parent to print 4*/
 
-		sem_close(sem1);
-		sem_close(sem2);
-	}
-	else {
-        /* Rellenar Código D */
-		printf("2\n");
-        /* Rellenar Código E */
-		printf("4\n");
-        /* Rellenar Código F */
+        sem_close(sem1);
+        sem_close(sem2);
+    }else {
+        sem_wait(sem1); /*wait for child to print 1*/
+        printf("2\n");
+        sem_post(sem2); /*up for parent to print 3*/
+        sem_wait(sem1); /*wait for child to print 3*/
+        printf("4\n");
 
-		sem_close(sem1);
-		sem_close(sem2);
-		sem_unlink(SEM_NAME_A);
-		sem_unlink(SEM_NAME_B);
-		wait(NULL);
-		exit(EXIT_SUCCESS);
-	}
+        sem_close(sem1);
+        sem_close(sem2);
+        sem_unlink(SEM_NAME_A);
+        sem_unlink(SEM_NAME_B);
+        wait(NULL);
+        exit(EXIT_SUCCESS);
+    }
 }
