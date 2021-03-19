@@ -34,6 +34,14 @@ void manejador(int sig){
     }
 }
 
+/**
+ * @brief Configura la acción que se va a utilizar para 
+ *  capturar las señales. Bloquea las señales que 
+ *  pueden recibir los procesos durante los ciclos para
+ *  evitar que se pierdan.
+ * @param act puntero a la estructura de sigaction que
+ *  se va a configurar.
+ */
 void set_act(struct sigaction *act){
     /*bloqueamos las señales dentro del manejador 
     para evitar perderlas*/
@@ -47,11 +55,25 @@ void set_act(struct sigaction *act){
     act->sa_flags = 0;
 }
 
+/**
+ * @brief Wrapper de kill con control de error. 
+ * En caso de error, termina el proceso e imprime 
+ * el error obtenido.
+ * @param pid pid igual que la función kill(2)
+ * @param sig sig igual que la función kill(2)
+ */
+void kill_(pid_t pid, int sig){
+    if(kill(pid,sig)==-1){
+        perror("kill");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char *argv[]) {
     int NUM_PROC, i, term = 0;
-    pid_t pid=0, this_pid, p1 = getpid(); /*pid del proceso 1*/
+    pid_t pid = 0, this_pid, p1 = getpid(); /*pid del proceso 1*/
     struct sigaction act;
-    sigset_t  setblock;
+    sigset_t set;
     sem_t *sem = NULL;
 
     if (alarm(SECS)){
@@ -70,38 +92,39 @@ int main(int argc, char *argv[]) {
 	}
     sem_unlink(SEM_NAME);
 
-    sigfillset(&setblock);
-    sigprocmask(SIG_BLOCK, &setblock, NULL);
+    /*bloquear todas las señales del proceso antes de llamar a sigaction*/
+    sigfillset(&set);
+    sigprocmask(SIG_BLOCK, &set, NULL);
+    sigdelset(&set, SIGUSR1); /*para poder capturarla en los ciclos*/
     
-    set_act(&act);
+    set_act(&act);/*establecer act*/
 
     if (sigaction(SIGUSR1, &act, NULL) < 0) {
         perror("sigaction");
         exit(EXIT_FAILURE);
     }
-    sigdelset(&setblock, SIGUSR1);
 
+    /*creación de los hijos*/
     for (i = 0; i < NUM_PROC-1 && pid == 0; i++){
         if((pid=fork())<0){
             perror("fork");
             exit(EXIT_FAILURE);    
-        }else if (i==0){ 
-            if(pid == 0){/*el primer hijo*/
-                sigdelset(&setblock, SIGTERM);
+        }else if (i==0){
+            if(pid == 0){/*el primer hijo solo-el resto lo hereda*/
+                sigdelset(&set, SIGTERM);
                 
                 if (sigaction(SIGTERM, &act, NULL) < 0) {
                     perror("sigaction");
                     exit(EXIT_FAILURE);
                 }
-            }else{
-                /*Proceso orginal*/
-                sigdelset(&setblock, SIGINT);
-                sigdelset(&setblock, SIGALRM);
+            }else{/*proceso padre original*/
+                sigdelset(&set, SIGINT);
+                sigdelset(&set, SIGALRM);
                 if (sigaction(SIGINT, &act, NULL) < 0) {
                     perror("sigaction");
                     exit(EXIT_FAILURE);
                 }
-                if (sigaction(SIGALRM, &act, NULL) < 0) {
+                if (sigaction(SIGALRM, &act, NULL) < 0){
                     perror("sigaction");
                     exit(EXIT_FAILURE);
                 }
@@ -112,47 +135,32 @@ int main(int argc, char *argv[]) {
     /*ciclos*/
     
     /*Iniciamos los ciclos cuando todos los procesos se han creado */
-    if(pid==0){
-        if(kill(p1,SIGUSR1)==-1){
-            perror("kill");
-            exit(EXIT_FAILURE);
-        }
-    }
+    if(pid==0)
+        kill_(p1,SIGUSR1);
 
     this_pid = getpid();
-    pid = (!pid)?p1:pid;/*cada proceso manda a su hijo y el último al padre*/
+    pid = (!pid) ? p1 : pid; /*cada proceso manda señales a su hijo y el último al padre*/
 
-    for (i=0;!term;i++){
-        
-        sigsuspend(&setblock);/*bloquea todas menos las que espera*/
+    for (i = 0; !term; i++){
+        sigsuspend(&set);/*bloquea todas las señales menos las que espera*/
       
         if (got_siguser){
             got_siguser=0;
 
             sem_wait(sem);
-            if(kill(pid,SIGUSR1)==-1){
-                perror("kill");
-                exit(EXIT_FAILURE);
-            }
+            kill_(pid,SIGUSR1);
             printf("Ciclo: %i (PID=%d) \n", i, this_pid);
             sem_post(sem);
         }
         else if (got_sigint){
             got_sigint = 0;
-            if(kill(pid,SIGTERM)==-1){
-                perror("kill");
-                exit(EXIT_FAILURE);
-            }
+            kill_(pid,SIGTERM);
             term=1;            
         }
         else if(got_sigterm){
             got_sigterm = 0;
-            if(pid!=p1){
-                if(kill(pid,SIGTERM)==-1){
-                    perror("kill");
-                    exit(EXIT_FAILURE);
-                }
-            }
+            if(pid!=p1)
+                kill_(pid,SIGTERM);
             term=1;
         }
     }
