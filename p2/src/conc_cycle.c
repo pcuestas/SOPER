@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <stdint.h>
 
 /**
  * @file conc_cycle.c
@@ -69,6 +70,36 @@ void kill_(pid_t pid, int sig){
     }
 }
 
+/**
+ * @brief Establece el set de los hijos 
+ * (para sigsuspend) y la rutina de manejo 
+ * que solo tienen los hijos
+ */
+void set_and_act_child(sigset_t *set, struct sigaction *act){
+    sigdelset(set, SIGTERM);
+                
+    if (sigaction(SIGTERM, act, NULL) < 0) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+}
+/**
+ * @brief Establece el set del padre (para sigsuspend) y 
+ * las rutinas de manejo de señales exclusivas del padre
+ */
+void set_and_act_parent(sigset_t *set, struct sigaction *act){
+    sigdelset(set, SIGINT);
+    sigdelset(set, SIGALRM);
+    if (sigaction(SIGINT, act, NULL) < 0) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGALRM, act, NULL) < 0){
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char *argv[]) {
     int NUM_PROC, i, term = 0;
     pid_t pid = 0, this_pid, p1 = getpid(); /*pid del proceso 1*/
@@ -80,11 +111,11 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Existe una alarma previa establecida\n");
     }
 
-    if (argc != 2) {
-        fprintf(stderr, "Uso: %s <NUM_PROC>\n", argv[0]);
+    if (argc != 2 || (NUM_PROC = atoi(argv[1]))<=1) {
+        fprintf(stderr, "Uso:\t%s <NUM_PROC>\n\tCon NUM_PROC > 1\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    NUM_PROC = atoi(argv[1]);
+    
 
     if ((sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
 		perror("sem_open");
@@ -92,7 +123,7 @@ int main(int argc, char *argv[]) {
 	}
     sem_unlink(SEM_NAME);
 
-    /*bloquear todas las señales del proceso antes de llamar a sigaction*/
+    /*bloquear todas las señales antes de llamar a sigaction*/
     sigfillset(&set);
     sigprocmask(SIG_BLOCK, &set, NULL);
     sigdelset(&set, SIGUSR1); /*para poder capturarla en los ciclos*/
@@ -111,56 +142,47 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);    
         }else if (i==0){
             if(pid == 0){/*el primer hijo solo-el resto lo hereda*/
-                sigdelset(&set, SIGTERM);
-                
-                if (sigaction(SIGTERM, &act, NULL) < 0) {
-                    perror("sigaction");
-                    exit(EXIT_FAILURE);
-                }
+                set_and_act_child(&set, &act);
             }else{/*proceso padre original*/
-                sigdelset(&set, SIGINT);
-                sigdelset(&set, SIGALRM);
-                if (sigaction(SIGINT, &act, NULL) < 0) {
-                    perror("sigaction");
-                    exit(EXIT_FAILURE);
-                }
-                if (sigaction(SIGALRM, &act, NULL) < 0){
-                    perror("sigaction");
-                    exit(EXIT_FAILURE);
-                }
+                set_and_act_parent(&set, &act);
             }
         }
     }
 
     /*ciclos*/
     
-    /*Iniciamos los ciclos cuando todos los procesos se han creado */
-    if(pid==0)
+    /* Iniciamos los ciclos cuando todos los procesos se 
+     * han creado -- el último proceso creado manda señal al padre*/
+    if(pid==0){
         kill_(p1,SIGUSR1);
+    }
 
     this_pid = getpid();
     pid = (!pid) ? p1 : pid; /*cada proceso manda señales a su hijo y el último al padre*/
 
     for (i = 0; !term; i++){
-        sigsuspend(&set);/*bloquea todas las señales menos las que espera*/
+        sigsuspend(&set);/*bloquea todas las señales menos las que espera cada proceso*/
       
         if (got_siguser){
             got_siguser=0;
 
             sem_wait(sem);
             kill_(pid,SIGUSR1);
-            printf("Ciclo: %i (PID=%d) \n", i, this_pid);
+            printf("Ciclo: %d (PID=%jd)\n", i, (intmax_t)this_pid);
             sem_post(sem);
         }
         else if (got_sigint){
             got_sigint = 0;
+
             kill_(pid,SIGTERM);
             term=1;            
         }
         else if(got_sigterm){
             got_sigterm = 0;
-            if(pid!=p1)
+
+            if(pid!=p1){
                 kill_(pid,SIGTERM);
+            }
             term=1;
         }
     }
