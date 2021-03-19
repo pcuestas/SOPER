@@ -76,37 +76,6 @@ void kill_(pid_t pid, int sig){
     }
 }
 
-/**
- * @brief Establece el set de los hijos 
- * (para sigsuspend) y la rutina de manejo 
- * que solo tienen los hijos
- */
-void set_and_act_child(sigset_t *set, struct sigaction *act){
-    sigdelset(set, SIGTERM);
-                
-    if (sigaction(SIGTERM, act, NULL) < 0) {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-}
-/**
- * @brief Establece el set del padre (para sigsuspend) y 
- * las rutinas de manejo de señales exclusivas del padre
- */
-void set_and_act_parent(sigset_t *set, struct sigaction *act){
-    sigdelset(set, SIGINT);
-    sigdelset(set, SIGALRM);
-
-    if (sigaction(SIGINT, act, NULL) < 0) {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-    if (sigaction(SIGALRM, act, NULL) < 0){
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-}
-
 int main(int argc, char *argv[]) {
     int NUM_PROC, i, term;
     pid_t pid = 0, this_pid, p1 = getpid(); /*pid del proceso 1*/
@@ -148,9 +117,24 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);    
         }else if (i==0){
             if(pid == 0){/*el primer hijo solo-el resto lo hereda*/
-                set_and_act_child(&set, &act);
+                sigdelset(&set, SIGTERM);
+                
+                if (sigaction(SIGTERM, &act, NULL) < 0) {
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
             }else{/*proceso padre original*/
-                set_and_act_parent(&set, &act);
+                sigdelset(&set, SIGINT);
+                sigdelset(&set, SIGALRM);
+            
+                if (sigaction(SIGINT, &act, NULL) < 0) {
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
+                if (sigaction(SIGALRM, &act, NULL) < 0){
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
     }
