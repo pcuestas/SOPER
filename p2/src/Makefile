@@ -1,5 +1,5 @@
 
-EXE=sem_create
+EXE=conc_cycle
 CC=gcc
 OBJ=$(EXE).o
 LIB=-lpthread
