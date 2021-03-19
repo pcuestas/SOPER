@@ -22,14 +22,14 @@
 #define SECS 10
 
 static volatile sig_atomic_t got_sigint = 0;
-static volatile sig_atomic_t got_siguser = 0;
+static volatile sig_atomic_t got_sigusr1 = 0;
 static volatile sig_atomic_t got_sigterm = 0;
 
 void manejador(int sig){
     if(sig==SIGTERM){
         got_sigterm = 1;
     }else if(sig==SIGUSR1){
-        got_siguser = 1;
+        got_sigusr1 = 1;
     }else{/*SIGINT o SIGALRM*/
         got_sigint =1;
     }
@@ -101,7 +101,7 @@ void set_and_act_parent(sigset_t *set, struct sigaction *act){
 }
 
 int main(int argc, char *argv[]) {
-    int NUM_PROC, i, term = 0;
+    int NUM_PROC, i, term;
     pid_t pid = 0, this_pid, p1 = getpid(); /*pid del proceso 1*/
     struct sigaction act;
     sigset_t set;
@@ -160,18 +160,10 @@ int main(int argc, char *argv[]) {
     this_pid = getpid();
     pid = (!pid) ? p1 : pid; /*cada proceso manda señales a su hijo y el último al padre*/
 
-    for (i = 0; !term; i++){
+    for (i = 0, term = 0; !term; i++){
         sigsuspend(&set);/*bloquea todas las señales menos las que espera cada proceso*/
       
-        if (got_siguser){
-            got_siguser=0;
-
-            sem_wait(sem);
-            kill_(pid,SIGUSR1);
-            printf("Ciclo: %d (PID=%jd)\n", i, (intmax_t)this_pid);
-            sem_post(sem);
-        }
-        else if (got_sigint){
+        if (got_sigint){
             got_sigint = 0;
 
             kill_(pid,SIGTERM);
@@ -185,17 +177,17 @@ int main(int argc, char *argv[]) {
             }
             term=1;
         }
+        else if (got_sigusr1){
+            got_sigusr1=0;
+
+            sem_wait(sem);
+            kill_(pid,SIGUSR1);
+            printf("Ciclo: %d (PID=%jd)\n", i, (intmax_t)this_pid);
+            sem_post(sem);
+        }
     }
 
     sem_close(sem);
     wait(NULL);
     exit(EXIT_SUCCESS);
 }
-
-/*
-Despues de la llamada a la función fork, el proceso hijo:
-    Hereda la máscara de señales bloqueadas.
-    Tiene vacía la lista de señales pendientes.
-    Hereda las rutinas de manejo.
-    No hereda las alarmas.
-*/

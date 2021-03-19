@@ -40,3 +40,5 @@ PREGUNTAS
 4) Solucionar punto 3 haciendo 3if en vez de if else es cutre?. Problemas?
 
 5) ¿Es mejor hacer más manejadores con una instrucción?
+
+CAMBIAR ORDEN DE FINALIZACIÓN(usr1<->term)
