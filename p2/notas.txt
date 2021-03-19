@@ -28,17 +28,3 @@ CUANDO LLAMAR A SEM_UNLINK?
 
 
 
-PREGUNTAS
-
-
-1) Por que nos falla en el ciclo 400 y no en el 1 si ponemos sigprocmask(TODAS) despues de los sigaction.
-
-2) Merece la pena hacr una funcion kill_ 
-
-3) Si durante manejador se recibe otra (que no esta bloqueada pq se esta ejecutanod el manejador), cuando el primer manejadro termine, se va a poder ejecutar el manejador despues de sigsuspend a pesar de que esa señal esta vloqueada. La señal la hemos recibido durante el manejdaro y se trata cuando esta bloqueada.
-
-4) Solucionar punto 3 haciendo 3if en vez de if else es cutre?. Problemas?
-
-5) ¿Es mejor hacer más manejadores con una instrucción?
-
-CAMBIAR ORDEN DE FINALIZACIÓN(usr1<->term)
