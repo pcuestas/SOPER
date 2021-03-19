@@ -34,19 +34,6 @@ void manejador(int sig){
     }
 }
 
-void set_act(struct sigaction *act){
-    /*bloqueamos las señales dentro del manejador 
-    para evitar perderlas*/
-    sigemptyset(&(act->sa_mask));
-    sigaddset(&(act->sa_mask), SIGALRM);
-    sigaddset(&(act->sa_mask), SIGINT);
-    sigaddset(&(act->sa_mask), SIGTERM);
-    sigaddset(&(act->sa_mask), SIGUSR1);
-    
-    act->sa_handler = manejador;
-    act->sa_flags = 0;
-}
-
 int main(int argc, char *argv[]) {
     int NUM_PROC, i, term = 0;
     pid_t pid=0, this_pid, p1 = getpid(); /*pid del proceso 1*/
@@ -73,7 +60,14 @@ int main(int argc, char *argv[]) {
     sigfillset(&setblock);
     sigprocmask(SIG_BLOCK, &setblock, NULL);
     
-    set_act(&act);
+    sigemptyset(&(act.sa_mask));
+    sigaddset(&(act.sa_mask), SIGALRM);
+    sigaddset(&(act.sa_mask), SIGINT);
+    sigaddset(&(act.sa_mask), SIGTERM);
+    sigaddset(&(act.sa_mask), SIGUSR1);
+    
+    act.sa_handler = manejador;
+    act.sa_flags = 0;
 
     if (sigaction(SIGUSR1, &act, NULL) < 0) {
         perror("sigaction");
