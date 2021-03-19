@@ -11,10 +11,10 @@
 
 /**
  * @file conc_cycle.c
- * @authors
+ * @authors Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
  * 
- * @brief
- * 
+ * @brief Programa descrito en el ejercicio 10 de la 
+ *  práctica 2 (SOPER).
  * 
  */
 
@@ -25,13 +25,19 @@ static volatile sig_atomic_t got_sigint = 0;
 static volatile sig_atomic_t got_sigusr1 = 0;
 static volatile sig_atomic_t got_sigterm = 0;
 
+/**
+ * @brief manejador - para cada señal actualiza la 
+ *  bandera correspondiente
+ */
 void manejador(int sig){
-    if(sig==SIGTERM){
+    if (sig == SIGTERM){
         got_sigterm = 1;
-    }else if(sig==SIGUSR1){
+    }
+    else if (sig == SIGUSR1){
         got_sigusr1 = 1;
-    }else{/*SIGINT o SIGALRM*/
-        got_sigint =1;
+    }
+    else{ /*SIGINT o SIGALRM*/
+        got_sigint = 1;
     }
 }
 
@@ -90,6 +96,7 @@ void set_and_act_child(sigset_t *set, struct sigaction *act){
 void set_and_act_parent(sigset_t *set, struct sigaction *act){
     sigdelset(set, SIGINT);
     sigdelset(set, SIGALRM);
+
     if (sigaction(SIGINT, act, NULL) < 0) {
         perror("sigaction");
         exit(EXIT_FAILURE);
@@ -115,7 +122,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Uso:\t%s <NUM_PROC>\n\tCon NUM_PROC > 1\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    
 
     if ((sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED) {
 		perror("sem_open");
