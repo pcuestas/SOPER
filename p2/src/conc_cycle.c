@@ -22,7 +22,7 @@
 #define SECS 10
 
 static volatile sig_atomic_t got_sigusr1 = 0;
-static volatile sig_atomic_t got_sigterm = 0;
+static volatile sig_atomic_t got_end = 0;
 
 /**
  * @brief manejador - para cada señal actualiza la 
@@ -33,7 +33,7 @@ void manejador(int sig){
         got_sigusr1 = 1;
     }
     else{ /*SIGINT, SIGALRM o SIGTERM*/
-        got_sigterm = 1;
+        got_end = 1;
     }
 }
 
@@ -98,8 +98,8 @@ void cycles(int first_cycle_number, pid_t next_proc, pid_t first_proc, sem_t *se
             got_sigusr1 = 0;
             signal_and_print(sem, i, next_proc, this_pid);
         }
-        else if(got_sigterm){
-            got_sigterm = 0;
+        else if(got_end){
+            got_end = 0;
 
             if(next_proc != first_proc){
                 kill_(next_proc, SIGTERM);

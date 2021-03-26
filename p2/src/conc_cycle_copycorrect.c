@@ -23,7 +23,7 @@
 
 static volatile sig_atomic_t got_sigint = 0;
 static volatile sig_atomic_t got_sigusr1 = 0;
-static volatile sig_atomic_t got_sigterm = 0;
+static volatile sig_atomic_t got_end = 0;
 
 /**
  * @brief manejador - para cada señal actualiza la 
@@ -31,7 +31,7 @@ static volatile sig_atomic_t got_sigterm = 0;
  */
 void manejador(int sig){
     if (sig == SIGTERM){
-        got_sigterm = 1;
+        got_end = 1;
     }
     else if (sig == SIGUSR1){
         got_sigusr1 = 1;
@@ -166,8 +166,8 @@ int main(int argc, char *argv[]) {
             kill_(pid,SIGTERM);
             term = 1;
         }
-        else if(got_sigterm){
-            got_sigterm = 0;
+        else if(got_end){
+            got_end = 0;
 
             if(pid!=p1){
                 kill_(pid,SIGTERM);
