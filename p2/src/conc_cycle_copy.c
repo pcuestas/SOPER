@@ -21,6 +21,7 @@
 #define SEM_NAME "/sem_cycles"
 #define SECS 10
 
+static volatile sig_atomic_t got_sigint = 0;
 static volatile sig_atomic_t got_sigusr1 = 0;
 static volatile sig_atomic_t got_sigterm = 0;
 
@@ -29,11 +30,14 @@ static volatile sig_atomic_t got_sigterm = 0;
  *  bandera correspondiente
  */
 void manejador(int sig){
-    if (sig == SIGUSR1){
+    if (sig == SIGTERM){
+        got_sigterm = 1;
+    }
+    else if (sig == SIGUSR1){
         got_sigusr1 = 1;
     }
-    else{ /*SIGINT, SIGALRM o SIGTERM*/
-        got_sigterm = 1;
+    else{ /*SIGINT o SIGALRM*/
+        got_sigint = 1;
     }
 }
 
@@ -72,55 +76,9 @@ void kill_(pid_t pid, int sig){
     }
 }
 
-pid_t child(int j, int NUM_PROC){
-    pid_t next;
-    if(j < NUM_PROC){
-        /*creación de el hijo*/
-        if((next = fork())<0){
-            perror("fork");
-            exit(EXIT_FAILURE);    
-        }else if (next == 0){
-            return child(j+1, NUM_PROC);
-        }else{
-            return next;
-        }
-    }else{
-        /*el último hijo no hace nada*/
-        return 0;
-    }
-}
-
-void signal_and_print(sem_t *sem, int cycle_number, pid_t next, pid_t this_pid){
-    sem_wait(sem);
-    kill_(next,SIGUSR1);
-    printf("Ciclo: %d (PID=%jd)\n", cycle_number, (intmax_t)this_pid);
-    sem_post(sem);
-}
-
-void cycles(int first_cycle, pid_t next, pid_t this_pid, pid_t first_proc, sem_t *sem, sigset_t *set){
-    int i, term;
-    for (i = first_cycle, term = 0; !term; i++){
-        sigsuspend(set);/*bloquea todas las señales menos las que espera cada proceso*/
-      
-        if (got_sigusr1){
-            got_sigusr1 = 0;
-
-            signal_and_print(sem, i, next, this_pid);
-        }
-        else if(got_sigterm){
-            got_sigterm = 0;
-
-            if(next!=first_proc){
-                kill_(next,SIGTERM);
-            }
-            term = 1;
-        }
-    }
-}
-
 int main(int argc, char *argv[]) {
-    int NUM_PROC, first_cycle, term;
-    pid_t pid = 0, this_pid, next, p1 = getpid(); /*pid del proceso 1*/
+    int NUM_PROC, i, term;
+    pid_t pid = 0, this_pid, p1 = getpid(); /*pid del proceso 1*/
     struct sigaction act;
     sigset_t set;
     sem_t *sem = NULL;
@@ -144,54 +102,79 @@ int main(int argc, char *argv[]) {
     sigfillset(&set);
     sigprocmask(SIG_BLOCK, &set, NULL);
     sigdelset(&set, SIGUSR1); /*para poder capturarla en los ciclos*/
-    sigdelset(&set, SIGTERM);
-
+    
     set_act(&act);/*establecer act*/
 
-
-    /*Establecer manejadores de las señales*/
     if (sigaction(SIGUSR1, &act, NULL) < 0) {
         perror("sigaction");
         exit(EXIT_FAILURE);
     }
-    if (sigaction(SIGTERM, &act, NULL) < 0) {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-    if (sigaction(SIGINT, &act, NULL) < 0) {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-    if (sigaction(SIGALRM, &act, NULL) < 0){
-        perror("sigaction");
-        exit(EXIT_FAILURE);
+
+    /*creación de los hijos*/
+    for (i = 0; i < NUM_PROC-1 && pid == 0; i++){
+        if((pid=fork())<0){
+            perror("fork");
+            exit(EXIT_FAILURE);    
+        }else if (i==0){
+            if(pid == 0){/*el primer hijo solo-el resto lo hereda*/
+                sigdelset(&set, SIGTERM);
+                
+                if (sigaction(SIGTERM, &act, NULL) < 0) {
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
+            }else{/*proceso padre original*/
+                sigdelset(&set, SIGINT);
+                sigdelset(&set, SIGALRM);
+            
+                if (sigaction(SIGINT, &act, NULL) < 0) {
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
+                if (sigaction(SIGALRM, &act, NULL) < 0){
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
     }
 
-    /*creación de el hijo*/
-    if((pid=fork())<0){
-        perror("fork");
-        exit(EXIT_FAILURE);    
-    }else if (pid == 0){
-        sigdelset(&set, SIGTERM);/* el primer hijo, el resto lo hereda */
-        next = child(1, NUM_PROC);/* todos los hijos vuelven aquí */
-        this_pid = getpid();
-        first_cycle = 0;
-    }else{
-        /*padre */
-        sigdelset(&set, SIGINT);
-        sigdelset(&set, SIGALRM);
-
-        /*primera señal al hijo*/
-        this_pid = p1;
-        pid = next;
-        signal_and_print(sem, 0, next, this_pid);
-        first_cycle = 1;
+    /*ciclos*/
+    
+    /* Iniciamos los ciclos cuando todos los procesos se 
+     * han creado -- el último proceso creado manda señal al padre*/
+    if(pid==0){
+        kill_(p1,SIGUSR1);
     }
-    /*común para todos los procesos*/
 
-    next = (!next) ? p1 : next;
+    this_pid = getpid();
+    pid = (!pid) ? p1 : pid; /*cada proceso manda señales a su hijo y el último al padre*/
 
-    cycles(first_cycle, next, this_pid, p1, sem, &set);
+    for (i = 0, term = 0; !term; i++){
+        sigsuspend(&set);/*bloquea todas las señales menos las que espera cada proceso*/
+      
+        if (got_sigusr1){
+            got_sigusr1 = 0;
+
+            sem_wait(sem);
+            kill_(pid,SIGUSR1);
+            printf("Ciclo: %d (PID=%jd)\n", i, (intmax_t)this_pid);
+            sem_post(sem);
+        }else if (got_sigint){
+            got_sigint = 0;
+
+            kill_(pid,SIGTERM);
+            term = 1;
+        }
+        else if(got_sigterm){
+            got_sigterm = 0;
+
+            if(pid!=p1){
+                kill_(pid,SIGTERM);
+            }
+            term = 1;
+        }
+    }
 
     sem_close(sem);
     wait(NULL);
