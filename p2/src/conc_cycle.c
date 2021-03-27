@@ -79,7 +79,7 @@ void kill_(pid_t pid, int sig){
 }
 
 void signal_and_print(sem_t *sem, int cycle_number, pid_t next, pid_t this_pid){
-    sem_wait(sem);
+    while(sem_wait(sem) != 0); /*para evitar que devuelva y no sea por el sem*/
     
     kill_(next,SIGUSR1);
     printf("Ciclo: %d (PID=%jd)\n", cycle_number, (intmax_t)this_pid);
@@ -87,16 +87,18 @@ void signal_and_print(sem_t *sem, int cycle_number, pid_t next, pid_t this_pid){
     sem_post(sem);
 }
 
-void cycles(int first_cycle_number, pid_t next_proc, pid_t first_proc, sem_t *sem, sigset_t set){
-    int i, term;
+void cycles(int first_cycle_number, pid_t next_proc, pid_t first_proc, sem_t *sem, sigset_t old_set){
+    int i = first_cycle_number;
+    int term = 0;
     pid_t this_pid = getpid();
 
-    for (i = first_cycle_number, term = 0; !term; i++){
-        sigsuspend(&set);/*bloquea todas las señales menos las que espera cada proceso*/
+    while( !term ){
+        sigsuspend(&old_set);/*bloquea todas las señales menos las que espera cada proceso*/
       
         if (got_sigusr1){
             got_sigusr1 = 0;
             signal_and_print(sem, i, next_proc, this_pid);
+            i++;
         }
         else if(got_end){
             got_end = 0;
@@ -109,7 +111,7 @@ void cycles(int first_cycle_number, pid_t next_proc, pid_t first_proc, sem_t *se
     }
 }
 
-pid_t child(int j, int NUM_PROC, pid_t first_proc, sigset_t set, sem_t *sem){
+pid_t child(int j, int NUM_PROC, pid_t first_proc, sigset_t old_set, sem_t *sem){
     pid_t nextp;
 
     if(j < NUM_PROC){ /*si no es el último, crea el siguiente proceso*/
@@ -122,14 +124,14 @@ pid_t child(int j, int NUM_PROC, pid_t first_proc, sigset_t set, sem_t *sem){
         }
         else if(nextp == 0){
             /*función del proceso j+1*/
-            child(j+1, NUM_PROC, first_proc, set, sem);
+            child(j+1, NUM_PROC, first_proc, old_set, sem);
         }
     }
     else{/*el último proceso manda señal al primero en los ciclos*/
         nextp = first_proc;
     }
 
-    cycles(0, nextp, first_proc, sem, set);
+    cycles(0, nextp, first_proc, sem, old_set);
 
     sem_close(sem);
     wait(NULL);
@@ -141,7 +143,7 @@ int main(int argc, char *argv[]) {
     pid_t nextp, first_proc = getpid(); /*pid del proceso primero*/
     
     struct sigaction act;
-    sigset_t set;
+    sigset_t mask, old_mask;
     sem_t *sem = NULL;
 
     if (argc != 2 || (NUM_PROC = atoi(argv[1]))<=1) {
@@ -160,11 +162,14 @@ int main(int argc, char *argv[]) {
 	}
     sem_unlink(SEM_NAME);
 
-    /*bloquear todas las señales antes de llamar a sigaction*/
-    sigfillset(&set);
-    sigprocmask(SIG_BLOCK, &set, NULL); 
-    sigdelset(&set, SIGUSR1); /*para poder capturarla en los ciclos*/
-    
+    /*bloquear las señales antes de llamar a sigaction (para evitar perderlas)*/
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGUSR1);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGALRM);
+    sigaddset(&mask, SIGTERM);
+    sigprocmask(SIG_BLOCK, &mask, &old_mask); /* guardamos old_mask para luego usarlo en sigsuspend */
+
     /*establecer act*/
     set_act(&act);
     
@@ -186,24 +191,28 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+
     /*creación del proceso 2*/
     if((nextp=fork())<0){
         perror("fork");
         exit(EXIT_FAILURE);    
     }else if(nextp == 0){
-        /*quitamos del set la señal que pueden recibir los procesos que no son el primero*/
-        sigdelset(&set, SIGTERM);
-        child(2, NUM_PROC, first_proc, set, sem); /*función del proceso segundo -- llama a exit()*/
+        /*evitamos que los procesos que no son el 1 reciban SIGINT*/
+        sigaddset(&old_mask, SIGINT); 
+        
+        //    sigaddset(&old_mask, SIGALRM);//no hace falta
+
+        child(2, NUM_PROC, first_proc, old_mask, sem); /*función del proceso segundo -- llama a exit()*/
     }
     /* proceso 1 */
 
-    /*quitamos del set las señales que puede recibir*/
-    sigdelset(&set, SIGINT);
-    sigdelset(&set, SIGALRM);
+    ////////////////////////////
+    //sigaddset(&old_mask, SIGTERM); // no hace falta
+    ////////////////////////////
 
     signal_and_print(sem, 0, nextp, first_proc);/*ciclo inicial*/
 
-    cycles(1, nextp, first_proc, sem, set);
+    cycles(1, nextp, first_proc, sem, old_mask);
 
     sem_close(sem);
     wait(NULL);
