@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 
 
     /*creación del proceso 2*/
-    if((nextp=fork())<0){
+    if((nextp=fork()) < 0){
         perror("fork");
         exit(EXIT_FAILURE);    
     }else if(nextp == 0){
@@ -206,11 +206,9 @@ int main(int argc, char *argv[]) {
     }
     /* proceso 1 */
 
-    ////////////////////////////
-    //sigaddset(&old_mask, SIGTERM); // no hace falta
-    ////////////////////////////
-
-    signal_and_print(sem, 0, nextp, first_proc);/*ciclo inicial*/
+        //    sigaddset(&old_mask, SIGTERM);//no hace falta
+        
+    signal_and_print(sem, 0, nextp, first_proc);/*ciclo inicial-primera señal a su hijo*/
 
     cycles(1, nextp, first_proc, sem, old_mask);
 
