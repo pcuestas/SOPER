@@ -1,11 +1,17 @@
 \babel@toc {spanish}{}
-\contentsline {subsection}{Ejercicio 1}{1}{section*.1}
-\contentsline {subsection}{Ejercicio 2}{1}{lstnumber.-1.1}
-\contentsline {subsection}{Ejercicio 3}{1}{lstnumber.-2.4}
-\contentsline {subsection}{Ejercicio 4}{2}{section*.4}
-\contentsline {subsection}{Ejercicio 5}{2}{section*.5}
-\contentsline {subsection}{Ejercicio 6}{2}{section*.6}
-\contentsline {subsection}{Ejercicio 7}{2}{section*.7}
-\contentsline {subsection}{Ejercicio 8}{2}{section*.8}
-\contentsline {subsection}{Ejercicio 9}{2}{section*.9}
-\contentsline {subsection}{Ejercicio 10}{3}{lstnumber.-3.54}
+\contentsline {subsection}{Ejercicio 1}{1}{section*.1}%
+\contentsline {subsection}{Ejercicio 2}{1}{lstnumber.-1.1}%
+\contentsline {subsection}{Ejercicio 3}{1}{lstnumber.-2.4}%
+\contentsline {subsection}{Ejercicio 4}{2}{section*.4}%
+\contentsline {subsection}{Ejercicio 5}{2}{section*.5}%
+\contentsline {subsection}{Ejercicio 6}{2}{section*.6}%
+\contentsline {subsection}{Ejercicio 7}{2}{section*.7}%
+\contentsline {subsection}{Ejercicio 8}{2}{section*.8}%
+\contentsline {subsection}{Ejercicio 9}{3}{section*.9}%
+\contentsline {subsection}{Ejercicio 10}{4}{lstnumber.-3.54}%
+\contentsline {subsubsection}{a) Creación de los procesos}{4}{section*.11}%
+\contentsline {subsubsection}{b) y c) Bucle de los ciclos}{4}{section*.12}%
+\contentsline {subsubsection}{d) Protección de zonas críticas}{4}{section*.13}%
+\contentsline {subsubsection}{e) Temporización}{4}{section*.14}%
+\contentsline {subsubsection}{f) Análisis de la ejecución}{5}{section*.15}%
+\contentsline {subsubsection}{g) Sincronización con semáforos}{5}{section*.16}%

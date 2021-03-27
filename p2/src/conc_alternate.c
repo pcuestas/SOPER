@@ -31,18 +31,18 @@ int main(void) {
 
     if (pid == 0) {
         printf("1\n");
-        sem_post(sem1); /*up for parent to print 2*/
-        sem_wait(sem2); /*wait for parent to print 2*/
+        sem_post(sem1); /*up para que el padre imprima 2*/
+        sem_wait(sem2); /*esperar a que el padre imprima 2*/
         printf("3\n");
-        sem_post(sem1); /*up for parent to print 4*/
+        sem_post(sem1); /*up para que el padre imprima 4*/
 
         sem_close(sem1);
         sem_close(sem2);
     }else {
-        sem_wait(sem1); /*wait for child to print 1*/
+        sem_wait(sem1); /*esperar a que el hijo imprima 1*/
         printf("2\n");
-        sem_post(sem2); /*up for parent to print 3*/
-        sem_wait(sem1); /*wait for child to print 3*/
+        sem_post(sem2); /*up para que el hijo imprima 3*/
+        sem_wait(sem1); /*esperar a que el hijo imprima 3*/
         printf("4\n");
 
         sem_close(sem1);
