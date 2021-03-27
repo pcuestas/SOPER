@@ -50,6 +50,9 @@ void manejador(int sig){
  * @param act puntero a la estructura de sigaction que
  *  se va a configurar.
  */
+
+
+/*NOT            USED*/
 void set_act(struct sigaction *act){
     /*bloqueamos las señales dentro del manejador 
     para evitar perderlas*/
@@ -171,7 +174,10 @@ int main(int argc, char *argv[]) {
     sigprocmask(SIG_BLOCK, &mask, &old_mask); /* guardamos old_mask para luego usarlo en sigsuspend */
 
     /*establecer act*/
-    set_act(&act);
+    //set_act(&act);
+    act.sa_mask = mask; /*para que dentro del manejador se bloqueen las señales*/
+    act.sa_handler = manejador;
+    act.sa_flags = 0;
     
     /*establecer el manejador para las señales que pueden recibir*/
     if (sigaction(SIGUSR1, &act, NULL) < 0) {
@@ -207,7 +213,7 @@ int main(int argc, char *argv[]) {
     /* proceso 1 */
 
         //    sigaddset(&old_mask, SIGTERM);//no hace falta
-        
+
     signal_and_print(sem, 0, nextp, first_proc);/*ciclo inicial-primera señal a su hijo*/
 
     cycles(1, nextp, first_proc, sem, old_mask);
