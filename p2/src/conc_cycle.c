@@ -87,16 +87,29 @@ void sigaction_(int sig, const struct sigaction *act, struct sigaction *oldact){
     }
 }
 
-void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next, pid_t this_pid){
+/**
+ * @brief Manda la señal SIGUSR1 al proceso siguiente 
+ *  e imprime la cadena correspondiente al número de ciclo.
+ *  Protege esta acción con el semáforo binario sem.
+ * @param sem semáforo binario que protege el envío de la señal
+ *  y la impresión en stdout, para asegurar que ningún proceso 
+ *  pueda imprimir antes que el anterior. 
+ * @param cycle_number número del ciclo
+ * @param next_proc siguiente proceso (al que se le manda SIGUSR1)
+ * @param this_pid pid del proceso que se está ejecutando (el que
+ *  manda la señal)
+ */
+void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc, pid_t this_pid){
     while(sem_wait(sem) != 0); /*para evitar que devuelva y no sea por el sem*/
     
-    kill_(next, SIGUSR1);
+    kill_(next_proc, SIGUSR1);
     printf("Ciclo: %d (PID=%jd)\n", cycle_number, (intmax_t)this_pid);
 
     sem_post(sem);    
 }
 
-void cycles(pid_t next, pid_t first_proc, sigset_t *susp_mask, sem_t *sem){
+
+void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
 
     pid_t this_pid = getpid();
 
@@ -104,32 +117,34 @@ void cycles(pid_t next, pid_t first_proc, sigset_t *susp_mask, sem_t *sem){
     int cycle_num = (this_pid == first_proc) ? 1 : 0;
 
     /*cada proceso manda señales a su hijo y el último a P1*/
-    next = (!next) ? first_proc : next; 
+    next_proc = (!next_proc) ? first_proc : next_proc;
 
     while(!got_end){
-        /*bloquea todas las señales menos las que espera el proceso*/
-        sigsuspend(susp_mask);
+        /*Esperamos que se reciba una de las señales previamente bloqueadas*/
+        sigsuspend(old_mask);
 
         if (got_sigusr1){
             got_sigusr1 = 0;
 
-            signal_next_process_and_print(sem, cycle_num, next, this_pid);
+            signal_next_process_and_print(sem, cycle_num, next_proc, this_pid);
             cycle_num++;
         }
         else if (got_end){
             /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
-            if (next != first_proc){
-                kill_(next, SIGTERM);
+            if (next_proc != first_proc){
+                kill_(next_proc, SIGTERM);
             }
         }
     }
 }
 
 int main(int argc, char *argv[]){
-    int NUM_PROC, i, term;
-    pid_t pid = 0, this_pid, first_proc = getpid(); /*pid del proceso 1*/
+    int NUM_PROC, i;
+    pid_t next_proc;
+    pid_t first_proc = getpid(); /*pid del proceso 1*/
+    
     struct sigaction act;
-    sigset_t set;
+    sigset_t mask, old_mask;
     sem_t *sem = NULL;
 
     /*Control de argumentos de entrada*/
@@ -143,7 +158,6 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "Existe una alarma previa establecida\n");
     }
 
-
     if ((sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED){
         perror("sem_open");
         exit(EXIT_FAILURE);
@@ -151,37 +165,46 @@ int main(int argc, char *argv[]){
     sem_unlink(SEM_NAME);
 
 
-    /*bloquear todas las señales antes de llamar a sigaction*/
-    sigfillset(&set);
-    sigprocmask(SIG_BLOCK, &set, NULL);
-    sigdelset(&set, SIGUSR1); /*para poder capturarla en los ciclos*/
-    set_act(&act); /*establecer act*/
+    /*bloquear las señales antes de llamar a sigaction (para evitar perderlas)*/
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGUSR1);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGALRM);
+    sigaddset(&mask, SIGTERM);
+    sigprocmask(SIG_BLOCK, &mask, &old_mask); /* guardamos old_mask para luego usarlo en sigsuspend */
+
+
+    /*establecer act*/
+    //set_act(&act);
+    act.sa_mask = mask; /*para que dentro del manejador se bloqueen las señales*/
+    act.sa_handler = manejador;
+    act.sa_flags = 0;
+
 
     /*Señal común para todos los procesos*/
     sigaction_(SIGUSR1, &act, NULL);
 
     /*Creación de P2 en cascada*/
-    if ((pid = fork()) < 0){
-        perror("Fork ");
+    if ((next_proc = fork()) < 0){
+        perror("fork");
         exit(EXIT_FAILURE);
     }
-    else if (pid > 0){ /*P1*/
-        sigdelset(&set, SIGINT);
-        sigdelset(&set, SIGALRM);
+    else if (next_proc > 0){ /*P1*/
         sigaction_(SIGINT, &act, NULL);
         sigaction_(SIGALRM, &act, NULL);
 
         /*Inicia los ciclos mandando SIGUSR1 a su hijo e imprimiendo en stdout*/
-        signal_next_process_and_print(sem, 0, pid, first_proc);
+        signal_next_process_and_print(sem, 0, next_proc, first_proc);
     }
     else{   
-        /*Señales comunes para los procesos a partir de P2*/
-        sigdelset(&set, SIGTERM);
+        /*evitamos que los procesos que no son el 1 reciban SIGINT*/
+        sigaddset(&old_mask, SIGINT);
+
         sigaction_(SIGTERM, &act, NULL);
 
         /*Cada proceso crea un solo hijo hasta que hay NUM_PROC procesos en total: creación de procesos en cascada*/
-        for (i = 2; i < NUM_PROC && pid == 0; i++){
-            if ((pid = fork()) < 0){
+        for (i = 2; (i < NUM_PROC) && (next_proc == 0); i++){
+            if ((next_proc = fork()) < 0){
                 perror("fork");
                 exit(EXIT_FAILURE);
             }
@@ -190,7 +213,7 @@ int main(int argc, char *argv[]){
     /*Código común para todos los procesos*/
     
     /*Realizar los ciclos*/
-    cycles(pid, first_proc, &set, sem);
+    cycles(next_proc, first_proc, &old_mask, sem);
     
     /*Liberar y esperar a su hijo, si lo tiene*/
     sem_close(sem);

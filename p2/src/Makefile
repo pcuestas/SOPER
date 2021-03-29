@@ -3,7 +3,7 @@ EXE=conc_cycle
 CC=gcc
 OBJ=$(EXE).o
 LIB=-lpthread
-CFLAGS=#-pedantic -g #### revisar banderas
+CFLAGS=-ansi -Wall -pedantic -g #### revisar banderas
 
 all: $(EXE)
 
