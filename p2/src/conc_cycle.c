@@ -166,7 +166,7 @@ int main(int argc, char *argv[]){
     sem_t *sem = NULL;
 
     /*Control de argumentos de entrada*/
-    if (argc != 2 || (NUM_PROC = atoi(argv[1])) <= 1){
+    if ((argc != 2) || ((NUM_PROC = atoi(argv[1])) <= 1)){
         fprintf(stderr, "Uso:\t%s <NUM_PROC>\n\tCon NUM_PROC > 1\n", argv[0]);
         exit(EXIT_FAILURE);
     }
