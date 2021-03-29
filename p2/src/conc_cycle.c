@@ -1,34 +1,36 @@
-#include <signal.h>
+/**
+ * @file conc_cycle.c
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ * 
+ * @brief Programa descrito en el ejercicio 10 de la 
+ *  práctica 2 (SOPER).
+ * 
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <signal.h>
 #include <semaphore.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <stdint.h>
 
-/**
- * @file conc_cycle.c
- * @authors Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
- * 
- * @brief Programa descrito en el ejercicio 10 de la 
- *  práctica 2 (SOPER).
- * 
- */
-
-#define SEM_NAME "/sem_cycles"
-#define MAX_SECS 10
+#define SEM_NAME "/sem_conc_cycle"
+#define MAX_SEC 10
 
 static volatile sig_atomic_t got_sigusr1 = 0;
 static volatile sig_atomic_t got_end = 0;
 
 /**
- * @brief manejador - para cada señal actualiza la 
- *  bandera correspondiente
+ * @brief Para cada señal actualiza la 
+ *  bandera correspondiente:
+ *     got_sigusr1 para SIGUSR1;
+ *     got_end     en el caso de SIGINT, 
+ *                 SIGALRM o SIGTERM.
  */
-void manejador(int sig){
+void handler(int sig){
     if (sig == SIGUSR1){
         got_sigusr1 = 1;
     }
@@ -42,6 +44,7 @@ void manejador(int sig){
  *  capturar las señales. Bloquea las señales que 
  *  pueden recibir los procesos durante los ciclos para
  *  evitar que se pierdan.
+ *
  * @param act puntero a la estructura de sigaction que
  *  se va a configurar.
  */
@@ -54,7 +57,7 @@ void set_act(struct sigaction *act){
     sigaddset(&(act->sa_mask), SIGTERM);
     sigaddset(&(act->sa_mask), SIGUSR1);
 
-    act->sa_handler = manejador;
+    act->sa_handler = handler;
     act->sa_flags = 0;
 }
 
@@ -62,6 +65,7 @@ void set_act(struct sigaction *act){
  * @brief Wrapper de kill con control de error. 
  * En caso de error, termina el proceso e imprime 
  * el error obtenido.
+ *
  * @param pid pid igual que la función kill(2)
  * @param sig sig igual que la función kill(2)
  */
@@ -91,13 +95,14 @@ void sigaction_(int sig, const struct sigaction *act, struct sigaction *oldact){
  * @brief Manda la señal SIGUSR1 al proceso siguiente 
  *  e imprime la cadena correspondiente al número de ciclo.
  *  Protege esta acción con el semáforo binario sem.
+ *
  * @param sem semáforo binario que protege el envío de la señal
  *  y la impresión en stdout, para asegurar que ningún proceso 
  *  pueda imprimir antes que el anterior. 
  * @param cycle_number número del ciclo
- * @param next_proc siguiente proceso (al que se le manda SIGUSR1)
+ * @param next_proc siguiente proceso (al que se manda SIGUSR1)
  * @param this_pid pid del proceso que se está ejecutando (el que
- *  manda la señal)
+ *  envía la señal)
  */
 void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc, pid_t this_pid){
     while(sem_wait(sem) != 0); /*para evitar que devuelva y no sea por el sem*/
@@ -108,7 +113,20 @@ void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc
     sem_post(sem);    
 }
 
-
+/**
+ * @brief ejecuta el bucle con los ciclos (bloquean 
+ * el proceso hasta que recibe señal, y trata la 
+ * señal que se ha recibido)
+ * 
+ * @param next_proc pid del proceso hijo del que 
+ * llama a esta función, o 0 si es el último proceso
+ * @param first_proc pid del proceso 1
+ * @param old_mask la máscara con la que se llama a 
+ * sigsuspend (permite la llegada de las señales que
+ * puede recibir el proceso en cada ciclo)
+ * @param sem semáforo que se utiliza para asegurar 
+ * el orden de impresión por stdout
+ */
 void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
 
     pid_t this_pid = getpid();
@@ -154,7 +172,7 @@ int main(int argc, char *argv[]){
     }
 
     /*Establecer alarma*/
-    if (alarm(MAX_SECS)){
+    if (alarm(MAX_SEC)){
         fprintf(stderr, "Existe una alarma previa establecida\n");
     }
 
@@ -165,31 +183,32 @@ int main(int argc, char *argv[]){
     sem_unlink(SEM_NAME);
 
 
-    /*bloquear las señales antes de llamar a sigaction (para evitar perderlas)*/
+    /*Bloquear las señales antes de llamar a sigaction (para evitar perderlas antes de que se llame a sigsuspend)*/
     sigemptyset(&mask);
     sigaddset(&mask, SIGUSR1);
     sigaddset(&mask, SIGINT);
     sigaddset(&mask, SIGALRM);
     sigaddset(&mask, SIGTERM);
-    sigprocmask(SIG_BLOCK, &mask, &old_mask); /* guardamos old_mask para luego usarlo en sigsuspend */
+    sigprocmask(SIG_BLOCK, &mask, &old_mask); /*guardamos old_mask para luego usarla en sigsuspend*/
 
 
-    /*establecer act*/
+    /*Valores de la estructura act*/
     //set_act(&act);
     act.sa_mask = mask; /*para que dentro del manejador se bloqueen las señales*/
-    act.sa_handler = manejador;
+    act.sa_handler = handler;
     act.sa_flags = 0;
 
 
-    /*Señal común para todos los procesos*/
+    /*Manejador de la señal común para todos los procesos*/
     sigaction_(SIGUSR1, &act, NULL);
 
-    /*Creación de P2 en cascada*/
+    /*Creación de P2*/
     if ((next_proc = fork()) < 0){
         perror("fork");
         exit(EXIT_FAILURE);
     }
     else if (next_proc > 0){ /*P1*/
+        /*Manejador de SIGINT y SIGALRM*/
         sigaction_(SIGINT, &act, NULL);
         sigaction_(SIGALRM, &act, NULL);
 
@@ -197,9 +216,10 @@ int main(int argc, char *argv[]){
         signal_next_process_and_print(sem, 0, next_proc, first_proc);
     }
     else{   
-        /*evitamos que los procesos que no son el 1 reciban SIGINT*/
+        /*Evitar que los procesos que no son el 1 reciban SIGINT durante sigsuspend*/
         sigaddset(&old_mask, SIGINT);
 
+        /*Manejador de SIGTERM*/
         sigaction_(SIGTERM, &act, NULL);
 
         /*Cada proceso crea un solo hijo hasta que hay NUM_PROC procesos en total: creación de procesos en cascada*/

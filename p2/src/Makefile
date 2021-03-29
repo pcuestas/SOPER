@@ -1,25 +1,14 @@
-
 EXE=conc_cycle
 CC=gcc
-OBJ=$(EXE).o
+
 LIB=-lpthread
-CFLAGS=-ansi -Wall -pedantic -g #### revisar banderas
 
-all: $(EXE)
-
-$(EXE): $(OBJ)
-	$(CC) $(OBJ) $(LIB) -o $(EXE) 
-	rm *.o
+$(EXE): $(EXE).c
+	$(CC) $(EXE).c $(LIB) -o $@
 
 run: $(EXE)
 	@echo "------------"
 	./$(EXE)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 clean:
-	$(RM) ./$(EXE) *.o
-
-test: 
-	@echo $(LIB)
+	$(RM) ./$(EXE)
