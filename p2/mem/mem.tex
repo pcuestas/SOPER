@@ -2,8 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 
-\usepackage{geometry}
-\geometry{a4paper, margin=2.5cm}
+\usepackage[margin=2.5cm]{geometry}
 
 \usepackage[spanish]{babel}
 \usepackage{graphicx}
@@ -43,7 +42,6 @@
     tabsize=2
     %, basicstyle=\footnotesize
 }
-
 \lstset{style=mystyle}
 
 \usepackage{hyperref}
@@ -61,16 +59,16 @@
 \cfoot{\thepage}
 
 
-\title{Sistemas Operativos. Práctica 2.}
-\author{Pablo Cuesta Sierra y Álvaro Zamanillo Sáez}
-%\date{}
 
-\setlength{\parskip}{0.2cm}
+\setlength{\parskip}{0.15cm}
 
 
 
 \begin{document}
 
+\title{Sistemas Operativos. Práctica 2.}
+\author{Pablo Cuesta Sierra y Álvaro Zamanillo Sáez}
+%\date{}
 \maketitle
 
 \begin{tcolorbox}
@@ -83,8 +81,11 @@
 \section*{Ejercicio 1}
 a) La lista de señales se obtiene con el comando: 
 
-\begin{lstlisting}[language=bash]
-$ kill -l
+\begin{lstlisting}[language=bash, 
+                   backgroundcolor=\color{black},
+                   keywordstyle=\color{green},
+                   basicstyle=\ttfamily\footnotesize\color{white}]
+kill -l
 \end{lstlisting}
 
 b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$. En este caso lo podemos ver directamente usando: \texttt{kill -l <Nombre\_de\_la\_señal>}
@@ -93,8 +94,10 @@ b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $
 \section*{Ejercicio 2}
 
 a) Basta con añadir el siguiente código en el hueco señalado: 
-\begin{lstlisting}[language=C]
-    if(kill(pid, sig)!=0){
+
+
+\begin{lstlisting}[language=C, frame=single]
+    if(kill(pid, sig) != 0){
         perror("kill");
         exit(EXIT_FAILURE);
     }
@@ -109,7 +112,8 @@ a) La llamada a \texttt{sigaction} no supone que se ejecute la función \texttt{
 
 b) En este caso, la única señal que se bloquea durante la ejecución de \texttt{manejador} es la señal que ha provocado su ejecución: \texttt{SIGINT}. Esto se debe a que \texttt{act.sa\_mask} no contiene ninguna señal.
 
-c) Lo primero que aparece en pantalla es el \texttt{printf} del bucle. Luego el proceso se bloquea en la orden \texttt{sleep(9999)}, y cuando se manda la señal \texttt{SIGINT} con el teclado, aparece el \texttt{printf} de la función \texttt{manejador}. Como el manejador no termina el proceso, éste continúa por la orden siguiente a la que ejecutó por última vez, es decir, vuelve a empezar el bucle, imprimiendo el \texttt{printf} del \texttt{while}.
+c) Lo primero que aparece en pantalla es el \texttt{printf} del bucle. Luego el proceso se bloquea en la orden \texttt{sleep(9999)}, y cuando se manda la señal \texttt{SIGINT} con el teclado, aparece el \texttt{printf} de la función \texttt{manejador}. \texttt{sleep}, es interrumpida por la ejecución del manejador, por lo que se vuelve a ejecutar el \texttt{printf} del bucle.
+
 
 d) Si modificamos el programa para que no capture \texttt{SIGINT}, cuando pulsemos \texttt{Ctrl}$+$\texttt{C}, terminará la ejecución. Esto se debe a que si un proceso recibe una señal y no la captura, se ejecutará el manejador por defecto, el cual, en general, termina el proceso.
 
@@ -142,7 +146,7 @@ b) Si no se ejecuta \texttt{sigaction}, al recibir la señal \texttt{SIGALRM}, s
 \section*{Ejercicio 8}
 a) Si se realiza una llamada a \texttt{sem\_wait} y el semáforo está a cero, esta llamada bloquea el proceso hasta que el semáforo aumente o hasta que algún manejador interrumpa esta espera. Esto último es lo que pasa en este caso. 
 
-b) Como mandamos que se ignore la señal, ningún manejador interrumpe la llamada a \texttt{sem\_wait}. En este caso, no se imprime el mensaje tras la espera.
+b) Como mandamos que se ignore la señal, ningún manejador interrumpe la llamada a \texttt{sem\_wait}. En este caso, la función \texttt{sem\_wait} no llega a devolver, por lo que no se ejecutará la orden \texttt{printf}.
 
 c) Habría que sustituir la línea en la que se llama a \texttt{sem\_wait} por: \texttt{while(sem\_wait(sem)==-1);}. De este modo, si un manejador interrumpe la llamada, la función devolverá error (-1) y se volverá a realizar la espera.
 
@@ -151,14 +155,12 @@ c) Habría que sustituir la línea en la que se llama a \texttt{sem\_wait} por: 
 \section*{Ejercicio 9}
 La siguiente sería una posible solución. Ambos semáforos se inicializan a $0$ en el código dado, por lo que cualquier \texttt{sem\_wait} que se realize a cada uno de ellos por primera vez bloqueará el proceso hasta que el otro le de permiso a continuar (con \texttt{sem\_post}).
 
-%Lo primero que tiene el bloque del padre es una llamada a \texttt{sem\_wait(sem1)}, por lo que se bloquea hasta que el hijo le permita continuar. El hijo imprime el número $1$, levanta el semáforo (\texttt{sem1}) para que el padre escriba, y llama a \texttt{sem\_wait(sem2)}, bloqueándose hasta que el padre escriba. Como el padre se ha desbloqueado, imprime el número $2$, levanta el semáforo (\texttt{sem2}) para que el hijo escriba, y llama a \texttt{sem\_wait(sem1)}, bloqueándose hasta que el hijo escriba. (etc.)
-
 En resumen, cuando el padre tiene que esperar algo del hijo, llama a \texttt{sem\_wait(sem1)} y cuando le tiene que dar permiso al hijo a continuar, llama a \texttt{sem\_post(sem2)}. El hijo incrementa (\texttt{sem\_post}) el semáforo \texttt{sem1} cuando ya da permiso al padre a continuar, y decrementa (\texttt{sem\_wait}) el semáforo \texttt{sem2} cuando espera que el padre haga algo.
 
-\begin {tcolorbox}[colback=green!5!white]
+%\begin {tcolorbox}[colback=green!5!white]
 \lstinputlisting[language=C, firstline=32, lastline=54, firstnumber=32, numbers=left,frame=single]
 {../src/conc_alternate.c}
-\end{tcolorbox}
+%\end{tcolorbox}
 
 
 \pagebreak
@@ -168,63 +170,51 @@ En resumen, cuando el padre tiene que esperar algo del hijo, llama a \texttt{sem
 
 Para mencionar los procesos, usaremos la notación del esquema que aparece en el enunciado: 
 
-\noindent$P_1$, $P_2$, $\dots$ , $P_N$, donde $N =$ \texttt{NUM\_PROC}.
+\noindent$P_1$, $P_2$, $\dots$ , $P_\texttt{\scriptsize{NUM\_PROC}}$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% A %%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{a) Creación de los procesos}
 \subsection*{a) Creación de los procesos} 
 
-Para cada proceso, tenemos que asegurarnos de que se establece el manejador para las seañales que puede recibir, y debe haber una variable (\texttt{sigset\_t susp\_mask} inicializada con \texttt{sigfillset(\&susp\_mask)}) que permita que se reciban estas señales durante \texttt{sigsuspend}. En resumen:
+La parte de creación de procesos se realiza en un bucle \textit{for}. Como queremos que los procesos se lancen en cascada, en cada iteración del bucle, el proceso padre sale y el hijo se queda (una iteración más) para realizar una nueva llamada a \texttt{fork()}. De este manera conseguimos tener \texttt{NUM\_PROC} procesos, cada uno hijo del anterior (excepto el primero).
 
-\begin{itemize}
-    \item Señales que puede recibir $P_1$: \texttt{SIGUSR1}, \texttt{SIGINT} y \texttt{SIGALRM}
-    \item Señales que pueden recibir los otros procesos: \texttt{SIGUSR1}, \texttt{SIGTERM}.
-\end{itemize}
-
-Como los manejadores se heredan y las variables (en este caso \texttt{susp\_mask}) también, podemos hacer lo siguiente:
+Como los manejadores se heredan, las llamadas a \texttt{sigaction} las realizamos al inicio del todo. De esta forma todos los procesos tienen manejadores para las señales \texttt{SIGUSR1}, \texttt{SIGTERM}, \texttt{SIGALRM} y \texttt{SIGINT}. No obstante, queremos que la señal \texttt{SIGINT} solo la pueda recibir el proceso 1, por eso el proceso 2 la añade al \textit{set} de señales a bloquear en \texttt{sigsuspend}. Este \textit{set} es una variable de tipo \texttt{sigset\_t}, por lo que los sucesores de $P_2$ (es decir, todos los procesos que no son $P_1$) la heredan. 
 
 
-\begin{itemize}
-    \item Antes de crear un hijo, el $P_1$ establece manejador para \texttt{SIGUSR1} y la quita de \texttt{susp\_mask}.
-
-    \item Tras crear $P_2$, en $P_1$ se establece el manejador para las señales que solamente va a recibir este (\texttt{SIGALRM} y \texttt{SIGINT}), y las quitamos de \texttt{susp\_mask}. Inmediatamente después, se manda la primera señal al proceso $P_2$ y se imprime el primer mensaje por \textit{stdout}.
-    
-    \item En $P_2$, antes de crear un hijo, se establece el manejador para \texttt{SIGTERM} y se quita esta señal de \texttt{susp\_mask}. Tras esto, hay un bucle \textit{for}, donde cada proceso crea un hijo y sale del bucle hasta que hay un total de \texttt{NUM\_PROC} procesos.
-
-\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%% B C %%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{b) y c) Bucle de los ciclos}
 \subsection*{b) y c) Bucle de los ciclos}
 
-Hemos hecho una función que contiene el bucle que cada proceso hace para los ciclos. En cada iteración, se hace una llamada a \texttt{sigsuspend}, donde el proceso se bloquea hasta que recibe una señal. El manejador modificará una de las variables globales (\texttt{got\_end} o \texttt{got\_sigusr1}), por lo que dependiendo de cuál se reciba se hará una de las dos posibles acciones: mandar \texttt{SIGUSR1} al siguiente proceso e imprimir una cadena por \textit{stdout}, o mandar \texttt{SIGTERM} al siguiente proceso y salir del bucle.
+Hemos hecho una función que contiene el bucle que cada proceso hace para los ciclos. En cada iteración, se hace una llamada a \texttt{sigsuspend}, donde el proceso se bloquea hasta que recibe una señal. El manejador modificará una de las variables globales (\texttt{got\_end} o \texttt{got\_sigusr1}), por lo que, dependiendo de cuál se reciba, se hará una de las dos posibles acciones: mandar \texttt{SIGUSR1} al siguiente proceso e imprimir una cadena por \textit{stdout}, o mandar \texttt{SIGTERM} al siguiente proceso y salir del bucle.
 
 Todos los procesos, al salir del bucle, cierran el semáforo, realizan un \texttt{wait(NULL)} --ya que, como mucho, cada proceso tiene solamente un hijo-- y terminan.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% D %%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{d) Protección de zonas críticas}
-\subsection*{d) Protección de zonas críticas} -- pregunta
+\subsection*{d) Protección de zonas críticas} 
+
+Para que los procesos no hagan esperas activas, utilizamos \texttt{sigsuspend} en cada iteración del bucle, con la cual los procesos se bloquean hasta que reciben una señal. Tenemos que evitar, por tanto, que las señales se reciban cuando el proceso no ha llegado todavía a \texttt{sigsuspend}. Para conseguir esto, antes de establecer los manejadores en el proceso inicial (y antes de la creación de cualquier otro proceso), bloqueamos estas cuatro señales, guardando la antigua máscara para después utilizarla en la llamada a \texttt{sigsuspend}, donde sí permitimos estas señales. Sin embargo, los procesos que no son $P_1$ no deben recibir \texttt{SIGINT}, por lo que en cuando se crea $P_2$, añadimos a la antigua máscara esta señal, de modo que será bloqueada incluso dentro de \texttt{sigsuspend} para todos los procesos distintos del primero.
 
 Nos aseguramos de que en cada iteración del bucle de los ciclos se recibe únicamente una señal bloqueando dentro del manejador las señales \texttt{SIGUSR1}, \texttt{SIGALRM}, \texttt{SIGINT} y \texttt{SIGTERM}. Esto es porque \texttt{sigsuspend} no reestablece la máscara del proceso hasta que el manejador haya terminado. 
 
-Si no bloqueáramos estas señales, sería posible que, durante la ejecución de un manejador, se recibiera otra de ellas. Sin embargo, cada iteeración del bucle solo trata una, y el proceso se bloquearía de nuevo en \texttt{sigsuspend} sin haber tratado una señal, la cual se estaría perdiendo.
+Si no bloqueáramos estas señales, sería posible que, durante la ejecución de un manejador, se recibiera otra de ellas. Sin embargo, cada iteración del bucle solo trata una, y el proceso se bloquearía de nuevo en \texttt{sigsuspend} sin haber tratado una señal, la cual se estaría perdiendo.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% E %%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{e) Temporización}
 \subsection*{e) Temporización}
 
-Para la temporización que se propone, tenemos que llamar a \texttt{alarm(10)} antes de que el primer proceso cree a su hijo. En general, los hijos no heredan alarmas, por lo que esta alarma solamente la recibirá el primer proceso. Además, tenemos que establecer un manejador para la señal \texttt{SIGALRM} (en este primer proceso), y darle en el manejador el mismo tratamiento que a \texttt{SIGINT}, ya que el resultado de recibir cualquiera de estas dos señales es el mismo. 
+Para la temporización que se propone, tenemos que llamar a \texttt{alarm(10)} antes de que el primer proceso cree a su hijo. En general, los hijos no heredan alarmas, por lo que esta alarma solamente la recibirá el primer proceso. Además, tenemos que establecer un manejador para la señal \texttt{SIGALRM}, y darle en el manejador el mismo tratamiento que a \texttt{SIGINT}, ya que el resultado de recibir cualquiera de estas dos señales es el mismo. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% F %%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{f) Análisis de la ejecución}
 \subsection*{f) Análisis de la ejecución}
 
-Dentro de cada ciclo los procesos imprimen desordenados. No obstante los print de ciclos distintos no se intercalan. No hay ninguna garantía de que vaya a ocurrir esto ya no que estamos imponiendo ninguna condición que obligue a un proceso a esperar a otro. 
+Dentro de cada ciclo los procesos imprimen desordenados. No obstante, los \texttt{printf} de ciclos distintos no se intercalan. No hay ninguna garantía de que vaya a ocurrir esto ya no que estamos imponiendo ninguna condición que obligue a un proceso a esperar a otro. 
 
 De hecho, cuando añadimos una espera aleatoria vemos que ahora sí se empiezan a intercalar mensajes de ciclos distintos. Con esta nueva ejecución confirmamos lo dicho de que no había garantía alguna del orden de ejecución (y por ende del orden en el que aparecen los mensajes).
 
-\textit{Nota: Se puede establecer alguna garantía, por ejemplo: el proceso número $j\in \{0,1,...,\texttt{NUM\_PROC}-1\}$ debe imprimir su mensaje del ciclo $k$ antes de que el proceso número} $(j+1)\%\texttt{NUM\_PROC}$ \textit{imprima el mensaje del ciclo $(k+1)$. Pero como ya se ha comentado, nada asegura que los mensajes se impriman en el orden que corresponde.}\par
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% G %%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{g) Sincronización con semáforos}
@@ -234,6 +224,7 @@ La sincronización con semáforos se encarga únicamente de que el orden de impr
 
 Solamente es necesario emplear un semáforo binario de forma que cuando un proceso quiera mandar la señal \texttt{SIGUSR1} al siguiente e imprimir en \textit{stdout}, tenga que esperar hasta que el proceso anterior haya terminado de escribir por pantalla. 
 
+Con el uso de este semáforo binario estamos protegiendo la sección crítica de mandar señal y escribir, asegurándonos que solo un proceso estará ejecutando esa parte, y evitando así que el siguiente proceso imprima antes que el que le manda \texttt{SIGUSR1}.
 
 
 \end{document}
