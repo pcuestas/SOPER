@@ -1,10 +1,10 @@
 \documentclass{article}
-\usepackage[utf8]{inputenc}
-
 
 \usepackage[margin=2.5cm]{geometry}
 
 \usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{fancyvrb}
@@ -39,7 +39,8 @@
     showspaces=false,                
     showstringspaces=false,
     showtabs=false,                  
-    tabsize=2
+    tabsize=2,
+    extendedchars=true
     %, basicstyle=\footnotesize
 }
 \lstset{style=mystyle}
@@ -85,10 +86,11 @@ a) La lista de señales se obtiene con el comando:
                    backgroundcolor=\color{black},
                    keywordstyle=\color{green},
                    basicstyle=\ttfamily\footnotesize\color{white}]
-kill -l
+ kill -l
 \end{lstlisting}
 
-b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$. En este caso lo podemos ver directamente usando: \texttt{kill -l <Nombre\_de\_la\_señal>}
+b) \texttt{SIGKILL} corresponde al número $9$, y \texttt{SIGSTOP}, al número $19$. En este caso lo podemos ver directamente con el comando:
+\texttt{kill -l <Nombre\_de\_la\_señal>}.
 
 \addcontentsline{toc}{subsection}{Ejercicio 2}
 \section*{Ejercicio 2}
@@ -103,8 +105,8 @@ a) Basta con añadir el siguiente código en el hueco señalado:
     }
 \end{lstlisting}
 
-b) Si mandamos la señal \texttt{SIGSTOP}, al intentar excribir en la terminal, el texto que se introduce por el teclado, no aparece. Cuando mandamos la señal \texttt{SIGCONT}, el texto que habíamos intentado insertar antes aparece de golpe y la terminal vuelve a la normalidad.
-De hecho, si excribimos algún comando y presionamos enter después de haberle mandado la señal \texttt{SIGSTOP}, en cuanto se mande la señal \texttt{SIGCONT}, se ejecuta el mismo de inmediato.
+b) Si mandamos la señal \texttt{SIGSTOP}, al intentar escribir en la terminal, el texto que se introduce por el teclado, no aparece. Cuando mandamos la señal \texttt{SIGCONT}, el texto que habíamos intentado insertar antes aparece de golpe y la terminal vuelve a la normalidad.
+De hecho, si escribimos algún comando y presionamos enter después de haberle mandado la señal \texttt{SIGSTOP}, en cuanto se mande la señal \texttt{SIGCONT}, se ejecuta el mismo de inmediato.
 
 \addcontentsline{toc}{subsection}{Ejercicio 3}
 \section*{Ejercicio 3}
