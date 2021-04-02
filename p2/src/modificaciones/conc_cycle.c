@@ -82,12 +82,16 @@ void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc
 void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
 
     pid_t this_pid = getpid();
-
-    /* P1 ya ha hecho el ciclo 0 */
-    int cycle_num = (this_pid == first_proc) ? 1 : 0;
+    int cycle_num = 0;
 
     /*cada proceso manda señales a su hijo y el último a P1*/
     next_proc = (!next_proc) ? first_proc : next_proc;
+
+    if(this_pid == first_proc){
+        /*P1 inicia los ciclos mandando SIGUSR1 a P2 e imprimiendo en stdout*/
+        signal_next_process_and_print(sem, cycle_num, next_proc, this_pid);
+        cycle_num++;
+    }
 
     while(!got_end){
         /*Esperamos que se reciba una de las señales previamente bloqueadas*/
@@ -100,12 +104,16 @@ void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
             cycle_num++;
         }
     }
+
+    sem_close(sem);
+
     /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
     if ((next_proc != first_proc) && (kill(next_proc, SIGTERM) == -1)){
         perror("kill");
-        sem_close(sem);
         exit(EXIT_FAILURE);
     }
+    
+    wait(NULL);
 }
 
 int main(int argc, char *argv[]){
@@ -177,12 +185,8 @@ int main(int argc, char *argv[]){
         perror("fork");
         exit(EXIT_FAILURE);
     }
-    else if (next_proc > 0){ /*P1*/
+    else if (next_proc ==0 ){   /*P2*/
 
-        /*Inicia los ciclos mandando SIGUSR1 a su hijo e imprimiendo en stdout*/
-        signal_next_process_and_print(sem, 0, next_proc, first_proc);
-    }
-    else{   
         /*Evitar que los procesos que no son el 1 reciban SIGINT durante sigsuspend*/
         sigaddset(&old_mask, SIGINT);
 
@@ -198,10 +202,6 @@ int main(int argc, char *argv[]){
     
     /*Realizar los ciclos*/
     cycles(next_proc, first_proc, &old_mask, sem);
-    
-    /*Liberar y esperar a su hijo, si lo tiene*/
-    sem_close(sem);
-    wait(NULL);
     
     exit(EXIT_SUCCESS);
 }
