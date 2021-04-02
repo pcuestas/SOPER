@@ -40,21 +40,6 @@ void handler(int sig){
 }
 
 /**
- * @brief Wrapper de kill con control de error. 
- * En caso de error, termina el proceso e imprime 
- * el error obtenido.
- *
- * @param pid pid igual que la función kill(2)
- * @param sig sig igual que la función kill(2)
- */
-void kill_(pid_t pid, int sig){
-    if (kill(pid, sig) == -1){
-        perror("kill");
-        exit(EXIT_FAILURE);
-    }
-}
-
-/**
  * @brief Wrapper de sigaction con control de error. 
  * En caso de error, termina el proceso e imprime 
  * el error obtenido.
@@ -85,7 +70,11 @@ void sigaction_(int sig, const struct sigaction *act, struct sigaction *oldact){
 void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc, pid_t this_pid){
     while(sem_wait(sem) != 0); /*para evitar que devuelva y no sea por el sem*/
     
-    kill_(next_proc, SIGUSR1);
+    if (kill(next_proc, SIGUSR1) == -1){
+        perror("kill");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
     printf("Ciclo: %d (PID=%jd)\n", cycle_number, (intmax_t)this_pid);
 
     sem_post(sem);    
@@ -125,11 +114,13 @@ void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
             signal_next_process_and_print(sem, cycle_num, next_proc, this_pid);
             cycle_num++;
         }
-        else if (got_end){
-            /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
-            if (next_proc != first_proc){
-                kill_(next_proc, SIGTERM);
-            }
+    }
+    /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
+    if (next_proc != first_proc){
+        if (kill(next_proc, SIGTERM) == -1){
+            perror("kill");
+            sem_close(sem);
+            exit(EXIT_FAILURE);
         }
     }
 }
@@ -177,10 +168,26 @@ int main(int argc, char *argv[]){
 
 
     /*Manejadores de las señales que se pueden recibir*/
-    sigaction_(SIGUSR1, &act, NULL);
-    sigaction_(SIGINT, &act, NULL);
-    sigaction_(SIGALRM, &act, NULL);
-    sigaction_(SIGTERM, &act, NULL);
+    if (sigaction(SIGUSR1, &act, NULL) < 0){
+        perror("sigaction SIGUSR1");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGINT, &act, NULL) < 0){
+        perror("sigaction SIGINT");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGALRM, &act, NULL) < 0){
+        perror("sigaction SIGALRM");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGTERM, &act, NULL) < 0){
+        perror("sigaction SIGTERM");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
 
     /*Creación de P2*/
     if ((next_proc = fork()) < 0){
