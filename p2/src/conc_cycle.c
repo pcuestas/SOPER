@@ -40,21 +40,6 @@ void handler(int sig){
 }
 
 /**
- * @brief Wrapper de sigaction con control de error. 
- * En caso de error, termina el proceso e imprime 
- * el error obtenido.
- * @param signum igual que la función sigaction(2)
- * @param act igual que la función sigaction(2)
- * @param oldact igual que la función sigaction(2)
- */
-void sigaction_(int sig, const struct sigaction *act, struct sigaction *oldact){
-    if (sigaction(sig, act, oldact) < 0){
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-}
-
-/**
  * @brief Manda la señal SIGUSR1 al proceso siguiente 
  *  e imprime la cadena correspondiente al número de ciclo.
  *  Protege esta acción con el semáforo binario sem.
