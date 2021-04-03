@@ -68,7 +68,9 @@ void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc
 /**
  * @brief ejecuta el bucle con los ciclos (bloquean 
  * el proceso hasta que recibe señal, y trata la 
- * señal que se ha recibido)
+ * señal que se ha recibido). Termina cuando se recibe
+ * la señal que indica la terminación de los ciclos, tras 
+ * mandar al proceso siguiente SIGTERM. 
  * 
  * @param next_proc pid del proceso hijo del que 
  * llama a esta función, o 0 si es el último proceso
@@ -100,6 +102,7 @@ void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
             cycle_num++;
         }
     }
+    
     /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
     if ((next_proc != first_proc) && (kill(next_proc, SIGTERM) == -1)){
         perror("kill");
@@ -144,7 +147,7 @@ int main(int argc, char *argv[]){
     sigprocmask(SIG_BLOCK, &mask, &old_mask); /*guardamos old_mask para luego usarla en sigsuspend*/
 
 
-    /*Valores de la estructura act*/
+    /*Establecer la estructura act*/
     act.sa_mask = mask; /*para que dentro del manejador se bloqueen las señales*/
     act.sa_handler = handler;
     act.sa_flags = 0;
@@ -175,6 +178,7 @@ int main(int argc, char *argv[]){
     /*Creación de P2*/
     if ((next_proc = fork()) < 0){
         perror("fork");
+        sem_close(sem);
         exit(EXIT_FAILURE);
     }
     else if (next_proc > 0){ /*P1*/
@@ -190,6 +194,7 @@ int main(int argc, char *argv[]){
         for (i = 2; (i < NUM_PROC) && (next_proc == 0); i++){
             if ((next_proc = fork()) < 0){
                 perror("fork");
+                sem_close(sem);
                 exit(EXIT_FAILURE);
             }
         }
