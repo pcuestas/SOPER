@@ -1,0 +1,3 @@
+\babel@toc {spanish}{}
+\contentsline {subsection}{Ejercicio 1}{1}{section*.2}%
+\contentsline {subsection}{Ejercicio 2}{1}{section*.3}%
