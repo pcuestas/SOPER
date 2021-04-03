@@ -40,36 +40,6 @@ void handler(int sig){
 }
 
 /**
- * @brief Wrapper de kill con control de error. 
- * En caso de error, termina el proceso e imprime 
- * el error obtenido.
- *
- * @param pid pid igual que la función kill(2)
- * @param sig sig igual que la función kill(2)
- */
-void kill_(pid_t pid, int sig){
-    if (kill(pid, sig) == -1){
-        perror("kill");
-        exit(EXIT_FAILURE);
-    }
-}
-
-/**
- * @brief Wrapper de sigaction con control de error. 
- * En caso de error, termina el proceso e imprime 
- * el error obtenido.
- * @param signum igual que la función sigaction(2)
- * @param act igual que la función sigaction(2)
- * @param oldact igual que la función sigaction(2)
- */
-void sigaction_(int sig, const struct sigaction *act, struct sigaction *oldact){
-    if (sigaction(sig, act, oldact) < 0){
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-}
-
-/**
  * @brief Manda la señal SIGUSR1 al proceso siguiente 
  *  e imprime la cadena correspondiente al número de ciclo.
  *  Protege esta acción con el semáforo binario sem.
@@ -85,7 +55,11 @@ void sigaction_(int sig, const struct sigaction *act, struct sigaction *oldact){
 void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc, pid_t this_pid){
     while(sem_wait(sem) != 0); /*para evitar que devuelva y no sea por el sem*/
     
-    kill_(next_proc, SIGUSR1);
+    if (kill(next_proc, SIGUSR1) == -1){
+        perror("kill");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
     printf("Ciclo: %d (PID=%jd)\n", cycle_number, (intmax_t)this_pid);
 
     sem_post(sem);    
@@ -94,7 +68,9 @@ void signal_next_process_and_print(sem_t *sem, int cycle_number, pid_t next_proc
 /**
  * @brief ejecuta el bucle con los ciclos (bloquean 
  * el proceso hasta que recibe señal, y trata la 
- * señal que se ha recibido)
+ * señal que se ha recibido). Termina cuando se recibe
+ * la señal que indica la terminación de los ciclos, tras 
+ * mandar al proceso siguiente SIGTERM. 
  * 
  * @param next_proc pid del proceso hijo del que 
  * llama a esta función, o 0 si es el último proceso
@@ -125,12 +101,13 @@ void cycles(pid_t next_proc, pid_t first_proc, sigset_t *old_mask, sem_t *sem){
             signal_next_process_and_print(sem, cycle_num, next_proc, this_pid);
             cycle_num++;
         }
-        else if (got_end){
-            /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
-            if (next_proc != first_proc){
-                kill_(next_proc, SIGTERM);
-            }
-        }
+    }
+    
+    /*Todos los procesos salvo el último tienen que mandar SIGTERM al siguiente*/
+    if ((next_proc != first_proc) && (kill(next_proc, SIGTERM) == -1)){
+        perror("kill");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -170,21 +147,38 @@ int main(int argc, char *argv[]){
     sigprocmask(SIG_BLOCK, &mask, &old_mask); /*guardamos old_mask para luego usarla en sigsuspend*/
 
 
-    /*Valores de la estructura act*/
+    /*Establecer la estructura act*/
     act.sa_mask = mask; /*para que dentro del manejador se bloqueen las señales*/
     act.sa_handler = handler;
     act.sa_flags = 0;
 
 
     /*Manejadores de las señales que se pueden recibir*/
-    sigaction_(SIGUSR1, &act, NULL);
-    sigaction_(SIGINT, &act, NULL);
-    sigaction_(SIGALRM, &act, NULL);
-    sigaction_(SIGTERM, &act, NULL);
+    if (sigaction(SIGUSR1, &act, NULL) < 0){
+        perror("sigaction SIGUSR1");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGINT, &act, NULL) < 0){
+        perror("sigaction SIGINT");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGALRM, &act, NULL) < 0){
+        perror("sigaction SIGALRM");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGTERM, &act, NULL) < 0){
+        perror("sigaction SIGTERM");
+        sem_close(sem);
+        exit(EXIT_FAILURE);
+    }
 
     /*Creación de P2*/
     if ((next_proc = fork()) < 0){
         perror("fork");
+        sem_close(sem);
         exit(EXIT_FAILURE);
     }
     else if (next_proc > 0){ /*P1*/
@@ -200,6 +194,7 @@ int main(int argc, char *argv[]){
         for (i = 2; (i < NUM_PROC) && (next_proc == 0); i++){
             if ((next_proc = fork()) < 0){
                 perror("fork");
+                sem_close(sem);
                 exit(EXIT_FAILURE);
             }
         }

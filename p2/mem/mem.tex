@@ -178,7 +178,7 @@ Para mencionar los procesos, usaremos la notación del esquema que aparece en el
 \addcontentsline{toc}{subsubsection}{a) Creación de los procesos}
 \subsection*{a) Creación de los procesos} 
 
-La parte de creación de procesos se realiza en un bucle \textit{for}. Como queremos que los procesos se lancen en cascada, en cada iteración del bucle, el proceso padre sale y el hijo se queda (una iteración más) para realizar una nueva llamada a \texttt{fork()}. De este manera conseguimos tener \texttt{NUM\_PROC} procesos, cada uno hijo del anterior (excepto el primero).
+La parte de creación de procesos se realiza en un bucle \textit{for}. Como queremos que los procesos se lancen en cascada, en cada iteración del bucle, el proceso padre sale y el hijo se queda (una iteración más) para realizar una nueva llamada a \texttt{fork()}. De este manera conseguimos tener \texttt{NUM\_PROC} procesos, cada uno padre del siguiente (excepto el último).
 
 Como los manejadores se heredan, las llamadas a \texttt{sigaction} las realizamos al inicio del todo. De esta forma todos los procesos tienen manejadores para las señales \texttt{SIGUSR1}, \texttt{SIGTERM}, \texttt{SIGALRM} y \texttt{SIGINT}. No obstante, queremos que la señal \texttt{SIGINT} solo la pueda recibir el proceso 1, por eso el proceso 2 la añade al \textit{set} de señales a bloquear en \texttt{sigsuspend}. Este \textit{set} es una variable de tipo \texttt{sigset\_t}, por lo que los sucesores de $P_2$ (es decir, todos los procesos que no son $P_1$) la heredan. 
 
@@ -188,9 +188,9 @@ Como los manejadores se heredan, las llamadas a \texttt{sigaction} las realizamo
 \addcontentsline{toc}{subsubsection}{b) y c) Bucle de los ciclos}
 \subsection*{b) y c) Bucle de los ciclos}
 
-Hemos hecho una función que contiene el bucle que cada proceso hace para los ciclos. En cada iteración, se hace una llamada a \texttt{sigsuspend}, donde el proceso se bloquea hasta que recibe una señal. El manejador modificará una de las variables globales (\texttt{got\_end} o \texttt{got\_sigusr1}), por lo que, dependiendo de cuál se reciba, se hará una de las dos posibles acciones: mandar \texttt{SIGUSR1} al siguiente proceso e imprimir una cadena por \textit{stdout}, o mandar \texttt{SIGTERM} al siguiente proceso y salir del bucle.
+Hemos hecho una función que contiene el bucle que cada proceso hace para los ciclos. En cada iteración, se hace una llamada a \texttt{sigsuspend}, donde el proceso se bloquea hasta que recibe una señal. El manejador modificará una de las variables globales (\texttt{got\_end} o \texttt{got\_sigusr1}), por lo que, dependiendo de cuál se reciba, se hará una de las dos posibles acciones: mandar \texttt{SIGUSR1} al siguiente proceso e imprimir una cadena por \textit{stdout}, o salir del bucle y mandar \texttt{SIGTERM} al siguiente proceso.
 
-Todos los procesos, al salir del bucle, cierran el semáforo, realizan un \texttt{wait(NULL)} --ya que, como mucho, cada proceso tiene solamente un hijo-- y terminan.
+Todos los procesos, al salir de la función de los ciclos, cierran el semáforo, realizan un \texttt{wait(NULL)} -- ya que, como mucho, cada proceso tiene solamente un hijo -- y terminan.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% D %%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{subsubsection}{d) Protección de zonas críticas}
@@ -224,9 +224,9 @@ De hecho, cuando añadimos una espera aleatoria vemos que ahora sí se empiezan 
 
 La sincronización con semáforos se encarga únicamente de que el orden de impresión por \textit{stdout} sea el deseado.
 
-Solamente es necesario emplear un semáforo binario de forma que cuando un proceso quiera mandar la señal \texttt{SIGUSR1} al siguiente e imprimir en \textit{stdout}, tenga que esperar hasta que el proceso anterior haya terminado de escribir por pantalla. 
+Solamente es necesario emplear un semáforo binario de forma que antes de que un proceso mande la señal \texttt{SIGUSR1} al siguiente e imprima en \textit{stdout}, tenga que esperar hasta que el proceso anterior haya terminado de imprimir en stdout. Debido a que un proceso solamente baja este semáforo cuando el anterior le ha mandado ya \texttt{SIGUSR1}, un semáforo binario es suficiente para sincronizar la impresión en  \textit{stdout} de todos los procesos.
 
-Con el uso de este semáforo binario estamos protegiendo la sección crítica de mandar señal y escribir, asegurándonos que solo un proceso estará ejecutando esa parte, y evitando así que el siguiente proceso imprima antes que el que le manda \texttt{SIGUSR1}.
+El semáforo lo inicializamos a $1$, para que $P_1$ pueda bajarlo por primera vez.
 
 
 \end{document}
