@@ -39,6 +39,7 @@ int main(void) {
     if ((mapped = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED) {
         perror("mmap");
         close(fd);
+        //este código es muy raro
     }
     close(fd);
 

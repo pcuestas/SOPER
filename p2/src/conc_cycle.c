@@ -214,7 +214,7 @@ int main(int argc, char *argv[]){
     if((next_proc != 0) && (wait(NULL) == -1)){
         perror("wait");
         exit(EXIT_FAILURE);
-    }
+    } 
     
     exit(EXIT_SUCCESS);
 }
