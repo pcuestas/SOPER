@@ -211,7 +211,10 @@ int main(int argc, char *argv[]){
     
     /*Liberar y esperar a su hijo (si lo tiene)*/
     sem_close(sem);
-    wait(NULL);
+    if((next_proc != 0) && (wait(NULL) == -1)){
+        perror("wait");
+        exit(EXIT_FAILURE);
+    }
     
     exit(EXIT_SUCCESS);
 }
