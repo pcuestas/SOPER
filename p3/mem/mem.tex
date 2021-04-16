@@ -119,8 +119,49 @@ a) Cada vez que se ejecuta el programa, el counter incrementa su valor en $1$. E
 b) El fichero es binario, por lo que las variables no aparecen con los valores en forma de caracteres que se puedan leer con un editor de texto.
 
 
+\addcontentsline{toc}{subsection}{ejercicio 4}
+\subsection*{ejercicio 4}
 
-\end{document}
+a) No, ya que de ese modo, ningún otro lector podría abrir el segmento de memoria compartida.
+
+b) No, porque se supone que es el escritor el primero que accede a la memoria compartida, para escribir en ella, por lo que debe ser el que determine su tamaño.
+
+c) \texttt{mmap} crea un mapeo del segmento de memoria compartida dentro de las direcciones virtuales del proceso, por tanto se puede manejar como si esta memoria perteneciera al heap del proceso, con más facilidad que escribir en un fichero.
+
+d) Sí se puede, habría que escribir en el segmento de memoria compartida con \texttt{write} tratándolo como un descriptor de fichero.
+
+\addcontentsline{toc}{subsection}{ejercicio 5}
+\subsection*{ejercicio 5}
+
+a) Se envían en orden creciente (1,2,3..) pero se reciben según la prioridad con la que fueron enviados. Y para mensajes de la misma prioridad, siguiendo un criterio FIFO (first in, first out).
+
+b) Si se cambia por \texttt{O\_RDONLY} la llamada a \texttt{mq\_send} devuelve error y el proceso termina. Del mismo modo, si se cambia por \texttt{O\_WRONLY} el error ocurre al intentar recibir los mensajes.
+
+
+
+\addcontentsline{toc}{subsection}{ejercicio 6}
+\subsection*{ejercicio 6}
+
+
+a) El emisor envía el mensaje y el receptor lo recibe e imprime por \textit{stdout}
+
+b) El receptor se bloquea en la orden \texttt{mq\_receive} hasta que el emisor envía el mensaje.
+
+c) Si se ejecuta primero el emisor, el receptor recibe el mensaje y lo imprime correctamente. Si se ejecuta primero el receptor, este no se bloquea hasta recibir el mensaje, sino que la función \texttt{mq\_receive} devuelve error el estar la cola de mensajes vacía y se imprime el mensaje por \textit{stderr}
+(\texttt{"Error  receiving  message"\\n}). 
+
+d) (Asumimos que se crea la cola de mensajes como bloqueante.) No, ya que si un receptor llega antes que otro, el segundo se quedará esperando al siguiente mensaje en caso de que solo haya uno; o recibirá el siguiente mensaje de la cola en caso de que haya más.
+
+
+
+
+\addcontentsline{toc}{subsection}{ejercicio 7}
+\subsection*{ejercicio 7}
+
+
+
+
+end{document}
 
 
 
