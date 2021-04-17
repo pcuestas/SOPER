@@ -22,7 +22,7 @@ char stream_shm_get_element(struct stream_t *stream_shm, int fd_output)
         }
         (stream_shm->get_pos) = (stream_shm->get_pos + 1) % BUFFER_SIZE;
     }
-    printf("%c\n",stream_shm->buffer[stream_shm->get_pos]);
+    printf("%c\n",c);
     return c;
 }
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    if((fd_output = open(argv[1], O_CREAT | O_TRUNC | O_WRONLY, 0) == -1))
+    if((fd_output = open(argv[1], O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR| S_IRGRP | S_IWGRP) == -1))
     {
         perror("open output file");
         exit(EXIT_FAILURE);
