@@ -6,15 +6,14 @@
 #
 ######################################################
 
-ALL=stream-ui stream-server stream-client
+EXE=conc_cycle
 CC=gcc
 LIB=-lpthread -lrt
-HEADERS=stream.h
 
-all: $(ALL)
+all: $(EXE)
 
-%: %.c $(HEADERS)
+%: %.c
 	$(CC) $< $(LIB) -o $@
 
 clean:
-	$(RM) $(ALL)
+	$(RM) ./$(EXE)
