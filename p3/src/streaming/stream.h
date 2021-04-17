@@ -7,4 +7,6 @@ struct stream_t{
     int get_pos;
 };
 
+#define SHM_NAME "/shm_stream"
+
 #endif
