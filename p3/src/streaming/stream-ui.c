@@ -23,15 +23,17 @@
  * de la memoria compartida
  * 
  * @param stream_shm estructura de memoria compartida
+ * @return EXIT_FAILURE en caso de error (con todos los 
+ * semáforos destruidos), EXIT_SUCCESS en caso contrario
  */
-void stream_shm_initialize(struct stream_t *stream_shm){
+int stream_shm_initialize(struct stream_t *stream_shm){
     stream_shm->post_pos = stream_shm->get_pos = 0;
 
     if(sem_init(&(stream_shm->mutex), 1, 1) != 0)
     {
         perror("sem_init");
         shm_unlink(SHM_NAME);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     if(sem_init(&(stream_shm->sem_empty), 1, BUFFER_SIZE) != 0)
@@ -39,7 +41,7 @@ void stream_shm_initialize(struct stream_t *stream_shm){
         perror("sem_init");
         shm_unlink(SHM_NAME);
         sem_destroy(&(stream_shm->mutex));
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     if(sem_init(&(stream_shm->sem_fill), 1, 0) != 0)
@@ -48,8 +50,9 @@ void stream_shm_initialize(struct stream_t *stream_shm){
         shm_unlink(SHM_NAME);
         sem_destroy(&(stream_shm->mutex));
         sem_destroy(&(stream_shm->sem_empty));
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[]){
@@ -126,11 +129,20 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
     /*inicializar la memoria compartida*/
-    stream_shm_initialize(stream_shm);
+    if (stream_shm_initialize(stream_shm) == EXIT_FAILURE)
+    {
+        mq_close(queue_server);
+        mq_close(queue_client);
+        mq_unlink(MQ_CLIENT);
+        mq_unlink(MQ_SERVER);
+        shm_unlink(SHM_NAME);
+        munmap(stream_shm, sizeof(struct stream_t));
+        exit(EXIT_FAILURE);
+    }
 
     /*lanzar los dos procesos*/
     server = fork();
-    if(server < 0)
+    if (server < 0)
     {
         perror("fork server");
         mq_close(queue_server);
@@ -144,8 +156,9 @@ int main(int argc, char *argv[]){
         munmap(stream_shm, sizeof(struct stream_t));
         exit(EXIT_FAILURE);
     }
-    if(server == 0){
-        if(execl(SERVER_EXEC_FILE, SERVER_EXEC_FILE, INPUT_FILE, (char*)NULL) == -1)
+    if (server == 0)
+    {
+        if (execl(SERVER_EXEC_FILE, SERVER_EXEC_FILE, INPUT_FILE, (char *)NULL) == -1)
         {
             perror("execlp server");
             exit(EXIT_FAILURE);
@@ -153,7 +166,7 @@ int main(int argc, char *argv[]){
     }
 
     client = fork();
-    if(client < 0)
+    if (client < 0)
     {
         perror("fork client");
         mq_close(queue_server);
@@ -167,29 +180,30 @@ int main(int argc, char *argv[]){
         munmap(stream_shm, sizeof(struct stream_t));
         exit(EXIT_FAILURE);
     }
-    if(client == 0){
-        if(execl(CLIENT_EXEC_FILE, CLIENT_EXEC_FILE, OUTPUT_FILE, (char*)NULL) == -1)
+    if (client == 0)
+    {
+        if (execl(CLIENT_EXEC_FILE, CLIENT_EXEC_FILE, OUTPUT_FILE, (char *)NULL) == -1)
         {
             perror("execlp client");
             exit(EXIT_FAILURE);
         }
     }
 
-    /***************/
+    /*bucle de lectura de stdin y mandar mensajes a los procesos*/
     msg_meaning = MSG__OTHER;
-    while((msg_meaning != MSG__EXIT) && (fgets(buffer, sizeof(buffer), stdin) != NULL))
+    while ((msg_meaning != MSG__EXIT) && (fgets(buffer, sizeof(buffer), stdin) != NULL))
     {
         msg_meaning = stream_parse_message(buffer);
         send_to_server = (msg_meaning == MSG__POST) || (msg_meaning == MSG__EXIT);
         send_to_client = (msg_meaning == MSG__GET) || (msg_meaning == MSG__EXIT);
 
-        if(send_to_client && (mq_send(queue_client, buffer, MSG_SIZE, 1) == -1))
+        if (send_to_client && (mq_send(queue_client, buffer, MSG_SIZE, 1) == -1))
         {
             perror("mq_send");
             err = 1;
             break;
         }
-        if(send_to_server && (mq_send(queue_server, buffer, MSG_SIZE, 1) == -1))
+        if (send_to_server && (mq_send(queue_server, buffer, MSG_SIZE, 1) == -1))
         {
             perror("mq_send");
             err = 1;
