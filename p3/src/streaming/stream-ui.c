@@ -225,8 +225,6 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    /*liberar todo-- por hacer*/
-
     wait(NULL);// modificar  para ver errores etc ? 
     wait(NULL);
     
