@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "fcntl.h": "c",
-        "stream.h": "c"
+        "stream.h": "c",
+        "string.h": "c"
     }
 }

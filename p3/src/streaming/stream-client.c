@@ -15,17 +15,27 @@
 #define MSG__EXIT 3
 #define MSG__OTHER 0
 
-char stream_shm_get_element(struct stream_t *stream_shm, int fd_output)
+/**
+ * @brief accede a la estructura de datos compartidos para 
+ * leer un caracter del buffer apuntado por get_pos. Y 
+ * actualiza el valor de get_pos en caso de que no se lea 
+ * '\0'. Pone el valor de *err a 1 en caso de error.
+ * 
+ * @param stream_shm  estructura de los datos compartidos
+ * @param fd_output fichero en el que se escribe el output
+ * @param err vale 0, se establece su valor a 1 en caso de error
+ * @return el carater leído
+ */
+char stream_shm_get_element(struct stream_t *stream_shm, int fd_output, int *err)
 {
     char c = stream_shm->buffer[stream_shm->get_pos];
-    int ret;
+
     if (c != '\0')
     {
-        ret = write(fd_output, &c, sizeof(c));
-        if (ret == -1)
+        if (write(fd_output, &c, sizeof(c)) == -1)
         {
             perror("write");
-            exit(EXIT_FAILURE);
+            (*err) = 1;
         }
         (stream_shm->get_pos) = (stream_shm->get_pos + 1) % BUFFER_SIZE;
     }
@@ -59,6 +69,7 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
+    /*abrir la cola de mensajes*/
     queue = mq_open(MQ_CLIENT, O_RDONLY);
     if(queue == (mqd_t)-1)
     {
@@ -105,47 +116,19 @@ int main(int argc, char *argv[]){
         else if(msg_meaning != MSG__GET)
             continue;
 
-        if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
-        {
-            perror("clock_gettime");
-            err = 1;
-            break;
-        }
-        ts.tv_sec += 2;
-        if (sem_timedwait(&(stream_shm->sem_fill), &ts) == -1)
-        {
-            if (errno == ETIMEDOUT)
-                fprintf(stderr, "sem_timedwait() tiempo de espera agotado\n");
-            else
-                perror("sem_timedwait");
-            err = 1;
-            break;
-        }
 
-        if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
-        {
-            perror("clock_gettime");
-            err = 1;
+        if(stream_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err) == EXIT_FAILURE)
             break;
-        }
-        ts.tv_sec += 2;
-        if (sem_timedwait(&(stream_shm->mutex), &ts) == -1)
-        {
-            if (errno == ETIMEDOUT)
-                fprintf(stderr, "sem_timedwait() tiempo de espera agotado\n");
-            else
-                perror("sem_timedwait");
-            err = 1;
+        if(stream_timed_wait(&(stream_shm->mutex), &ts, 2, &err) == EXIT_FAILURE)
             break;
-        }
 
-        c = stream_shm_get_element(stream_shm, fd_output);
+        c = stream_shm_get_element(stream_shm, fd_output, &err);
 
         sem_post(&(stream_shm->mutex));
         sem_post(&(stream_shm->sem_empty));
-    } while (c != '\0');
+    } while (c != '\0' && !err);
 
-    if(c == '\0')
+    if(c == '\0' && !err)
         ignore_messages_until_exit(queue, &err);
 
     close(fd_output);

@@ -1,8 +1,45 @@
 #include "stream.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <mqueue.h>
 #include <string.h>
+#include <time.h>
+#include <errno.h>
 
+
+/**
+ * @brief realiza un sem_timedwait de seconds segundos 
+ * en el semáforo sem. En caso de algún error, imprime por stderr
+ * el mensaje de error correspondiente y devuelve EXIT_FAILURE.
+ * *err cambia de valor a 1 en caso de error.
+ * 
+ * @param sem semáforo en el que se realiza la espera
+ * @param ts struct timespec
+ * @param seconds segundos 
+ * @param err cambia de valor a 1 en caso de que se devuelva EXIT_FAILURE
+ * @return EXIT_FAILURE en caso de que falle clock_gettime
+ * o sem_timedwait. EXIT_SUCCCESS en caso de éxito
+ */
+int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err)
+{
+    if (clock_gettime(CLOCK_REALTIME, ts) == -1)
+    {
+        perror("clock_gettime");
+        (*err) = 1;
+        return EXIT_FAILURE;
+    }
+    ts->tv_sec += seconds;
+    if (sem_timedwait(sem, ts) == -1)
+    {
+        if (errno == ETIMEDOUT)
+            fprintf(stderr, "sem_timedwait() tiempo de espera agotado\n");
+        else
+            perror("sem_timedwait");
+        (*err) = 1;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
 
 /**
  * @brief a partir del mensaje msg (de tamaño MSG_SIZE), 
