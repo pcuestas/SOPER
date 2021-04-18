@@ -86,10 +86,7 @@ int main(int argc, char *argv[]){
         mq_unlink(MQ_SERVER);
         exit(EXIT_FAILURE);
     }
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    shm_unlink(SHM_NAME);
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+    
     /*creación del segmento de memoria compartida*/
     if ((fd_shm = shm_open(SHM_NAME, O_RDWR | O_CREAT | O_EXCL,
                            S_IRUSR | S_IWUSR)) == -1)
