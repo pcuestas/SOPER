@@ -54,7 +54,8 @@ void stream_shm_initialize(struct stream_t *stream_shm){
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_shm, send_to_server = 0, send_to_client = 0, end = 0, err = 0;
+    int fd_shm;
+    int msg_meaning, send_to_server = 0, send_to_client = 0, err = 0;
     pid_t server, client;
     char msg[MSG_SIZE], buffer[1024];
     mqd_t queue_server, queue_client;
@@ -178,18 +179,12 @@ int main(int argc, char *argv[]){
     }
 
     /***************/
-    end = 0;
-    while(!end && (fgets(buffer, sizeof(buffer), stdin) != NULL))
+    msg_meaning = MSG__OTHER;
+    while((msg_meaning != MSG__EXIT) && (fgets(buffer, sizeof(buffer), stdin) != NULL))
     {
-        send_to_server = send_to_client = 0;
-        if(strncmp(buffer, "post", 4*sizeof(char)) == 0)
-            send_to_server = 1;
-        else if(strncmp(buffer, "get", 3*sizeof(char)) == 0)
-            send_to_client = 1;
-        else if(strncmp(buffer, "exit", 4*sizeof(char)) == 0)
-        {
-            send_to_client = send_to_server = end = 1;
-        }
+        msg_meaning = stream_parse_message(buffer);
+        send_to_server = (msg_meaning == MSG__POST) || (msg_meaning == MSG__EXIT);
+        send_to_client = (msg_meaning == MSG__GET) || (msg_meaning == MSG__EXIT);
 
         if(send_to_client && (mq_send(queue_client, buffer, MSG_SIZE, 1) == -1))
         {

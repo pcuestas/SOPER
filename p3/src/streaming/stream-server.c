@@ -126,7 +126,6 @@ int main(int argc, char *argv[]){
 
     if(c == '\0' && !err)
         ignore_messages_until_exit(queue, &err);
-        
 
     close(fd_input);
     mq_close(queue);
