@@ -40,7 +40,7 @@ int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, in
     {
         if (errno == ETIMEDOUT)
         {
-            fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Operación deshechada\n");
+            fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Operación desechada\n");
             (*time_out) = 1;
         }
         else
