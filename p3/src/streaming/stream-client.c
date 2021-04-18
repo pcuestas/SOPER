@@ -26,7 +26,7 @@
  * @param err vale 0, se establece su valor a 1 en caso de error
  * @return el carater leído
  */
-char stream_shm_get_element(struct stream_t *stream_shm, int fd_output, int *err)
+char st_shm_get_element(struct stream_t *stream_shm, int fd_output, int *err)
 {
     char c = stream_shm->buffer[stream_shm->get_pos];
 
@@ -110,19 +110,19 @@ int main(int argc, char *argv[]){
             err = 1;
             break;    
         }
-        msg_meaning = stream_parse_message(msg);
+        msg_meaning = st_parse_message(msg);
         if(msg_meaning == MSG__EXIT)
             break;
         else if(msg_meaning != MSG__GET)
             continue;
 
 
-        if(stream_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err, &time_out) == EXIT_FAILURE)
+        if(st_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
         else if (time_out)
             continue;
         
-        if(stream_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
+        if(st_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
         else if(time_out)
         {
@@ -130,14 +130,14 @@ int main(int argc, char *argv[]){
             continue;
         }
 
-        c = stream_shm_get_element(stream_shm, fd_output, &err);
+        c = st_shm_get_element(stream_shm, fd_output, &err);
 
         sem_post(&(stream_shm->mutex));
         sem_post(&(stream_shm->sem_empty));
     } while (c != '\0' && !err);
 
     if(c == '\0' && !err)
-        ignore_messages_until_exit(queue, &err);
+        st_ingore_until_exit(queue, &err);
 
     close(fd_output);
     mq_close(queue);

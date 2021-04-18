@@ -26,7 +26,7 @@
  * @return EXIT_FAILURE en caso de que falle clock_gettime
  * o sem_timedwait. EXIT_SUCCCESS en caso de éxito
  */
-int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *time_out)
+int st_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *time_out)
 {
     (*time_out) = 0;
     if (clock_gettime(CLOCK_REALTIME, ts) == -1)
@@ -61,7 +61,7 @@ int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, in
  * @param msg el mensaje 
  * @return el entero que corresponde al mensaje
  */
-int stream_parse_message(char *msg)
+int st_parse_message(char *msg)
 {
     if (strncmp(msg, "post", 4 * sizeof(char)) == 0)
         return MSG__POST;
@@ -82,7 +82,7 @@ int stream_parse_message(char *msg)
  * @param err en la entrada, *err=0 y se le da el valor 1
  * en caso de error (al recibir algún mensaje)
  */
-void ignore_messages_until_exit(mqd_t queue, int *err)
+void st_ingore_until_exit(mqd_t queue, int *err)
 {
     char msg[MSG_SIZE];
     int msg_meaning;
@@ -94,6 +94,6 @@ void ignore_messages_until_exit(mqd_t queue, int *err)
             (*err) = 1;
             break;
         }
-        msg_meaning = stream_parse_message(msg);
+        msg_meaning = st_parse_message(msg);
     } while (msg_meaning != MSG__EXIT);
 }

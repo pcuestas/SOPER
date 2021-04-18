@@ -193,7 +193,7 @@ int main(int argc, char *argv[]){
     msg_meaning = MSG__OTHER;
     while ((msg_meaning != MSG__EXIT) && (fgets(buffer, sizeof(buffer), stdin) != NULL))
     {
-        msg_meaning = stream_parse_message(buffer);
+        msg_meaning = st_parse_message(buffer);
         send_to_server = (msg_meaning == MSG__POST) || (msg_meaning == MSG__EXIT);
         send_to_client = (msg_meaning == MSG__GET) || (msg_meaning == MSG__EXIT);
 

@@ -44,7 +44,7 @@ struct stream_t{
  * @return EXIT_FAILURE en caso de que falle clock_gettime
  * o sem_timedwait. EXIT_SUCCCESS en caso de éxito
  */
-int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *time_out);
+int st_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *time_out);
 
 /**
  * @brief a partir del mensaje msg (de tamaño MSG_SIZE), 
@@ -54,7 +54,7 @@ int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, in
  * @param msg el mensaje 
  * @return el entero que corresponde al mensaje
  */
-int stream_parse_message(char *msg);
+int st_parse_message(char *msg);
 
 /**
  * @brief ignora los mensajes recibidos en la cola de 
@@ -66,7 +66,7 @@ int stream_parse_message(char *msg);
  * @param err en la entrada, *err=0 y se le da el valor 1
  * en caso de error (al recibir algún mensaje)
  */
-void ignore_messages_until_exit(mqd_t queue, int *err);
+void st_ingore_until_exit(mqd_t queue, int *err);
 
 
 #endif
