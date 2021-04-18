@@ -45,7 +45,7 @@ char stream_shm_get_element(struct stream_t *stream_shm, int fd_output, int *err
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_shm, fd_output, err = 0, msg_meaning;
+    int fd_shm, fd_output, err = 0, time_out = 0, msg_meaning;
     char c, msg[MSG_SIZE];
     struct timespec ts;
     mqd_t queue;
@@ -117,10 +117,18 @@ int main(int argc, char *argv[]){
             continue;
 
 
-        if(stream_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err) == EXIT_FAILURE)
+        if(stream_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
-        if(stream_timed_wait(&(stream_shm->mutex), &ts, 2, &err) == EXIT_FAILURE)
+        else if (time_out)
+            continue;
+        
+        if(stream_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
+        else if(time_out)
+        {
+            sem_post(&(stream_shm->sem_fill));
+            continue;
+        }
 
         c = stream_shm_get_element(stream_shm, fd_output, &err);
 

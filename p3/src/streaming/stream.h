@@ -29,16 +29,22 @@ struct stream_t{
  * @brief realiza un sem_timedwait de seconds segundos 
  * en el semáforo sem. En caso de algún error, imprime por stderr
  * el mensaje de error correspondiente y devuelve EXIT_FAILURE.
- * *err cambia de valor a 1 en caso de error
+ * Si pasa el tiempo de espera sin poder aumentar el semáforo,
+ * se devuelve EXIT_SUCCESS y se cambia el valor de *time_out a 1.
+ * (en caso contrario, time_out termina con valor 0)
+ * *err cambia de valor a 1 en caso de error.
  * 
  * @param sem semáforo en el que se realiza la espera
  * @param ts struct timespec
  * @param seconds segundos 
- * @param err cambia de valor a 1 en caso de que se devuelva EXIT_FAILURE
+ * @param err cambia de valor a 1 en caso de que se devuelva 
+ * EXIT_FAILURE
+ * @param time_out vale 1 en caso de que se pase 
+ * el tiempo de espera. 0 en caso contrario 
  * @return EXIT_FAILURE en caso de que falle clock_gettime
  * o sem_timedwait. EXIT_SUCCCESS en caso de éxito
  */
-int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err);
+int stream_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *time_out);
 
 /**
  * @brief a partir del mensaje msg (de tamaño MSG_SIZE), 

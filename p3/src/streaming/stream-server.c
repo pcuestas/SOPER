@@ -46,7 +46,7 @@ char stream_shm_add_element(struct stream_t *stream_shm, int fd_input, int *err)
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_shm, fd_input, ret, err = 0, msg_meaning;
+    int fd_shm, fd_input, ret, err = 0, msg_meaning, time_out = 0;
     struct timespec ts;
     char c, msg[MSG_SIZE];
     mqd_t queue;
@@ -112,10 +112,18 @@ int main(int argc, char *argv[]){
         else if(msg_meaning != MSG__POST)
             continue;
 
-        if(stream_timed_wait(&(stream_shm->sem_empty), &ts, 2, &err) == EXIT_FAILURE)
+        if(stream_timed_wait(&(stream_shm->sem_empty), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
-        if(stream_timed_wait(&(stream_shm->mutex), &ts, 2, &err) == EXIT_FAILURE)
+        else if (time_out)
+            continue;
+        
+        if(stream_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
+        else if(time_out)
+        {
+            sem_post(&(stream_shm->sem_fill));
+            continue;
+        }
 
         c = stream_shm_add_element(stream_shm, fd_input, &err);
 
