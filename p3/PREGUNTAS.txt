@@ -5,3 +5,5 @@ cómo se manejan los errores ??--> liberar ? etc
 wait los procesos ?? qué hacer con los errores y en qué orden esperar, y si esperar en orden
 
 qué se hace con sem_timedwait cuando se pasa el tiempo ?-->dicen deshechar la operación
+
+hacer: tex, comentarios de ficheros
