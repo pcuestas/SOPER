@@ -32,30 +32,6 @@ char stream_shm_get_element(struct stream_t *stream_shm, int fd_output)
     return c;
 }
 
-int stream_client_parse_message(char *msg)
-{
-    if (strncmp(msg, "get", 3 * sizeof(char)) == 0)
-        return MSG__GET;
-    if (strncmp(msg, "exit", 4 * sizeof(char)) == 0)
-        return MSG__EXIT;
-    return MSG__OTHER;
-}
-
-void ignore_messages_until_exit(mqd_t queue, int *err)
-{
-    char msg[MSG_SIZE];
-    int msg_meaning;
-    do
-    {
-        if (mq_receive(queue, msg, sizeof(msg), NULL) == -1)
-        {
-            fprintf(stderr, "Error recibiendo el mensaje\n");
-            (*err) = 1;
-            break;
-        }
-        msg_meaning = stream_client_parse_message(msg);
-    } while (msg_meaning != MSG__EXIT);
-}
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
@@ -123,7 +99,7 @@ int main(int argc, char *argv[]){
             err = 1;
             break;    
         }
-        msg_meaning = stream_client_parse_message(msg);
+        msg_meaning = stream_parse_message(msg);
         if(msg_meaning == MSG__EXIT)
             break;
         else if(msg_meaning != MSG__GET)
@@ -161,7 +137,6 @@ int main(int argc, char *argv[]){
                 perror("sem_timedwait");
             err = 1;
             break;
-            ;
         }
 
         c = stream_shm_get_element(stream_shm, fd_output);

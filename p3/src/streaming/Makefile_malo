@@ -1,0 +1,27 @@
+######################################################
+#
+# file: Makefile. SOPER, Práctica 2.
+#
+# autores: Pablo Cuesta Sierra y Álvaro Zamanillo Sáez
+#
+######################################################
+
+
+ALL=stream-ui stream-server stream-client
+CC=gcc
+LIB=-lpthread -lrt
+HEADER=stream.h
+OBJ=stream_func.o
+
+all: $(ALL)
+
+%: $@.o $(HEADER) $(OBJ)
+	@echo boild
+	$(CC) -o $@ %.o $(OBJ) $(LIB)
+
+.c.o: $(HEADER)
+	$(CC) -o $@ -c $<
+
+clean:
+	$(RM) $(ALL) *.o
+
