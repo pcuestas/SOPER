@@ -15,7 +15,7 @@ char stream_shm_get_element(struct stream_t *stream_shm, int fd_output)
     int ret;
     if(c != '\0')
     {
-        ret = write(fd_output, &c, sizeof(char));
+        ret = write(fd_output, &c, sizeof(c));
         if(ret == -1){
             perror("write");
             exit(EXIT_FAILURE);
@@ -37,7 +37,9 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    if((fd_output = open(argv[1], O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR| S_IRGRP | S_IWGRP) == -1))
+    fd_output = open(argv[1], O_CREAT | O_TRUNC | O_WRONLY,
+                     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    if(fd_output == -1)
     {
         perror("open output file");
         exit(EXIT_FAILURE);
@@ -62,22 +64,17 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    if(clock_gettime(CLOCK_REALTIME, &ts) == -1)
-    {
-        perror("clock_gettime");
-        close(fd_output);
-        munmap (stream_shm, sizeof(struct stream_t)) ;
-        exit(EXIT_FAILURE);
-    }
 
     /*consumidor*/
 
     do{// CONTEMPLAR RET==-1 (ERROR)
+        clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_sec += 2;
         if(sem_timedwait(&(stream_shm->sem_fill), &ts) == -1){
             err = 1;
             break;
         }
+        clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_sec += 2;
         if(sem_timedwait(&(stream_shm->mutex), &ts) == -1){
            err = 1;

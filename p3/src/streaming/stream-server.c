@@ -71,11 +71,13 @@ int main(int argc, char *argv[]){
     /*productor*/
 
     do{// CONTEMPLAR RET==-1 (ERROR)
+        clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_sec += 2;
         if(sem_timedwait(&(stream_shm->sem_empty), &ts) == -1){
             err = 1;
             break;
         }
+        clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_sec += 2;
         if(sem_timedwait(&(stream_shm->mutex), &ts) == -1){
             err = 1;
