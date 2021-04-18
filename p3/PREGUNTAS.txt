@@ -1,0 +1,3 @@
+read-write control de errores
+
+extraer constantes y funciones

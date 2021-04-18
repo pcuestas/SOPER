@@ -10,7 +10,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <fcntl.h>
 
 #include "stream.h"
 
@@ -55,11 +54,35 @@ void stream_shm_initialize(struct stream_t *stream_shm){
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_shm;
+    int fd_shm, send_to_server = 0, send_to_client = 0, end = 0, err = 0;
     pid_t server, client;
+    char msg[MSG_SIZE], buffer[1024];
+    mqd_t queue_server, queue_client;
+    struct mq_attr mq_attributes = {
+        .mq_flags = 0, 
+        .mq_maxmsg = 10,
+        .mq_msgsize = MSG_SIZE,
+        .mq_curmsgs = 0
+    };
 
     if (argc != 3){
         fprintf(stderr, "Uso:\t%s <input_file> <output_file>", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /*creación de las colas de mensajes*/
+    queue_server = mq_open(MQ_SERVER, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR, &mq_attributes);
+    if(queue_server == (mqd_t)-1)
+    {
+        perror("mq_open");
+        exit(EXIT_FAILURE);
+    }
+    queue_client = mq_open(MQ_CLIENT, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR, &mq_attributes);
+    if(queue_client == (mqd_t)-1)
+    {
+        perror("mq_open");
+        mq_close(queue_server);
+        mq_unlink(MQ_SERVER);
         exit(EXIT_FAILURE);
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -71,6 +94,10 @@ int main(int argc, char *argv[]){
                            S_IRUSR | S_IWUSR)) == -1)
     {
         perror("shm_open");
+        mq_close(queue_server);
+        mq_close(queue_client);
+        mq_unlink(MQ_CLIENT);
+        mq_unlink(MQ_SERVER);
         exit(EXIT_FAILURE);
     }
 
@@ -78,6 +105,10 @@ int main(int argc, char *argv[]){
     if (ftruncate(fd_shm, sizeof(struct stream_t)) == -1)
     {
         perror("ftruncate");
+        mq_close(queue_server);
+        mq_close(queue_client);
+        mq_unlink(MQ_CLIENT);
+        mq_unlink(MQ_SERVER);
         shm_unlink(SHM_NAME);
         exit(EXIT_FAILURE);
     }
@@ -89,62 +120,111 @@ int main(int argc, char *argv[]){
     if (stream_shm == MAP_FAILED)
     {
         perror("mmap");
+        mq_close(queue_server);
+        mq_close(queue_client);
+        mq_unlink(MQ_CLIENT);
+        mq_unlink(MQ_SERVER);
         shm_unlink(SHM_NAME);
         exit(EXIT_FAILURE);
     }
-
     /*inicializar la memoria compartida*/
     stream_shm_initialize(stream_shm);
 
     /*lanzar los dos procesos*/
-    server = fork();printf("server fork\n");
+    server = fork();
     if(server < 0)
     {
-            perror("fork server");
-            shm_unlink(SHM_NAME);
-            exit(EXIT_FAILURE);
-    }if(server == 0){
+        perror("fork server");
+        mq_close(queue_server);
+        mq_close(queue_client);
+        mq_unlink(MQ_CLIENT);
+        mq_unlink(MQ_SERVER);
+        shm_unlink(SHM_NAME);
+        sem_destroy(&(stream_shm->mutex));
+        sem_destroy(&(stream_shm->sem_empty));
+        sem_destroy(&(stream_shm->sem_fill));
+        munmap(stream_shm, sizeof(struct stream_t));
+        exit(EXIT_FAILURE);
+    }
+    if(server == 0){
         if(execl(SERVER_EXEC_FILE, SERVER_EXEC_FILE, INPUT_FILE, (char*)NULL) == -1)
         {
             perror("execlp server");
-            shm_unlink(SHM_NAME);
             exit(EXIT_FAILURE);
         }
     }
 
-    client = fork();printf("client fork\n");
+    client = fork();
     if(client < 0)
     {
-            perror("fork client");
-            shm_unlink(SHM_NAME);
-            exit(EXIT_FAILURE);
-    }if(client == 0){
+        perror("fork client");
+        mq_close(queue_server);
+        mq_close(queue_client);
+        mq_unlink(MQ_CLIENT);
+        mq_unlink(MQ_SERVER);
+        shm_unlink(SHM_NAME);
+        sem_destroy(&(stream_shm->mutex));
+        sem_destroy(&(stream_shm->sem_empty));
+        sem_destroy(&(stream_shm->sem_fill));
+        munmap(stream_shm, sizeof(struct stream_t));
+        exit(EXIT_FAILURE);
+    }
+    if(client == 0){
         if(execl(CLIENT_EXEC_FILE, CLIENT_EXEC_FILE, OUTPUT_FILE, (char*)NULL) == -1)
         {
             perror("execlp client");
-            shm_unlink(SHM_NAME);
             exit(EXIT_FAILURE);
         }
     }
 
-
     /***************/
+    end = 0;
+    while(!end && (fgets(buffer, sizeof(buffer), stdin) != NULL))
+    {
+        send_to_server = send_to_client = 0;
+        if(strncmp(buffer, "post", 4*sizeof(char)) == 0)
+            send_to_server = 1;
+        else if(strncmp(buffer, "get", 3*sizeof(char)) == 0)
+            send_to_client = 1;
+        else if(strncmp(buffer, "exit", 4*sizeof(char)) == 0)
+        {
+            send_to_client = send_to_server = end = 1;
+        }
 
+        if(send_to_client && (mq_send(queue_client, buffer, MSG_SIZE, 1) == -1))
+        {
+            perror("mq_send");
+            err = 1;
+            break;
+        }
+        if(send_to_server && (mq_send(queue_server, buffer, MSG_SIZE, 1) == -1))
+        {
+            perror("mq_send");
+            err = 1;
+            break;
+        }
+    }
+    mq_close(queue_server);
+    mq_close(queue_client);
+    mq_unlink(MQ_CLIENT);
+    mq_unlink(MQ_SERVER);
+    shm_unlink(SHM_NAME);
+    sem_destroy(&(stream_shm->mutex));
+    sem_destroy(&(stream_shm->sem_empty));
+    sem_destroy(&(stream_shm->sem_fill));
+    munmap(stream_shm, sizeof(struct stream_t));
 
-
+    if(err)
+    {
+        exit(EXIT_FAILURE);
+    }
 
     /*liberar todo-- por hacer*/
 
-    wait(NULL);// modificar  para ver errores etc
+    wait(NULL);// modificar  para ver errores etc ? 
     wait(NULL);
     
-    shm_unlink(SHM_NAME);
-    munmap (stream_shm, sizeof(struct stream_t));
-
-    if (sem_destroy(&(stream_shm->mutex)) == -1) {
-        perror ("sem_destroy"); 
-        exit(EXIT_FAILURE);
-    }
+    
 
     exit(EXIT_SUCCESS);
 }

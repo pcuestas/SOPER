@@ -1,10 +1,14 @@
 #ifndef STREAM_H_
 #define STREAM_H_
 
+#include <semaphore.h>
+
 #define BUFFER_SIZE 5
 #define SHM_NAME "/shm_stream"
+#define MQ_SERVER "/mq_server"
+#define MQ_CLIENT "/mq_client"
+#define MSG_SIZE 4
 
-#include <semaphore.h>
 
 struct stream_t{
     char buffer[BUFFER_SIZE];
