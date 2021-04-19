@@ -172,7 +172,7 @@ Los procesos \textit{stream-server} y \textit{stream-client} abren la memoria co
 \addcontentsline{toc}{subsubsection}{b) Semáforos}
 \subsubsection*{b) Semáforos}
 Los semáforos, como son anónimos, los inicializa el proceso \emph{stream-ui}
-dentro de la memoria compartida (con \texttt{sem\_init}), y los destruye cuando los otros dos procesos ya han terminado. Para las esperas con tiempo máximo (2 segundos), hemos creado una función auxiliar (\texttt{st\_timed\_wait}). A pesar de que, con las instrucciones del enunciado, no nos quedaba muy claro si había que usar \texttt{sem\_timedwait} también para el \emph{mutex}, lo hemos usado también ahí. En caso de que se supere el tiempo de espera, los procesos \textit{stream-server} y \textit{stream-client} desechan la operación y vuelven a esperar mensajes.
+dentro de la memoria compartida (con \texttt{sem\_init}), y los destruye cuando los otros dos procesos ya han terminado. Para las esperas con tiempo máximo (2 segundos), hemos creado una función auxiliar (\texttt{st\_timed\_wait}), que las encapsula. A pesar de que, con las instrucciones del enunciado, no nos quedaba muy claro si había que usar \texttt{sem\_timedwait} también para el \emph{mutex}, lo hemos usado también ahí. En caso de que se supere el tiempo de espera, los procesos \textit{stream-server} y \textit{stream-client} desechan la operación y vuelven a esperar mensajes.
 
 
 \addcontentsline{toc}{subsubsection}{c) Colas de instrucciones}
