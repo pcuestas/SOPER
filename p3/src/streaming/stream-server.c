@@ -46,16 +46,11 @@ char st_shm_add_element(struct stream_t *stream_shm, int fd_input, int *err)
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_shm, fd_input, ret, err = 0, msg_meaning, time_out = 0;
+    int fd_input, ret, err = 0, time_out = 0, msg;
     struct timespec ts;
-    char c, msg[MSG_SIZE];
+    char c;
     mqd_t queue;
-    struct mq_attr mq_attributes = {
-        .mq_flags = 0, 
-        .mq_maxmsg = 10,
-        .mq_msgsize = MSG_SIZE,
-        .mq_curmsgs = 0
-    };
+ 
 
     if (argc != 2){
         fprintf(stderr, "Uso:\t%s <input_file>", argv[0]);
@@ -76,22 +71,10 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    /*abrir del segmento de memoria compartida*/
-    if ((fd_shm = shm_open(SHM_NAME, O_RDWR, 0)) == -1)
+    /*mapeo de la memoria compartida*/
+    stream_shm = st_shm_open();
+    if(stream_shm == MAP_FAILED)
     {
-        perror("shm_open");
-        close(fd_input);
-        mq_close(queue);
-        exit(EXIT_FAILURE);
-    }
-
-    /*mapear el segmento de memoria*/
-    stream_shm = mmap(NULL, sizeof(struct stream_t),
-                      PROT_WRITE | PROT_READ, MAP_SHARED, fd_shm, 0);
-    close(fd_shm);
-    if (stream_shm == MAP_FAILED)
-    {
-        perror("mmap");
         close(fd_input);
         mq_close(queue);
         exit(EXIT_FAILURE);
@@ -100,17 +83,15 @@ int main(int argc, char *argv[]){
     /*productor*/
     do
     {
-        if(mq_receive(queue, msg, sizeof(msg), NULL) == -1)
+        if(mq_receive(queue, (char*)(&msg), sizeof(msg), NULL) == -1)
         {
-            fprintf(stderr, "Error recibiendo el mensaje (%s)\n", argv[0]);
+            perror("mq_receive");
             err = 1;
             break;    
         }
-        msg_meaning = st_parse_message(msg);
-        if(msg_meaning == MSG__EXIT)
+        
+        if(msg == MSG__EXIT)
             break;
-        else if(msg_meaning != MSG__POST)
-            continue;
 
         if(st_timed_wait(&(stream_shm->sem_empty), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
@@ -132,17 +113,13 @@ int main(int argc, char *argv[]){
 
     }while(c != '\0' && !err);
 
+    close(fd_input);
+    
     if(c == '\0' && !err)
         st_ingore_until_exit(queue, &err);
 
-    close(fd_input);
     mq_close(queue);
     munmap (stream_shm, sizeof(struct stream_t)) ;
     
-    if(err)
-    {
-        exit(EXIT_FAILURE);
-    }
-
-    exit(EXIT_SUCCESS);
+    exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
 }

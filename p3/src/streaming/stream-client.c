@@ -45,16 +45,10 @@ char st_shm_get_element(struct stream_t *stream_shm, int fd_output, int *err)
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_shm, fd_output, err = 0, time_out = 0, msg_meaning;
-    char c, msg[MSG_SIZE];
+    int fd_output, err = 0, time_out = 0, msg;
+    char c;
     struct timespec ts;
     mqd_t queue;
-    struct mq_attr mq_attributes = {
-        .mq_flags = 0, 
-        .mq_maxmsg = 10,
-        .mq_msgsize = MSG_SIZE,
-        .mq_curmsgs = 0
-    };
 
     if (argc != 2){
         fprintf(stderr, "Uso:\t%s <output_file>", argv[0]);
@@ -78,48 +72,31 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    /*abrir el segmento de memoria compartida*/
-    if ((fd_shm = shm_open(SHM_NAME, O_RDWR, 0)) == -1)
+    /*mapeo de la memoria compartida*/
+    stream_shm = st_shm_open();
+    if(stream_shm == MAP_FAILED)
     {
-        perror("shm_open");
-        mq_close(queue);
         close(fd_output);
+        mq_close(queue);
         exit(EXIT_FAILURE);
     }
-
-    /*mapear el segmento de memoria*/
-    stream_shm = mmap(NULL, sizeof(struct stream_t),
-                      PROT_WRITE | PROT_READ, MAP_SHARED, fd_shm, 0);
-    close(fd_shm);
-    if (stream_shm == MAP_FAILED)
-    {
-        perror("mmap");
-        mq_close(queue);
-        close(fd_output);
-        exit(EXIT_FAILURE);
-    }
-
 
     /*consumidor*/
-
     do
     {
-        if(mq_receive(queue, msg, sizeof(msg), NULL) == -1)
+        if(mq_receive(queue, (char*)(&msg), sizeof(msg), NULL) == -1)
         {
-            fprintf(stderr, "Error recibiendo el mensaje (%s)\n", argv[0]);
+            perror("mq_receive");
             err = 1;
             break;    
         }
-        msg_meaning = st_parse_message(msg);
-        if(msg_meaning == MSG__EXIT)
-            break;
-        else if(msg_meaning != MSG__GET)
-            continue;
 
+        if(msg == MSG__EXIT)
+            break;
 
         if(st_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
-        else if (time_out)
+        else if (time_out) /*Si la espera es superior a 2 segundos, se desecha la operación*/
             continue;
         
         if(st_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
@@ -136,17 +113,13 @@ int main(int argc, char *argv[]){
         sem_post(&(stream_shm->sem_empty));
     } while (c != '\0' && !err);
 
+    close(fd_output);
+
     if(c == '\0' && !err)
         st_ingore_until_exit(queue, &err);
 
-    close(fd_output);
     mq_close(queue);
     munmap (stream_shm, sizeof(struct stream_t)) ;
 
-    if(err == 1)
-    {
-        exit(EXIT_FAILURE);
-    }
-
-    exit(EXIT_SUCCESS);
+    exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
 }

@@ -1,3 +1,11 @@
+/**
+ * @file stream.h
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ *
+ * @brief (SOPER p3, ejercicio 7)
+ * definiciones de macros y funciones comunes a los 
+ * ficheros stream-ui.c, stream-server.c stream-client.c
+ */
 #ifndef STREAM_H_
 #define STREAM_H_
 
@@ -8,7 +16,7 @@
 #define MQ_SERVER "/mq_server"
 #define MQ_CLIENT "/mq_client"
 
-#define MSG_SIZE 4
+#define MSG_SIZE (sizeof(int))
 #define MSG__GET 1
 #define MSG__POST 2
 #define MSG__EXIT 3
@@ -54,7 +62,7 @@ int st_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *t
  * @param msg el mensaje 
  * @return el entero que corresponde al mensaje
  */
-int st_parse_message(char *msg);
+int st_parse_command(char *msg);
 
 /**
  * @brief ignora los mensajes recibidos en la cola de 
@@ -67,6 +75,25 @@ int st_parse_message(char *msg);
  * en caso de error (al recibir algún mensaje)
  */
 void st_ingore_until_exit(mqd_t queue, int *err);
+
+/**
+ * @brief abre la cola con nombre queue_name con 
+ * las banderas __oflag
+ * 
+ * @param queue_name nombre de la cola a abrir
+ * @param __oflag igual que __oflag en mq_open
+ * @return la cola abierta, o (mdq_t)-1 en caso de error
+ */
+mqd_t st_mq_open(char *queuename, int o_flags);
+
+/**
+ * @brief abre el segmento de memoria y lo mapea.
+ * (Para el stream-server y stream-client)
+ * 
+ * @return puntero a la estructura mapeada o MAP_FAILED 
+ * en caso de error
+ */
+struct stream_t *st_shm_open();
 
 
 #endif

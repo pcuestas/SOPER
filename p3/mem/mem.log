@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2020.10.30)  16 APR 2021 17:00
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2020.10.30)  19 APR 2021 18:29
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -527,13 +527,13 @@ File: lstmisc.sty 2019/09/10 1.8c (Carsten Heinz)
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 
-/home/pablo/repos/SOPER_p1/p3/mem/mem.tex:203: LaTeX Error: File `ser8' not found.
+/home/pablo/repos/SOPER_p1/p3/mem/mem.tex:209: LaTeX Error: File `ser8' not found.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.203 \includegraphics[scale=0.4]{ser8}
+l.209 \includegraphics[scale=0.4]{ser8}
                                        
 I could not locate the file with any of these extensions:
 .pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
@@ -541,26 +541,29 @@ Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
 
-/home/pablo/repos/SOPER_p1/p3/mem/mem.tex:208: LaTeX Error: Can be used only in preamble.
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+/home/pablo/repos/SOPER_p1/p3/mem/mem.tex:214: LaTeX Error: Can be used only in preamble.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.208 \usepackage
+l.214 \usepackage
                  {listings}
 Your command was ignored.
 Type  I <command> <return>  to replace it with another command,
 or  <return>  to continue without it.
 
 
-/home/pablo/repos/SOPER_p1/p3/mem/mem.tex:209: LaTeX Error: Can be used only in preamble.
+/home/pablo/repos/SOPER_p1/p3/mem/mem.tex:215: LaTeX Error: Can be used only in preamble.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.209 \usepackage
+l.215 \usepackage
                  {xcolor}
 Your command was ignored.
 Type  I <command> <return>  to replace it with another command,
@@ -581,10 +584,10 @@ This may cause the page layout to be inconsistent, however.
  
 Here is how much of TeX's memory you used:
  18960 strings out of 481239
- 341816 string characters out of 5920376
- 988249 words of memory out of 5000000
- 33857 multiletter control sequences out of 15000+600000
- 542843 words of font info for 45 fonts, out of 8000000 for 9000
+ 341831 string characters out of 5920376
+ 1003249 words of memory out of 5000000
+ 33858 multiletter control sequences out of 15000+600000
+ 543619 words of font info for 46 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 59i,12n,75p,840b,1897s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 59i,12n,75p,840b,1898s stack positions out of 5000i,500n,10000p,200000b,80000s
 !  ==> Fatal error occurred, no output PDF file produced!
