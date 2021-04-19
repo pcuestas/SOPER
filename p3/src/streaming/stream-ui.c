@@ -200,21 +200,22 @@ int main(int argc, char *argv[]){
             break;
         }
     }
-    
+
     mq_close(queue_server);
     mq_close(queue_client);
     mq_unlink(MQ_CLIENT);
     mq_unlink(MQ_SERVER);
     shm_unlink(SHM_NAME);
+
+    if(!err)
+    {
+        wait(NULL);
+        wait(NULL);
+    }
     sem_destroy(&(stream_shm->mutex));
     sem_destroy(&(stream_shm->sem_empty));
     sem_destroy(&(stream_shm->sem_fill));
     munmap(stream_shm, sizeof(struct stream_t));
 
-    if(err)
-        exit(EXIT_FAILURE);
-
-    wait(NULL);
-    wait(NULL);
-    exit(EXIT_SUCCESS);
+    exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
 }

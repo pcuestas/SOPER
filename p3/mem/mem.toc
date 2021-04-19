@@ -1,0 +1,11 @@
+\babel@toc {spanish}{}
+\contentsline {subsection}{Ejercicio 1}{1}{section*.2}%
+\contentsline {subsection}{Ejercicio 2}{1}{section*.3}%
+\contentsline {subsection}{Ejercicio 3}{2}{lstnumber.-2.4}%
+\contentsline {subsection}{Ejercicio 4}{2}{section*.5}%
+\contentsline {subsection}{Ejercicio 5}{2}{section*.6}%
+\contentsline {subsection}{Ejercicio 6}{2}{section*.7}%
+\contentsline {subsection}{Ejercicio 7}{2}{section*.8}%
+\contentsline {subsubsection}{a) Memoria compartida}{2}{section*.9}%
+\contentsline {subsubsection}{b) Semáforos}{3}{section*.10}%
+\contentsline {subsubsection}{c) Colas de instrucciones}{3}{section*.11}%

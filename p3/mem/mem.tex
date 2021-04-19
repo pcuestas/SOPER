@@ -108,7 +108,7 @@ b) Para truncar a 5 bytes:
     }
 \end{lstlisting}
  
-El fichero resultante contiene: \fbox{\texttt{Test\textvisiblespace}}. Es decir, solamente los $5$ primeros caracteres.
+El fichero resultante contiene: \fbox{\texttt{Test\textvisiblespace}}. Es decir, solamente los $5$ primeros carácteres.
 
 
 \addcontentsline{toc}{subsection}{Ejercicio 3}
@@ -116,11 +116,11 @@ El fichero resultante contiene: \fbox{\texttt{Test\textvisiblespace}}. Es decir,
 
 a) Cada vez que se ejecuta el programa, el counter incrementa su valor en $1$. Esto es porque el programa abre el fichero en caso de que ya exista, y varía el valor que ya existe. Si borramos el fichero antes de ejecutar, el fichero se crea de nuevo y tras la ejecución el valor vuelve a ser $1$.
 
-b) El fichero es binario, por lo que las variables no aparecen con los valores en forma de caracteres que se puedan leer con un editor de texto.
+b) El fichero es binario, por lo que las variables no aparecen con los valores en forma de carácteres que se puedan leer con un editor de texto.
 
 
-\addcontentsline{toc}{subsection}{ejercicio 4}
-\subsection*{ejercicio 4}
+\addcontentsline{toc}{subsection}{Ejercicio 4}
+\subsection*{Ejercicio 4}
 
 a) No, ya que de ese modo, ningún otro lector podría abrir el segmento de memoria compartida.
 
@@ -130,8 +130,8 @@ c) \texttt{mmap} crea un mapeo del segmento de memoria compartida dentro de las 
 
 d) Sí se puede, habría que escribir en el segmento de memoria compartida con \texttt{write} tratándolo como un descriptor de fichero.
 
-\addcontentsline{toc}{subsection}{ejercicio 5}
-\subsection*{ejercicio 5}
+\addcontentsline{toc}{subsection}{Ejercicio 5}
+\subsection*{Ejercicio 5}
 
 a) Se envían en orden creciente (1,2,3..) pero se reciben según la prioridad con la que fueron enviados. Y para mensajes de la misma prioridad, siguiendo un criterio FIFO (first in, first out).
 
@@ -139,8 +139,8 @@ b) Si se cambia por \texttt{O\_RDONLY} la llamada a \texttt{mq\_send} devuelve e
 
 
 
-\addcontentsline{toc}{subsection}{ejercicio 6}
-\subsection*{ejercicio 6}
+\addcontentsline{toc}{subsection}{Ejercicio 6}
+\subsection*{Ejercicio 6}
 
 
 a) El emisor envía el mensaje y el receptor lo recibe e imprime por \textit{stdout}
@@ -155,142 +155,34 @@ d) (Asumimos que se crea la cola de mensajes como bloqueante.) No, ya que si un 
 
 
 
-\addcontentsline{toc}{subsection}{ejercicio 7}
-\subsection*{ejercicio 7}
+\addcontentsline{toc}{subsection}{Ejercicio 7}
+\subsection*{Ejercicio 7}
 
 
-\subsubsection{Memoria compartida}
+\addcontentsline{toc}{subsubsection}{a) Memoria compartida}
+\subsubsection*{a) Memoria compartida}
 
-El proceso \textit{stream-ui.c} tiene que inicializar el segmento de memoria por lo que crea e
-e\subsubsection{Semáforos}
+El proceso \textit{stream-ui} tiene que inicializar el segmento de memoria por lo que en la llamada a \texttt{shm\_open} incluimos las \textit{flags} \texttt{O\_CREAT} y \texttt{O\_EXCL} de forma que si ya existe un segmento de memoria con el mismo nombre,la función devuelva error.
 
+En cuanto a los dos procesos que se lanzan \textit{stream-server} y \textit{stream-client}, tras la llamada a \texttt{fork} ejecutamos \texttt{execl} pasando como argumento el nombre del fichero de entrada o salida dependiendo del caso.
 
-\subsubsection{Colas de instrucciones}
-
-end{document}
-
+Los procesos \textit{stream-server} y \textit{stream-client} abren la memoria compartida con las \textit{flags} \texttt{PROT\_READ} y \texttt{PROT\_WRITE} ya que van a escribir y leer (para acceder a los contadores por ejemplo) en la memoria.
 
 
+\addcontentsline{toc}{subsubsection}{b) Semáforos}
+\subsubsection*{b) Semáforos}
+Los semáforos, como son anónimos, los inicializa el proceso \emph{stream-ui}
+dentro de la memoria compartida (con \texttt{sem\_init}), y los destruye cuando los otros dos procesos ya han terminado. Para las esperas con tiempo máximo (2 segundos), hemos creado una función auxiliar (\texttt{st\_timed\_wait}). A pesar de que, con las instrucciones del enunciado, no nos quedaba muy claro si había que usar \texttt{sem\_timedwait} también para el \emph{mutex}, lo hemos usado también ahí. En caso de que se supere el tiempo de espera, los procesos \textit{stream-server} y \textit{stream-client} desechan la operación y vuelven a esperar mensajes.
 
 
+\addcontentsline{toc}{subsubsection}{c) Colas de instrucciones}
+\subsubsection*{c) Colas de instrucciones}
 
+El proceso \textit{stream-ui} tiene que crear las dos colas de mensajes y como solo va a enviar mensajes, añadimos la \textit{flags} \texttt{O\_WRONLY} a parte de  \texttt{O\_CREAT} y  \texttt{O\_EXCL}. Por su parte, el proceso cliente y servidor, abren las colas, pero en este caso con la \textit{flag} \texttt{O\_RDONLY} pues solo van a recibir mensajes.   
 
+En lugar de mandar las cadenas \texttt{exit}, \texttt{post} y \texttt{get}, 
+mandamos un \emph{int} que las identifica (definidos en macros), para no estar comparando cadenas en todos los procesos, que es menos conveniente.
 
+Finalmente, si se recibe el mensaje asociado al comando \textit{exit}, ambos procesos, cliente y servidor, salen del bucle y finalizan liberando sus recursos. Del mismo modo, si el servidor llega al final del fichero, o el cliente lee el carácter \texttt{`\textbackslash0'}, saldrán del bucle e ignorarán cualquier orden (mensaje) que les llegue que no sea \textit{exit}.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%%%%%%%%%%%%%
-\begin{lstlisting}[language=C, texcl=true, numbers=left]
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{Verbatim}[frame=single]
-cosas
-\end{Verbatim}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}[h]
-\caption{Search 8.}
-\bigskip
-\includegraphics[scale=0.4]{ser8}
-\centering
-\label{fig:ser8}
-\end{figure}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{listings}
-\usepackage{xcolor}
-
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-\lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{codepurple},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{magenta},
-    basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=left,                    
-    numbersep=5pt,                  
-    showspaces=false,                
-    showstringspaces=false,
-    showtabs=false,                  
-    tabsize=2
-}
-
-\lstset{style=mystyle}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{lstlisting}[language=C]
-bool findKey(const char * book_id, const char *indexName, int * nodeIDOrDataOffset){
-    FILE *pf=NULL;
-    int pos, comp;
-    Node node;
-    bool found = false;
-    char b_id[5], search[5];
-
-    if(!indexName)
-        return false;
-
-    if((pf=fopen(indexName,"rb"))==NULL)
-        return false;
-
-    memcpy(search, book_id, PK_SIZE);
-    search[PK_SIZE] = '\0';
-    /*read the root's position*/
-    fread(&pos, sizeof(int), 1, pf);
-
-    if(pos==-1){/*empty*/
-        *nodeIDOrDataOffset=-1;
-    }
-
-    while(pos != -1 && found == false){
-        /*find the node's offset in the file*/
-        fseek(pf, INDEX_HEADER_SIZE+pos*sizeof(Node), SEEK_SET);
-        /*read the node*/
-        fread(&node, sizeof(Node), 1, pf);
-        memcpy(b_id, node.book_id, PK_SIZE);
-        b_id[PK_SIZE] = '\0';
-        /*compare the primary key*/
-        comp=strcmp(search, b_id);
-        
-        if(comp < 0){
-            if(node.left==-1)/*not found*/
-                (*nodeIDOrDataOffset) = pos;
-            pos = node.left;            
-        }
-        else if(comp > 0){
-            if(node.right==-1)/*not found*/
-                (*nodeIDOrDataOffset) = pos;
-            pos = node.right;            
-        }
-        else{/*found*/
-            (*nodeIDOrDataOffset) = node.offset;
-            found = true;
-        }
-    }
-    fclose(pf);
-    return found;
-}
-
-\end{lstlisting}
-
+\end{document}
