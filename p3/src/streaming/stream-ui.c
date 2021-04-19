@@ -1,3 +1,11 @@
+/**
+ * @file stream-ui.c
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ *
+ * @brief (SOPER p3, ejercicio 7)
+ * main del proceso ui, que lanza los otros dos procesos
+ * stream-server y stream-client
+ */
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>

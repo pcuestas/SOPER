@@ -1,3 +1,10 @@
+/**
+ * @file stream-client.c
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ *
+ * @brief (SOPER p3, ejercicio 7)
+ * main del proceso client 
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
