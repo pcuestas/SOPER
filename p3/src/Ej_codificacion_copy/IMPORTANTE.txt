@@ -1,0 +1,20 @@
+
+¡Control de error y liberar!. Hacer una funcion que libere todo en cada .c?
+
+1. Al lanzar los procesos hijos solo hace falta pasar el nombre de los ficheros. EL nombre de los segmentos de memeoria está compartido.
+
+2. Que hacer cunado se espera mas de 2 segundos en un semaforo (continue en el bucle ?)
+
+3. Distinguir cuando fgets devuelve NULL vs cuando se lee exit.
+
+4. Si estamos leyendo de fichero, hay que tener cuidado que en la ultima linea no habra \n
+
+
+6. 
+
+
+
+
+SOBRAN:
+
+l.56 stream-ui
