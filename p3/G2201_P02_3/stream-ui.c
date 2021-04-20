@@ -183,24 +183,24 @@ int main(int argc, char *argv[]){
 
     while (!err && (msg != MSG__EXIT) && (fgets(buffer, sizeof(buffer), stdin) != NULL))
     {
-        msg = st_parse_command(buffer);
+        msg = st_message_code(buffer);
         send_to_server = (msg == MSG__POST) || (msg == MSG__EXIT);
         send_to_client = (msg == MSG__GET) || (msg == MSG__EXIT);
 
-        if (send_to_client && (mq_send(queue_client, (char*)(&msg), sizeof(msg), 1) == -1))
+        if (send_to_client && (mq_send(queue_client, buffer, MSG_SIZE, 1) == -1))
         {
             perror("mq_send");
             err = 1;
             break;
         }
-        if (send_to_server && (mq_send(queue_server, (char*)(&msg), sizeof(msg), 1) == -1))
+        if (send_to_server && (mq_send(queue_server, buffer, MSG_SIZE, 1) == -1))
         {
             perror("mq_send");
             err = 1;
             break;
         }
     }
-
+    
     mq_close(queue_server);
     mq_close(queue_client);
     mq_unlink(MQ_CLIENT);
@@ -212,6 +212,7 @@ int main(int argc, char *argv[]){
         wait(NULL);
         wait(NULL);
     }
+
     sem_destroy(&(stream_shm->mutex));
     sem_destroy(&(stream_shm->sem_empty));
     sem_destroy(&(stream_shm->sem_fill));

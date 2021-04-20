@@ -16,7 +16,7 @@
 #define MQ_SERVER "/mq_server"
 #define MQ_CLIENT "/mq_client"
 
-#define MSG_SIZE (sizeof(int))
+#define MSG_SIZE 4
 #define MSG__GET 1
 #define MSG__POST 2
 #define MSG__EXIT 3
@@ -62,7 +62,7 @@ int st_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *t
  * @param msg el mensaje 
  * @return el entero que corresponde al mensaje
  */
-int st_parse_command(char *msg);
+int st_message_code(char *msg);
 
 /**
  * @brief ignora los mensajes recibidos en la cola de 

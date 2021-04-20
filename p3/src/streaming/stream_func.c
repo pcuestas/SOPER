@@ -2,7 +2,8 @@
  * @file stream_func.c
  * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
  *
- * @brief implementación de las funciones de stream.h
+ * @brief (SOPER p3, ejercicio 7)
+ * implementación de las funciones de stream.h
  */
 #include "stream.h"
 #include <stdio.h>
@@ -69,7 +70,7 @@ int st_timed_wait(sem_t *sem, struct timespec *ts, int seconds, int *err, int *t
  * @param msg el mensaje 
  * @return el entero que corresponde al mensaje
  */
-int st_parse_command(char *msg)
+int st_message_code(char *msg)
 {
     if ((strncmp(msg, "post", 4 * sizeof(char)) == 0) && (msg[4] == '\0' || msg[4] == '\n'))
         return MSG__POST;
@@ -92,16 +93,16 @@ int st_parse_command(char *msg)
  */
 void st_ingore_until_exit(mqd_t queue, int *err)
 {
-    int msg;
+    char msg[MSG_SIZE];
     do
     {
-        if (mq_receive(queue, (char*)(&msg), sizeof(msg), NULL) == -1)
+        if (mq_receive(queue, msg, MSG_SIZE, NULL) == -1)
         {
             fprintf(stderr, "Error recibiendo el mensaje\n");
             (*err) = 1;
             break;
         }
-    } while (msg != MSG__EXIT);
+    } while (strncmp(msg, "exit", MSG_SIZE));
 }
 
 /**

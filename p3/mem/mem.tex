@@ -172,17 +172,16 @@ Los procesos \textit{stream-server} y \textit{stream-client} abren la memoria co
 \addcontentsline{toc}{subsubsection}{b) Semáforos}
 \subsubsection*{b) Semáforos}
 Los semáforos, como son anónimos, los inicializa el proceso \emph{stream-ui}
-dentro de la memoria compartida (con \texttt{sem\_init}), y los destruye cuando los otros dos procesos ya han terminado. Para las esperas con tiempo máximo (2 segundos), hemos creado una función auxiliar (\texttt{st\_timed\_wait}), que las encapsula. A pesar de que, con las instrucciones del enunciado, no nos quedaba muy claro si había que usar \texttt{sem\_timedwait} también para el \emph{mutex}, lo hemos usado también ahí. En caso de que se supere el tiempo de espera, los procesos \textit{stream-server} y \textit{stream-client} desechan la operación y vuelven a esperar mensajes.
+dentro de la memoria compartida (con \texttt{sem\_init}), y los destruye cuando los otros dos procesos ya han terminado. Para las esperas con tiempo máximo (2 segundos), hemos creado una función auxiliar (\texttt{st\_timed\_wait}), que las encapsula. En caso de que se supere el tiempo de espera, los procesos \textit{stream-server} y \textit{stream-client} desechan la operación y vuelven a esperar mensajes. Con el \emph{mutex}, esperamos con \texttt{sem\_wait}, ya que no se puede dar el caso de que un proceso se bloquee indefinidamente esperando. 
 
 
 \addcontentsline{toc}{subsubsection}{c) Colas de instrucciones}
 \subsubsection*{c) Colas de instrucciones}
 
-El proceso \textit{stream-ui} tiene que crear las dos colas de mensajes y como solo va a enviar mensajes, añadimos la \textit{flags} \texttt{O\_WRONLY} a parte de  \texttt{O\_CREAT} y  \texttt{O\_EXCL}. Por su parte, el proceso cliente y servidor, abren las colas, pero en este caso con la \textit{flag} \texttt{O\_RDONLY} pues solo van a recibir mensajes.   
+El proceso \textit{stream-ui} tiene que crear las dos colas de mensajes y como solo va a enviar mensajes, añadimos la \textit{flag} \texttt{O\_WRONLY} a parte de  \texttt{O\_CREAT} y  \texttt{O\_EXCL}. Por su parte, el proceso cliente y servidor, abren las colas, pero en este caso con la \textit{flag} \texttt{O\_RDONLY} pues solo van a recibir mensajes.   
 
-En lugar de mandar las cadenas \texttt{exit}, \texttt{post} y \texttt{get}, 
-mandamos un \emph{int} que las identifica (definidos en macros), para no estar comparando cadenas en todos los procesos, que es menos conveniente.
+El proceso \emph{stream-ui} manda las cadenas \texttt{exit}, \texttt{post} o \texttt{get}, solamente al proceso al que debe ir dirigida (en el caso de \texttt{exit}, a ambos). 
 
-Finalmente, si se recibe el mensaje asociado al comando \textit{exit}, ambos procesos, cliente y servidor, salen del bucle y finalizan liberando sus recursos. Del mismo modo, si el servidor llega al final del fichero, o el cliente lee el carácter \texttt{`\textbackslash0'}, saldrán del bucle e ignorarán cualquier orden (mensaje) que les llegue que no sea \textit{exit}.
+Finalmente, cuando cualquiera de los procesos (cliente o servidor) reciben el mensaje \texttt{exit} salen del bucle y finalizan liberando sus recursos. Del mismo modo, si el servidor llega al final del fichero, o el cliente lee el carácter \texttt{`\textbackslash0'}, saldrán del bucle e ignorarán cualquier orden (mensaje) que les llegue que no sea \texttt{exit}.
 
 \end{document}

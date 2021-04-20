@@ -53,9 +53,9 @@ char st_shm_add_element(struct stream_t *stream_shm, int fd_input, int *err)
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_input, ret, err = 0, time_out = 0, msg;
+    int fd_input, ret, err = 0, time_out = 0;
     struct timespec ts;
-    char c;
+    char c = 1, msg[MSG_SIZE];
     mqd_t queue;
  
 
@@ -90,14 +90,14 @@ int main(int argc, char *argv[]){
     /*productor*/
     do
     {
-        if(mq_receive(queue, (char*)(&msg), sizeof(msg), NULL) == -1)
+        if(mq_receive(queue, msg, MSG_SIZE, NULL) == -1)
         {
             perror("mq_receive");
             err = 1;
             break;    
         }
         
-        if(msg == MSG__EXIT)
+        if(!strncmp(msg, "exit", MSG_SIZE))
             break;
 
         if(st_timed_wait(&(stream_shm->sem_empty), &ts, 2, &err, &time_out) == EXIT_FAILURE)
@@ -105,14 +105,14 @@ int main(int argc, char *argv[]){
         else if (time_out)
             continue;
         
-        if(st_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
-            break;
-        else if(time_out)
+   
+        if(sem_wait(&(stream_shm->mutex)) == -1)
         {
-            sem_post(&(stream_shm->sem_fill));
-            continue;
+            perror("sem_wait");
+            err = 1;
+            break;
         }
-
+        
         c = st_shm_add_element(stream_shm, fd_input, &err);
 
         sem_post(&(stream_shm->mutex));

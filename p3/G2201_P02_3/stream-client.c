@@ -52,8 +52,8 @@ char st_shm_get_element(struct stream_t *stream_shm, int fd_output, int *err)
 
 int main(int argc, char *argv[]){
     struct stream_t *stream_shm;
-    int fd_output, err = 0, time_out = 0, msg;
-    char c;
+    int fd_output, err = 0, time_out = 0;
+    char c = 1, msg[MSG_SIZE];
     struct timespec ts;
     mqd_t queue;
 
@@ -91,29 +91,28 @@ int main(int argc, char *argv[]){
     /*consumidor*/
     do
     {
-        if(mq_receive(queue, (char*)(&msg), sizeof(msg), NULL) == -1)
+        if(mq_receive(queue, msg, MSG_SIZE, NULL) == -1)
         {
             perror("mq_receive");
             err = 1;
             break;    
         }
-
-        if(msg == MSG__EXIT)
+        
+        if(!strncmp(msg, "exit", MSG_SIZE))
             break;
-
+        
         if(st_timed_wait(&(stream_shm->sem_fill), &ts, 2, &err, &time_out) == EXIT_FAILURE)
             break;
         else if (time_out) /*Si la espera es superior a 2 segundos, se desecha la operación*/
             continue;
-        
-        if(st_timed_wait(&(stream_shm->mutex), &ts, 2, &err, &time_out) == EXIT_FAILURE)
-            break;
-        else if(time_out)
+            
+        if(sem_wait(&(stream_shm->mutex)) == -1)
         {
-            sem_post(&(stream_shm->sem_fill));
-            continue;
+            perror("sem_wait");
+            err = 1;
+            break;
         }
-
+        
         c = st_shm_get_element(stream_shm, fd_output, &err);
 
         sem_post(&(stream_shm->mutex));
