@@ -1,0 +1,37 @@
+Minero:
+    - num de trabajadores
+    - num de rondas
+
+
+
+
+
+Memoria compartida
+
+NET_DATA:
+
+
+Secuencia:
+
+Minero 1 consigue solucion.
+    El resto de trabajadores paran
+    Manda SigUsr1 para ver numero de votantes.
+    Manda SigUsr2 para que el resto de mineros voten.
+
+
+Notas
+
+EL primer target se genera aleatoriamente.
+
+Preguntas
+
+antes de lanzar nuevo bloque, el anterior ganador cuenta numero de participantes?
+
+el ganador cuando ha de contar votos, se gana con mayoria simple?
+
+// la comprobación de una posible solucion no debe implicar que se maten todos los hilos trabajodores, solo "pausarlos" 
+
+como se modifican las wallets?
+
+hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
+
