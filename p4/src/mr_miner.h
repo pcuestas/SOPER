@@ -47,7 +47,7 @@ Block *mr_add_block(Block *b, Block *last_block);
 
 void mr_set_block_new_round(Block *b, NetData *d);
 
-int mr_init_shm(Block **b, NetData **d);
+int mr_init_shm(Block **b, NetData **d, int *this_index);
 
 int mr_shm_map(char* file, void **p, size_t size);
 

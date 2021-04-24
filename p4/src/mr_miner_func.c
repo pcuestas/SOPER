@@ -78,10 +78,11 @@ int mr_shm_map(char* file, void **p, size_t size)
 }
 
 
-int mr_init_shm(Block **b, NetData **d)
+int mr_init_shm(Block **b, NetData **d, int *this_index)
 {
     int created, i;
     pid_t this_pid = getpid();
+    srand(time(NULL));
 
     created = mr_shm_map(SHM_NAME_BLOCK, (void**)b, sizeof(Block));
 
@@ -105,12 +106,12 @@ int mr_init_shm(Block **b, NetData **d)
     }
     else if(created == MR_SHM_CREATED)
     {   
-        (*d)->miners_pid[0] = this_pid;
         for(i = 0; i < MAX_MINERS; i++)
         {
-            (*d)->miners_pid[i] = -1;
+            (*d)->miners_pid[i] = -2;
             (*d)->voting_pool[i] = VOTE_NOT_VOTED;
         }
+        (*d)->miners_pid[0] = this_pid;
         (*d)->last_miner = 0;
         (*d)->total_miners = 1;
         (*d)->last_winner = this_pid;
@@ -120,6 +121,8 @@ int mr_init_shm(Block **b, NetData **d)
         (*d)->last_miner++;
         (*d)->miners_pid[(*d)->last_miner] = this_pid;
     }
+
+    (*this_index) = (*d)->last_miner; 
 
     return EXIT_SUCCESS;
 }
@@ -140,12 +143,14 @@ void mr_set_block_new_round(Block *b, NetData *d){
 
 
 void mr_quorum_update(NetData * net){
-    int n = 0, i;
-    
-    for(i = 0 ; i <= (net->last_miner); i++){
-        n += (!(kill(net->miners_pid[i],SIGUSR1)));
-    }
+    int n = 1, i;
+    pid_t this_pid = getpid();
 
+    for(i = 0 ; i <= (net->last_miner); i++){
+        if(this_pid != net->miners_pid[i])
+            n += (!(kill(net->miners_pid[i], SIGUSR1)));
+    }
+    
     net->total_miners = n;
 }
 

@@ -1,17 +1,18 @@
 #include "miner.h"
 #include "mr_miner.h"
 
-int winner=0;
-int proof_solution;
+int winner = 0;
+long int proof_solution;
 
 void *mine(void *d){
     Mine_struct *data = (Mine_struct*)d;
     long int i;
-    for(i = 0 ; i < data->end && !winner ;i++){
+    
+    for(i = data->begin ; i < data->end && !winner ; i++){
         if(data->target == simple_hash(i)){
+            winner = 1;
             proof_solution = i;
             kill(getpid(),SIGUSR2);
-            winner = 1;
         }
     }
 
@@ -33,7 +34,7 @@ Mine_struct *mr_mine_struct_init(int n_workers){
     {
         mine_struct[i-1].end = mine_struct[i].begin = i*interval;
     }
-    mine_struct[n_workers - 1].end = PRIME - 1;
+    mine_struct[n_workers - 1].end = PRIME;
 
     return mine_struct;
 }
@@ -46,7 +47,7 @@ int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,
     }
 
     if(err){
-        for(j=0;j<i;j++){
+        for(j = 0 ;j < i; j++){
             pthread_cancel(workers[j]);
         }
         return EXIT_FAILURE;
@@ -71,7 +72,8 @@ Block* mr_add_block(Block *b, Block *last_block){
     }
 
     memcpy(new_block, b, sizeof(Block));
-    last_block->next = new_block;
+    if(last_block != NULL)
+        last_block->next = new_block;
     new_block->prev = last_block;
 
     return new_block;
@@ -104,7 +106,7 @@ void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigu
 
 
 int main(int argc, char *argv[]){
-    int n_workers, n_rounds, err = 0, last_winner;
+    int n_workers, n_rounds, err = 0, last_winner, this_index;
     pid_t this_pid = getpid();
     pthread_t *workers = NULL;
     Block *s_block, *last_block = NULL;
@@ -112,6 +114,7 @@ int main(int argc, char *argv[]){
     Mine_struct *mine_struct = NULL;
     sem_t *mutex;
     sigset_t mask_sigusr1, mask_sigusr2, mask, old_mask;
+
 
 
     /*inicializar las máscaras y hacer sigprocmask*/
@@ -150,23 +153,16 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
+    
     //Registrar minero en la red
     while(sem_wait(mutex) == -1);
-    if (mr_init_shm(&s_block, &s_net_data) == EXIT_FAILURE)
+    if (mr_init_shm(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
     {
         free(mine_struct);
         free(workers);
         exit(EXIT_FAILURE);
     }
     sem_post(mutex);
-/****/
-
-    s_block->id = 2;
-    printf("", s_block->solution);
-
-
-    printf("callocs\n");
-    exit(EXIT_FAILURE);
 
     //BUCLE DE RONDAS DE MINADO
 
@@ -183,16 +179,15 @@ int main(int argc, char *argv[]){
         else
         {
             sigsuspend(&mask_sigusr1);
-        }
-        
+        }        
 
         //LANZAR TRABAJADORES
-        err = mr_workers_launch(workers,mine_struct,n_workers,s_block->target);
+        err = mr_workers_launch(workers, mine_struct, n_workers,s_block->target);
         if(err) break;
 
         //Esperar a sigsuspend(SIGUSR2)
         sigsuspend(&mask_sigusr2);
-
+        
         if(winner){
             // cargar_solucio
             mr_set_solution(s_block, proof_solution);
@@ -203,18 +198,24 @@ int main(int argc, char *argv[]){
             mr_workers_cancel(workers, n_workers);
 
             // semáforo que dice que ha terminado la votación
+
+            s_block->is_valid = 1;
+            s_net_data->last_winner = this_pid;
+            (s_block->wallets[this_index]) ++;
         }
 
         // else{
         //     res = comprobar_sol();
         //     votar(res) 
         //     si eres el último, up del terminado de votación
+        //          
+        //     Esperar a que se haya votado
         // }
 
-        //Esperar a que se haya votado
         
         //Añadir bloque correcto a la cadena de cada minero
         last_block = mr_add_block(s_block, last_block);
+
         if(last_block == NULL)
             err = 1;
 
@@ -223,10 +224,14 @@ int main(int argc, char *argv[]){
             last_winner = 1; //CAMBIAR SEGUN VOTOS !!!!!
         }
     }
-
-    print_blocks(last_block,0);
-
+    
+    print_blocks(last_block, 1);
     mr_free_blocks(last_block);
+
+
+    shm_unlink(SHM_NAME_BLOCK);
+    shm_unlink(SHM_NAME_NET);
+
 
     exit(EXIT_SUCCESS);
 }
