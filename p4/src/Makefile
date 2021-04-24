@@ -1,29 +1,29 @@
 ######################################################
 #
-# file: Makefile. SOPER, Práctica 3.
+# file: Makefile. SOPER, Práctica 4.
 #
 # autores: Pablo Cuesta Sierra y Álvaro Zamanillo Sáez
 #
 ######################################################
 
 CC=gcc
-HEADER=miner.h
+CFLAGS=-pedantic -Wall -g
+HEADERS=miner.h mr_miner.h
 LIB=-lpthread -lrt
-OBJ=miner.o
-ALL=mr_miner
+OBJ_MINER=miner.o mr_miner.o mr_functions.o
+MINER=mr_miner
 
+all : $(MINER)
 
-all : $(ALL)
-
-%.o: %.c $(HEADER)
+%.o: %.c $(HEADERS)
 	@echo "# -------------------------------"
 	@echo "# Compiling $<"
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(ALL) : % : %.o $(OBJ)
+$(MINER) : $(OBJ_MINER)
 	@echo "# -------------------------------"
 	@echo "# Linking $@" 
 	$(CC) $^ $(LIB) -o  $@
 
 clean:
-	$(RM) *.o $(ALL)
+	$(RM) *.o $(MINER)

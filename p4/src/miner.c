@@ -2,10 +2,6 @@
 #include <stdlib.h>
 #include "miner.h"
 
-#define PRIME 99997669
-#define BIG_X 435679812
-#define BIG_Y 100001819
-
 long int simple_hash(long int number) {
     long int result = (number * BIG_X + BIG_Y) % PRIME;
     return result;
@@ -25,6 +21,7 @@ void print_blocks(Block *plast_block, int num_wallets) {
     printf("A total of %d blocks were printed\n", i);
 }
 
+/*
 int main(int argc, char *argv[]) {
     long int i, target;
 
@@ -45,3 +42,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "\nSearch failed\n");
     exit(EXIT_FAILURE);
 }
+*/
+
+

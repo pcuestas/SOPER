@@ -135,7 +135,7 @@ int main(int argc, char *argv[]){
         perror("sem_open");
         exit(EXIT_FAILURE);
     }
-    sem_unlink(SEM_NAME);
+    sem_unlink(SEM_NAME);  
 
 
     /*Bloquear las señales antes de llamar a sigaction (para evitar perderlas antes de que se llame a sigsuspend)*/

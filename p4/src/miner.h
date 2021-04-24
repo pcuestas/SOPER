@@ -1,4 +1,8 @@
+#ifndef MINER_H
+#define MINER_H
+
 #include <unistd.h>
+#include <sys/types.h>
 
 #define OK 0
 #define MAX_WORKERS 10
@@ -6,7 +10,16 @@
 #define SHM_NAME_NET "/netdata"
 #define SHM_NAME_BLOCK "/block"
 
+#define PRIME 99997669
+#define BIG_X 435679812
+#define BIG_Y 100001819
+
 #define MAX_MINERS 200
+
+
+#define MR_SHM_FAILED -1
+#define MR_SHM_CREATED 1
+#define MR_SHM_EXISTS 0
 
 typedef struct _Block {
     int wallets[MAX_MINERS];
@@ -30,3 +43,8 @@ typedef struct _NetData {
 long int simple_hash(long int number);
 
 void print_blocks(Block * plast_block, int num_wallets);
+
+/*******************************************************/
+
+
+#endif
