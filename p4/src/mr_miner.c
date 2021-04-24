@@ -4,97 +4,14 @@
 int winner = 0;
 long int proof_solution;
 
-void *mine(void *d){
-    Mine_struct *data = (Mine_struct*)d;
-    long int i;
-    
-    for(i = data->begin ; i < data->end && !winner ; i++){
-        if(data->target == simple_hash(i)){
-            winner = 1;
-            proof_solution = i;
-            kill(getpid(),SIGUSR2);
-        }
-    }
+static volatile sig_atomic_t got_sigusr1 = 0;
+static volatile sig_atomic_t got_sigusr2 = 0;
 
-    return NULL;    
-}
-
-
-Mine_struct *mr_mine_struct_init(int n_workers){
-    Mine_struct *mine_struct = (Mine_struct *)calloc(n_workers, sizeof(Mine_struct));
-    int i;
-    long int interval = PRIME / n_workers;
-    
-    if(mine_struct == NULL)
-        return NULL;
-
-    mine_struct[0].begin = 0;
-
-    for(i = 1; i < n_workers; i++)
-    {
-        mine_struct[i-1].end = mine_struct[i].begin = i*interval;
-    }
-    mine_struct[n_workers - 1].end = PRIME;
-
-    return mine_struct;
-}
-
-int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,long int target){
-    int i,j,err=0;
-    for (i = 0; i < nWorkers && !err; i++){
-        mine_struct[i].target = target;
-        err = pthread_create(&workers[i], NULL, mine, (void *)&(mine_struct[i]));
-    }
-
-    if(err){
-        for(j = 0 ;j < i; j++){
-            pthread_cancel(workers[j]);
-        }
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
-
-void mr_workers_cancel(pthread_t *workers, int n_workers){
-    int j;
-    for (j = 0; j < n_workers; j++){
-        pthread_cancel(workers[j]);
-    }
-    
-}
-
-Block* mr_add_block(Block *b, Block *last_block){
-    Block *new_block=NULL;
-
-    if(!(new_block=(Block*)calloc(1,sizeof(Block)))){
-        return NULL;
-    }
-
-    memcpy(new_block, b, sizeof(Block));
-    if(last_block != NULL)
-        last_block->next = new_block;
-    new_block->prev = last_block;
-
-    return new_block;
-}
-
-void mr_set_solution(Block *b, long int solution){
-    b->solution = solution;
-}
-
-void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigusr2, sigset_t *old_mask)
-{
-    sigemptyset(mask);
-    sigaddset(mask, SIGUSR1);
-    sigaddset(mask, SIGUSR2);
-    sigprocmask(SIG_BLOCK, mask, old_mask);
-
-    (*mask_sigusr1) = (*mask);
-    sigdelset(mask_sigusr1, SIGUSR1);
-
-    (*mask_sigusr2) = (*mask);
-    sigdelset(mask_sigusr2, SIGUSR2);
+void handler(int sig){
+    if(sig == SIGUSR1)
+        got_sigusr1 = 1;
+    else if(sig == SIGUSR2)
+        got_sigusr2 = 1;
 }
 
 /*
@@ -102,8 +19,6 @@ void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigu
     workers
     mine_struct
  */
-
-
 
 int main(int argc, char *argv[]){
     int n_workers, n_rounds, err = 0, last_winner, this_index;
@@ -129,7 +44,7 @@ int main(int argc, char *argv[]){
     n_workers = atoi(argv[1]);
     n_rounds = atoi(argv[2]);
 
-    if(mr_set_miner_handlers(mask) == EXIT_FAILURE)
+    if(mr_miner_set_handlers(mask) == EXIT_FAILURE)
     {
         exit(EXIT_FAILURE);
     }
@@ -156,7 +71,7 @@ int main(int argc, char *argv[]){
     
     //Registrar minero en la red
     while(sem_wait(mutex) == -1);
-    if (mr_init_shm(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
+    if (mr_shm_init(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
     {
         free(mine_struct);
         free(workers);
@@ -171,9 +86,9 @@ int main(int argc, char *argv[]){
 
         if(last_winner){
             //Preparar bloque y contar numero de mineros
-            mr_set_block_new_round(s_block, s_net_data);
+            mr_shm_set_new_round(s_block, s_net_data);
             while(sem_wait(mutex) == -1);
-            mr_quorum_update(s_net_data);
+            mr_shm_quorum(s_net_data);
             sem_post(mutex);
         }
         else
@@ -190,7 +105,7 @@ int main(int argc, char *argv[]){
         
         if(winner){
             // cargar_solucio
-            mr_set_solution(s_block, proof_solution);
+            mr_shm_set_solution(s_block, proof_solution);
 
             // avisar_mineros(); (mandar sigUsr2)
 
@@ -214,7 +129,7 @@ int main(int argc, char *argv[]){
 
         
         //Añadir bloque correcto a la cadena de cada minero
-        last_block = mr_add_block(s_block, last_block);
+        last_block = mr_shm_block_copy(s_block, last_block);
 
         if(last_block == NULL)
             err = 1;
@@ -226,7 +141,7 @@ int main(int argc, char *argv[]){
     }
     
     print_blocks(last_block, 1);
-    mr_free_blocks(last_block);
+    mr_blocks_free(last_block);
 
 
     shm_unlink(SHM_NAME_BLOCK);

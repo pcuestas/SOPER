@@ -5,13 +5,6 @@
 #define MSG_SIZE (sizeof(Block))
 
 
-void handler(int sig){
-    if(sig == SIGUSR1)
-        got_sigusr1 = 1;
-    else if(sig == SIGUSR2)
-        got_sigusr2 = 1;
-}
-
 /**
  * @brief abre la cola con nombre queue_name con 
  * las banderas __oflag
@@ -39,18 +32,18 @@ mqd_t mr_mq_open(char *queue_name, int __oflag)
 }
 
 
-int mr_shm_map(char* file, void **p, size_t size)
+int mr_shm_map(char* file_name, void **p, size_t size)
 {
     int ret_flag = MR_SHM_CREATED;
 
     /*creación del segmento de memoria compartida*/
-    int fd = shm_open(file, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    int fd = shm_open(file_name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
     if (fd == -1)
     {
         if (errno == EEXIST)
         {
             ret_flag = MR_SHM_EXISTS;
-            fd = shm_open(file, O_RDWR, 0);
+            fd = shm_open(file_name, O_RDWR, 0);
         }
         if (fd == -1)
         {
@@ -78,7 +71,7 @@ int mr_shm_map(char* file, void **p, size_t size)
 }
 
 
-int mr_init_shm(Block **b, NetData **d, int *this_index)
+int mr_shm_init(Block **b, NetData **d, int *this_index)
 {
     int created, i;
     pid_t this_pid = getpid();
@@ -127,7 +120,7 @@ int mr_init_shm(Block **b, NetData **d, int *this_index)
     return EXIT_SUCCESS;
 }
 
-void mr_set_block_new_round(Block *b, NetData *d){
+void mr_shm_set_new_round(Block *b, NetData *d){
     int i;
     
     b->target = b->solution;
@@ -142,7 +135,7 @@ void mr_set_block_new_round(Block *b, NetData *d){
 }
 
 
-void mr_quorum_update(NetData * net){
+void mr_shm_quorum(NetData * net){
     int n = 1, i;
     pid_t this_pid = getpid();
 
@@ -154,7 +147,7 @@ void mr_quorum_update(NetData * net){
     net->total_miners = n;
 }
 
-int mr_set_miner_handlers(sigset_t mask)
+int mr_miner_set_handlers(sigset_t mask)
 {
     struct sigaction act;
 
@@ -174,7 +167,7 @@ int mr_set_miner_handlers(sigset_t mask)
     return EXIT_SUCCESS;
 }
 
-void mr_free_blocks(Block *last_block)
+void mr_blocks_free(Block *last_block)
 {
     Block *prev;
 
@@ -184,4 +177,38 @@ void mr_free_blocks(Block *last_block)
         free(last_block);
         last_block = prev;
     }
+}
+
+
+Block* mr_shm_block_copy(Block *shm_b, Block *last_block){
+    Block *new_block=NULL;
+
+    if(!(new_block=(Block*)calloc(1,sizeof(Block)))){
+        return NULL;
+    }
+
+    memcpy(new_block, shm_b, sizeof(Block));
+    if(last_block != NULL)
+        last_block->next = new_block;
+    new_block->prev = last_block;
+
+    return new_block;
+}
+
+void mr_shm_set_solution(Block *b, long int solution){
+    b->solution = solution;
+}
+
+void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigusr2, sigset_t *old_mask)
+{
+    sigemptyset(mask);
+    sigaddset(mask, SIGUSR1);
+    sigaddset(mask, SIGUSR2);
+    sigprocmask(SIG_BLOCK, mask, old_mask);
+
+    (*mask_sigusr1) = (*mask);
+    sigdelset(mask_sigusr1, SIGUSR1);
+
+    (*mask_sigusr2) = (*mask);
+    sigdelset(mask_sigusr2, SIGUSR2);
 }

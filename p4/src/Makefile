@@ -10,7 +10,7 @@ CC=gcc
 CFLAGS=-pedantic -Wall -g
 HEADERS=miner.h mr_miner.h
 LIB=-lpthread -lrt
-OBJ_MINER=miner.o mr_miner.o mr_miner_func.o
+OBJ_MINER=miner.o mr_miner.o mr_miner_func.o mr_miner_workers.c
 MINER=mr_miner
 
 all : $(MINER)

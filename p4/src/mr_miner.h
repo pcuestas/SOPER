@@ -17,15 +17,11 @@
 #include <errno.h>
 #include <signal.h>
 
-
 #define SEM_MUTEX_NAME "/mr_mutex"
 
 #define VOTE_YES 1
 #define VOTE_NO 0
 #define VOTE_NOT_VOTED 2
-
-static volatile sig_atomic_t got_sigusr1 = 0;
-static volatile sig_atomic_t got_sigusr2 = 0;
 
 typedef struct Mine_struct{
     long int target;
@@ -33,29 +29,33 @@ typedef struct Mine_struct{
     long int end;
 }Mine_struct;
 
+
+/*workers*/
+Mine_struct *mr_mine_struct_init(int n_workers);
 void *mine(void *d);
+void mr_workers_cancel(pthread_t *workers, int n_workers);
+int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,long int target);
+
 
 void handler(int sig);
 
-Mine_struct *mr_mine_struct_init(int n_workers);
+Block *mr_shm_block_copy(Block *shm_b, Block *last_block);
 
-int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,long int target);
+void mr_shm_set_new_round(Block *b, NetData *d);
 
-void mr_workers_cancel(pthread_t *workers, int n_workers);
+void mr_shm_set_solution(Block *b, long int solution);
 
-Block *mr_add_block(Block *b, Block *last_block);
+int mr_shm_init(Block **b, NetData **d, int *this_index);
 
-void mr_set_block_new_round(Block *b, NetData *d);
+int mr_shm_map(char* file_name, void **p, size_t size);
 
-int mr_init_shm(Block **b, NetData **d, int *this_index);
+void mr_shm_quorum(NetData *net);
 
-int mr_shm_map(char* file, void **p, size_t size);
+void mr_blocks_free(Block* last_block);
 
-int mr_set_miner_handlers(sigset_t mask);
+int mr_miner_set_handlers(sigset_t mask);
 
-void mr_free_blocks(Block* last_block);
-
-void mr_quorum_update(NetData * net);
+void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigusr2, sigset_t *old_mask);
 
 
 #endif
