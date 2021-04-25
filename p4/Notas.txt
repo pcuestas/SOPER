@@ -39,3 +39,31 @@ hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
 
 
 WAIT DEL HIJO DE MONITOR
+__________________________________________________________________
+
+1. todos tienen que matar a sus trabajadores al recibir SIGUSR2?
+
+
+__________________________________________________________________
+
+Idea para evitar que dos se declaren mineros se declaren winners.
+
+- mine(){
+    ......
+    if()==
+        proof_solution=i;
+}
+
+
+
+minero(){
+    if(proof_solution>=0){
+        down(mutex)
+            winner=(s_net->winner>0)? 0:1 //Por si dos se declaran winners
+        up(mutex)
+    }
+}
+
+al hacer set up de la nueva ronda cambiar este campo
+
+__________________________________________________________________
