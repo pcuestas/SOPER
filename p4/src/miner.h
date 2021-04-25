@@ -17,17 +17,6 @@
 #define MAX_MINERS 200
 
 
-
-/*nuestras macros*/
-#define SEM_MUTEX_NAME "/mr_mutex"
-#define MQ_MONITOR "/mr_mq_monitor"
-
-#define MR_SHM_FAILED -1
-#define MR_SHM_CREATED 1
-#define MR_SHM_EXISTS 0
-
-
-
 typedef struct _Block {
     int wallets[MAX_MINERS];
     long int target;
@@ -50,8 +39,5 @@ typedef struct _NetData {
 long int simple_hash(long int number);
 
 void print_blocks(Block * plast_block, int num_wallets);
-
-/*******************************************************/
-
 
 #endif

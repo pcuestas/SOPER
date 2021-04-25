@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    queue = mr_monitor_mq_open(MQ_MONITOR, O_CREAT | O_WRONLY);
+    queue = mr_monitor_mq_open(MQ_MONITOR_NAME, O_CREAT | O_WRONLY);
     if (queue == (mqd_t)-1)
     {
         free(workers);
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
         else
         {   
             //Esperar a que empiece la ronda. RECIBIR SIGSUSPEND 1
-            sigsuspend(&mask_sigusr1);
+            sigsuspend(&mask_sigusr1);// prefiero semáforo
         }
 
         //LANZAR TRABAJADORES
@@ -180,17 +180,23 @@ int main(int argc, char *argv[])
             mr_workers_cancel(workers, n_workers);
 
             // semáforo que dice que ha terminado la votación
-            //sem_down(voting_down);
+            //sem_down(votación);
 
             //Esto con mutex
-            s_block->is_valid = 1;
-            s_net_data->last_winner = this_pid;
-            (s_block->wallets[this_index])++;
+            // if (votación_favorable()){
+                s_block->is_valid = 1;
+                s_net_data->last_winner = this_pid;
+                (s_block->wallets[this_index])++;
+            //}
+            //else{me voy}
+            //up(votación_terminada, num_mineros)
         }
 
         // else{ PERDEDOR
         //     mr_vote(s_net_data,s_block,this_index);
-        //     sigsuspend(&mask_sigusr2); //esperar a que termine votacion
+        //      si soy último en votar--> up(votación)
+
+        //   !!sigsuspend(&mask_sigusr2); //esperar a que termine votacion (por qué no semáforo ???? )
         //
         //     
         // }
@@ -224,7 +230,7 @@ int main(int argc, char *argv[])
     shm_unlink(SHM_NAME_BLOCK); //MIRAR!!!!!!!!!
     shm_unlink(SHM_NAME_NET);
     sem_unlink(SEM_MUTEX_NAME);
-    mq_unlink(MQ_MONITOR);
+    mq_unlink(MQ_MONITOR_NAME);
 
     exit(EXIT_SUCCESS);
 }

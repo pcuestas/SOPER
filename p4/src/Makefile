@@ -8,15 +8,16 @@
 
 CC=gcc
 CFLAGS=-pedantic -Wall -g
-HEADERS=miner.h mr_miner.h mr_monitor.h
+HEADERS=miner.h mr_miner.h mr_monitor.h mr_util.h
 LIB=-lpthread -lrt
 
 MINER=mr_miner
 MONITOR=mr_monitor
 ALL=$(MINER) $(MONITOR)
 
-OBJ_MINER=miner.o mr_miner_func.o mr_miner_workers.o
-OBJ_MONITOR=miner.o mr_miner_func.o
+OBJ_COMMON=miner.o mr_util.o
+OBJ_MINER=$(OBJ_COMMON) mr_miner_func.o mr_miner_workers.o
+OBJ_MONITOR=$(OBJ_COMMON) mr_monitor_func.o
 
 all : $(ALL)
 

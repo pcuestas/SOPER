@@ -1,17 +1,41 @@
-Block number: 3; Target: 22464472;    Solution: 75503498
+Block number: 9; Target: 76328827;    Solution: 49867189
+0: 10;         
+
+
+Block number: 8; Target: 88007245;    Solution: 76328827
+0: 9;         
+
+
+Block number: 7; Target: 51938037;    Solution: 88007245
+0: 8;         
+
+
+Block number: 6; Target: 75043290;    Solution: 51938037
+0: 7;         
+
+
+Block number: 5; Target: 13702096;    Solution: 75043290
+0: 6;         
+
+
+Block number: 4; Target: 66859569;    Solution: 13702096
+0: 5;         
+
+
+Block number: 3; Target: 73636832;    Solution: 66859569
 0: 4;         
 
 
-Block number: 2; Target: 85317364;    Solution: 22464472
+Block number: 2; Target: 72781393;    Solution: 73636832
 0: 3;         
 
 
-Block number: 1; Target: 85303263;    Solution: 85317364
+Block number: 1; Target: 82302403;    Solution: 72781393
 0: 2;         
 
 
-Block number: 0; Target: 21066935;    Solution: 85303263
+Block number: 0; Target: 23894989;    Solution: 82302403
 0: 1;         
 
 
-A total of 4 blocks were printed
+A total of 10 blocks were printed

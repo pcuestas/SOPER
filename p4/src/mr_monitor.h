@@ -30,8 +30,6 @@ void handler_sigint(int sig);
 
 void handler_sigalrm(int sig);
 
-void print_blocks_file(Block *plast_block, int num_wallets, int fd);
-
 
 /**
  * @brief hijo
@@ -39,6 +37,10 @@ void print_blocks_file(Block *plast_block, int num_wallets, int fd);
  * @param fd 
  */
 void mr_monitor_printer(int fd[2]);
+
+int mr_shm_init_monitor(NetData **d);
+
+void print_blocks_file(Block *plast_block, int num_wallets, int fd);
 
 /**
  * @brief 
@@ -50,6 +52,21 @@ void mr_monitor_printer(int fd[2]);
 int mr_mq_receive(Block *block, mqd_t queue);
 
 /**
+ * @brief Comprueba si el bloque b está ya en blocks. 
+ * Si está, comprueba que la target y la solución coincida, y 
+ * devuelve 1. Si no está, lo añade y devuelve 0. En caso de error, 
+ * *err se pone a 1 y se devuelve 1;
+ * 
+ * @param b 
+ * @param blocks 
+ * @param err puntero cuyo valor se establece a 1 en caso de error
+ * @return int 0 si b no está en blocks y se añade con éxito.
+ * 1 en caso contrario (o error). 
+ * En caso de error, *err se pone a 1. 
+ */
+int mr_monitor_block_is_repeated(Block *b, Monitor_blocks *blocks, int *err);
+
+/**
  * @brief 
  * 
  * @param block 
@@ -58,10 +75,6 @@ int mr_mq_receive(Block *block, mqd_t queue);
  */
 int mr_fd_read_block(Block *block, int fd[2]);
 
-int block_is_repeated(Block *b, Monitor_blocks *blocks, int *err);
-
 int mr_fd_write_block(Block *block, int fd[2]);
-
-int mr_shm_init_monitor(NetData **d);
 
 #endif
