@@ -14,7 +14,7 @@
 
 int  main(void) {
     int file1 , file2 , file3 , file4, file5;
-    size_t  target_size;
+    size_At  target_size;
     ssize_t  size_written , total_size_written;
     char file_path[512];
     

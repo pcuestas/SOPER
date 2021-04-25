@@ -17,8 +17,6 @@
 #include <errno.h>
 #include <signal.h>
 
-#define SEM_MUTEX_NAME "/mr_mutex"
-
 #define VOTE_YES 1
 #define VOTE_NO 0
 #define VOTE_NOT_VOTED 2
@@ -45,7 +43,7 @@ void mr_shm_set_new_round(Block *b, NetData *d);
 
 void mr_shm_set_solution(Block *b, long int solution);
 
-int mr_shm_init(Block **b, NetData **d, int *this_index);
+int mr_shm_init_miner(Block **b, NetData **d, int *this_index);
 
 int mr_shm_map(char* file_name, void **p, size_t size);
 
@@ -57,5 +55,7 @@ int mr_miner_set_handlers(sigset_t mask);
 
 void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigusr2, sigset_t *old_mask);
 
+
+mqd_t mr_monitor_mq_open(char *queue_name, int __oflag);
 
 #endif

@@ -35,3 +35,7 @@ como se modifican las wallets?
 
 hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
 
+
+
+
+WAIT DEL HIJO DE MONITOR

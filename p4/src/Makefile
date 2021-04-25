@@ -8,22 +8,32 @@
 
 CC=gcc
 CFLAGS=-pedantic -Wall -g
-HEADERS=miner.h mr_miner.h
+HEADERS=miner.h mr_miner.h mr_monitor.h
 LIB=-lpthread -lrt
-OBJ_MINER=miner.o mr_miner.o mr_miner_func.o mr_miner_workers.c
-MINER=mr_miner
 
-all : $(MINER)
+MINER=mr_miner
+MONITOR=mr_monitor
+ALL=$(MINER) $(MONITOR)
+
+OBJ_MINER=miner.o mr_miner_func.o mr_miner_workers.o
+OBJ_MONITOR=miner.o mr_miner_func.o
+
+all : $(ALL)
 
 %.o: %.c $(HEADERS)
 	@echo "# -------------------------------"
 	@echo "# Compiling $<"
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(MINER) : $(OBJ_MINER)
+$(MINER): % : %.o $(OBJ_MINER)
+	@echo "# -------------------------------"
+	@echo "# Linking $@" 
+	$(CC) $^ $(LIB) -o  $@
+
+$(MONITOR): % : %.o $(OBJ_MONITOR)
 	@echo "# -------------------------------"
 	@echo "# Linking $@" 
 	$(CC) $^ $(LIB) -o  $@
 
 clean:
-	$(RM) *.o $(MINER)
+	$(RM) *.o $(ALL)

@@ -7,12 +7,33 @@ long int proof_solution;
 static volatile sig_atomic_t got_sigusr1 = 0;
 static volatile sig_atomic_t got_sigusr2 = 0;
 
-void handler(int sig){
+void handler_miner(int sig){
     if(sig == SIGUSR1)
         got_sigusr1 = 1;
     else if(sig == SIGUSR2)
         got_sigusr2 = 1;
 }
+
+int mr_miner_set_handlers(sigset_t mask)
+{
+    struct sigaction act;
+
+    act.sa_mask = mask;
+    act.sa_flags = 0;
+    act.sa_handler = handler_miner;
+
+    if (sigaction(SIGUSR1, &act, NULL) < 0){
+        perror("sigaction SIGUSR1");
+        return (EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGUSR2, &act, NULL) < 0){
+        perror("sigaction SIGUSR2");
+        return (EXIT_FAILURE);
+    }
+    return EXIT_SUCCESS;
+}
+
 
 /*
  Liberar:
@@ -29,8 +50,7 @@ int main(int argc, char *argv[]){
     Mine_struct *mine_struct = NULL;
     sem_t *mutex;
     sigset_t mask_sigusr1, mask_sigusr2, mask, old_mask;
-
-
+    mqd_t queue;
 
     /*inicializar las máscaras y hacer sigprocmask*/
     mr_masks_set_up(&mask, &mask_sigusr1, &mask_sigusr2, &old_mask);
@@ -68,10 +88,18 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
+    queue = mr_monitor_mq_open(MQ_MONITOR, O_CREAT | O_WRONLY);
+    if(queue == (mqd_t)-1)
+    {
+        free(workers);
+        free(mine_struct);
+        sem_close(mutex);
+        exit(EXIT_FAILURE);
+    }
     
     //Registrar minero en la red
     while(sem_wait(mutex) == -1);
-    if (mr_shm_init(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
+    if (mr_shm_init_miner(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
     {
         free(mine_struct);
         free(workers);
@@ -138,15 +166,25 @@ int main(int argc, char *argv[]){
             winner = 0;
             last_winner = 1; //CAMBIAR SEGUN VOTOS !!!!!
         }
+        
+        if(s_net_data->monitor_pid > 0 && (mq_send(queue, (char*)last_block, sizeof(Block), 1 + winner) == -1))
+        {
+            perror("mq_send");
+            err = 1;
+        }
     }
     
     print_blocks(last_block, 1);
     mr_blocks_free(last_block);
 
+    mq_close(queue);
+    munmap(s_net_data, sizeof(NetData));
+    munmap(s_block, sizeof(Block));
 
-    shm_unlink(SHM_NAME_BLOCK);
+    shm_unlink(SHM_NAME_BLOCK); //MIRAR!!!!!!!!!
     shm_unlink(SHM_NAME_NET);
-
+    sem_unlink(SEM_MUTEX_NAME);
+    mq_unlink(MQ_MONITOR);
 
     exit(EXIT_SUCCESS);
 }

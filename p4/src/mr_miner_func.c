@@ -1,9 +1,6 @@
 #include "miner.h"
 #include "mr_miner.h"
 
-//////////    MIRAR ESTO!
-#define MSG_SIZE (sizeof(Block))
-
 
 /**
  * @brief abre la cola con nombre queue_name con 
@@ -13,13 +10,13 @@
  * @param __oflag igual que __oflag en mq_open
  * @return la cola abierta, o (mdq_t)-1 en caso de error
  */
-mqd_t mr_mq_open(char *queue_name, int __oflag)
+mqd_t mr_monitor_mq_open(char *queue_name, int __oflag)
 {
     struct mq_attr attributes = {
         .mq_flags = 0,
         .mq_maxmsg = 10,
         .mq_curmsgs = 0,
-        .mq_msgsize = MSG_SIZE
+        .mq_msgsize = sizeof(Block)
     };
 
     mqd_t queue = mq_open(queue_name, __oflag,
@@ -30,7 +27,6 @@ mqd_t mr_mq_open(char *queue_name, int __oflag)
 
     return queue;
 }
-
 
 int mr_shm_map(char* file_name, void **p, size_t size)
 {
@@ -71,7 +67,7 @@ int mr_shm_map(char* file_name, void **p, size_t size)
 }
 
 
-int mr_shm_init(Block **b, NetData **d, int *this_index)
+int mr_shm_init_miner(Block **b, NetData **d, int *this_index)
 {
     int created, i;
     pid_t this_pid = getpid();
@@ -96,17 +92,18 @@ int mr_shm_init(Block **b, NetData **d, int *this_index)
     {
         munmap(*b, sizeof(**b));
         return EXIT_FAILURE;
-    }
-    else if(created == MR_SHM_CREATED)
+    }// if just created or the creator was the monitor:
+    if(created == MR_SHM_CREATED || ((*d)->last_miner == -1))
     {   
         for(i = 0; i < MAX_MINERS; i++)
         {
             (*d)->miners_pid[i] = -2;
             (*d)->voting_pool[i] = VOTE_NOT_VOTED;
         }
+        if(created == MR_SHM_CREATED)
+            (*d)->monitor_pid = -2;
         (*d)->miners_pid[0] = this_pid;
         (*d)->last_miner = 0;
-        (*d)->total_miners = 1;
         (*d)->last_winner = this_pid;
     }
     else
@@ -135,7 +132,7 @@ void mr_shm_set_new_round(Block *b, NetData *d){
 }
 
 
-void mr_shm_quorum(NetData * net){
+void mr_shm_quorum(NetData *net){
     int n = 1, i;
     pid_t this_pid = getpid();
 
@@ -145,26 +142,6 @@ void mr_shm_quorum(NetData * net){
     }
     
     net->total_miners = n;
-}
-
-int mr_miner_set_handlers(sigset_t mask)
-{
-    struct sigaction act;
-
-    act.sa_mask = mask;
-    act.sa_flags = 0;
-    act.sa_handler = handler;
-
-    if (sigaction(SIGUSR1, &act, NULL) < 0){
-        perror("sigaction SIGUSR1");
-        return (EXIT_FAILURE);
-    }
-
-    if (sigaction(SIGUSR2, &act, NULL) < 0){
-        perror("sigaction SIGUSR2");
-        return (EXIT_FAILURE);
-    }
-    return EXIT_SUCCESS;
 }
 
 void mr_blocks_free(Block *last_block)
