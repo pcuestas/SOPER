@@ -54,8 +54,6 @@ void mr_monitor_printer(int fd[2])
 
     if (alarm(PRINTER_WAIT))
     {
-        close(fd[0]);
-        close(file);
         fprintf(stderr, "Existe una alarma previa establecida\n");
         err = 1;
     }
