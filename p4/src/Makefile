@@ -37,4 +37,4 @@ $(MONITOR): % : %.o $(OBJ_MONITOR)
 	$(CC) $^ $(LIB) -o  $@
 
 clean:
-	$(RM) *.o $(ALL)
+	$(RM) *.o $(ALL) *.log

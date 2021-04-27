@@ -40,8 +40,6 @@ void mr_monitor_printer(int fd[2]);
 
 int mr_shm_init_monitor(NetData **d);
 
-void print_blocks_file(Block *plast_block, int num_wallets, int fd);
-
 /**
  * @brief 
  * 

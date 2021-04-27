@@ -50,4 +50,17 @@ int mr_miner_set_handlers(sigset_t mask);
 
 void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigusr2, sigset_t *old_mask);
 
+
+int mr_check_votes(NetData *net);
+
+void mr_vote(NetData *net, Block *b, int index);
+
+void mr_send_end_scrutinizing(NetData *net, int n);
+
+void mr_lightswitchoff(sem_t *mutex, int *count, sem_t *sem);
+
+void mr_notice_miners(NetData *net);
+
+void mr_print_chain_file(Block *last_block, int n_wallets);
+
 #endif

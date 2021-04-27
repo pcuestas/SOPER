@@ -38,9 +38,12 @@ int mr_shm_map(char* file_name, void **p, size_t size);
 
 mqd_t mr_monitor_mq_open(char *queue_name, int __oflag);
 
-
 void mr_blocks_free(Block *last_block);
 
 Block* mr_shm_block_copy(Block *shm_b, Block *last_block);
+
+void print_blocks_file(Block *plast_block, int num_wallets, int fd);
+
+int mr_timed_wait(sem_t *sem, int seconds, int *err, int *time_out);
 
 #endif

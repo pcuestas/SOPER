@@ -21,24 +21,6 @@ int mr_shm_init_monitor(NetData **d)
     return EXIT_SUCCESS;
 }
 
-void print_blocks_file(Block *plast_block, int num_wallets, int fd)
-{
-    Block *block = NULL;
-    int i, j;
-
-    lseek(fd, 0, SEEK_SET); // error ? -1
-
-    for (i = 0, block = plast_block; block != NULL; block = block->prev, i++)
-    {
-        dprintf(fd, "Block number: %d; Target: %ld;    Solution: %ld\n", block->id, block->target, block->solution);
-        for (j = 0; j < num_wallets; j++)
-        {
-            dprintf(fd, "%d: %d;         ", j, block->wallets[j]);
-        }
-        dprintf(fd, "\n\n\n");
-    }
-    dprintf(fd, "A total of %d blocks were printed\n", i);
-}
 
 /**
  * @brief 

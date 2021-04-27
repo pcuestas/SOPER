@@ -1,8 +1,11 @@
+
+
 #ifndef MINER_H
 #define MINER_H
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <semaphore.h>
 
 #define OK 0
 #define MAX_WORKERS 10
@@ -34,6 +37,12 @@ typedef struct _NetData {
     int total_miners;
     pid_t monitor_pid;
     pid_t last_winner;
+
+    int num_active_miners;
+    sem_t sem_round_begin;
+    sem_t sem_round_end;
+    sem_t sem_scrutinizing;
+    sem_t sem_votation_done;
 } NetData;
 
 long int simple_hash(long int number);

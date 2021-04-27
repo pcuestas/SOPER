@@ -96,3 +96,73 @@ Block* mr_shm_block_copy(Block *shm_b, Block *last_block){
 
     return new_block;
 }
+
+/**
+ * @brief realiza un sem_timedwait de seconds segundos 
+ * en el semáforo sem. Ignora las posibles interrupciones
+ * por señales y devuelve solo cuando hay error, se agota el 
+ * tiempo de espera, o se baja el semáforo con éxito. 
+ * En caso de algún error, imprime por stderr
+ * el mensaje de error correspondiente y devuelve EXIT_FAILURE.
+ * Si pasa el tiempo de espera sin poder aumentar el semáforo,
+ * se devuelve EXIT_SUCCESS y se cambia el valor de *time_out a 1.
+ * (en caso contrario, time_out termina con valor 0)
+ * *err cambia de valor a 1 en caso de error.
+ * 
+ * @param sem semáforo en el que se realiza la espera
+ * @param seconds segundos 
+ * @param err cambia de valor a 1 en caso de que se devuelva 
+ * EXIT_FAILURE
+ * @param time_out vale 1 en caso de que se pase 
+ * el tiempo de espera. 0 en caso contrario 
+ * @return EXIT_FAILURE en caso de que falle clock_gettime
+ * o sem_timedwait. EXIT_SUCCCESS en caso de éxito
+ */
+int mr_timed_wait(sem_t *sem, int seconds, int *err, int *time_out)
+{
+    struct timespec ts;
+    (*time_out) = 0;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
+    {
+        perror("clock_gettime");
+        (*err) = 1;
+        return EXIT_FAILURE;
+    }
+    ts.tv_sec += seconds;
+    while (sem_timedwait(sem, &ts) == -1)
+    {
+        if (errno == ETIMEDOUT)
+        {
+            fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Finaliza el minado\n");
+            (*time_out) = 1;
+            return EXIT_FAILURE;
+        }
+        else if (errno != EINTR)
+        {
+            perror("sem_timedwait");
+            (*err) = 1;
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+
+void print_blocks_file(Block *plast_block, int num_wallets, int fd)
+{
+    Block *block = NULL;
+    int i, j;
+
+    lseek(fd, 0, SEEK_SET); // error ? -1
+
+    for (i = 0, block = plast_block; block != NULL; block = block->prev, i++)
+    {
+        dprintf(fd, "Block number: %d; Target: %ld;    Solution: %ld\n", block->id, block->target, block->solution);
+        for (j = 0; j < num_wallets; j++)
+        {
+            dprintf(fd, "%d: %d;         ", j, block->wallets[j]);
+        }
+        dprintf(fd, "\n\n\n");
+    }
+    dprintf(fd, "A total of %d blocks were printed\n", i);
+}
