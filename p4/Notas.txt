@@ -46,24 +46,11 @@ __________________________________________________________________
 
 __________________________________________________________________
 
-Idea para evitar que dos se declaren mineros se declaren winners.
+Para el futuro: q pasa si te declaras gaandor pero no te da tiempo a hacer signal pq te han matado antes (el otro ganador) --> pthread_mutex_lock()??
 
-- mine(){
-    ......
-    if()==
-        proof_solution=i;
-}
-
-
-
-minero(){
-    if(proof_solution>=0){
-        down(mutex)
-            winner=(s_net->winner>0)? 0:1 //Por si dos se declaran winners
-        up(mutex)
-    }
-}
-
-al hacer set up de la nueva ronda cambiar este campo
-
+PROBLEMAS
 __________________________________________________________________
+
+1. net->total_miners ?!?!?!???! pq es 1 (mr_vote está cambiado para q funcione)
+
+2.

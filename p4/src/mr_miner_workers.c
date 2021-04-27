@@ -4,6 +4,7 @@
 extern int winner;
 extern long int proof_solution;
 
+
 void *mine(void *d){
     Mine_struct *data = (Mine_struct*)d;
     long int i;
@@ -60,5 +61,6 @@ void mr_workers_cancel(pthread_t *workers, int n_workers){
     int j;
     for (j = 0; j < n_workers; j++){
         pthread_cancel(workers[j]);
-    }    
+    }
+     
 }

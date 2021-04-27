@@ -118,6 +118,8 @@ void mr_shm_quorum(NetData *net){
         if((this_pid != pid) && (pid > 0))
             n += (!(kill(pid, SIGUSR1)));
     }
+
+    printf("Quorum %i \n",n);
     
     net->total_miners = n;
 }
@@ -147,6 +149,7 @@ int mr_check_votes(NetData *net){
     int i, count;
     char vote;
 
+    
     for(i = count = 0; i <= (net->last_miner) ; i++){
         vote = net->voting_pool[i];
         count += (vote == VOTE_YES) - (vote == VOTE_NO);
@@ -159,12 +162,15 @@ void mr_vote(NetData *net, Block *b, int index){
     int flag = (b->target == simple_hash(b->solution));
     
     net->voting_pool[index] = flag ? VOTE_YES : VOTE_NO;
-    
+    printf("Voto %i al bloque %i para la sol %ld al target %ld",flag,b->id,b->solution,b->target);
     (net->total_miners)--;
     
     //El ultimo minero avisa al ganador (el ganador no vota)
-    if(net->total_miners == 1) 
-        sem_post(&(net->sem_votation_done));
+    if(net->total_miners == 1){
+        printf("POST");
+        //sem_post(&(net->sem_votation_done));
+    }
+    sem_post(&(net->sem_votation_done));
 }
 
 void mr_send_end_scrutinizing(NetData *net, int n)
@@ -203,12 +209,15 @@ void mr_print_chain_file(Block *last_block, int n_wallets)
 
 void mr_notice_miners(NetData *net)
 {
-    int i;
+    int i,count=0;
     pid_t this_pid=getpid(), pid;
 
-    for(i=0;i<net->last_miner;i++){
+    for(i=0;i<=net->last_miner;i++){
         pid = net->miners_pid[i];
-        if ((this_pid != pid) && (pid > 0))
-            kill(net->miners_pid[i], SIGUSR2);
+        if ((this_pid != pid) && (pid > 0)){
+            count += !(kill(pid, SIGUSR2));
+        }
+          
     }
+    
 }
