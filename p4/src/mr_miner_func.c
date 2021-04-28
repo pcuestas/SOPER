@@ -81,6 +81,18 @@ int mr_shm_init_miner(Block **b, NetData **d, int *this_index)
             munmap(*d, sizeof(**d));
             return EXIT_FAILURE;
         }
+
+        if (sem_init(&((*d)->sem_start_voting), 1, 0) != 0)
+        {
+            perror("sem_init");
+            munmap(*b, sizeof(**b));
+            sem_destroy(&((*d)->sem_votation_done));
+            sem_destroy(&((*d)->sem_round_begin));
+            sem_destroy(&((*d)->sem_round_end));
+            sem_destroy(&((*d)->sem_scrutinizing));
+            munmap(*d, sizeof(**d));
+            return EXIT_FAILURE;
+        }
     }
     else
     {   

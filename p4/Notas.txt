@@ -53,3 +53,5 @@ __________________________________________________________________
 1. net->total_miners ?!?!?!???! pq es 1 (mr_vote está cambiado para q funcione)
 
 2. Pthread_detach cuando se crean los hilos
+
+3. Si es tu utilma ronda, elegir a un minero para que sea last->winner

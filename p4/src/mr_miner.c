@@ -2,7 +2,6 @@
 #include "mr_miner.h"
 #include "mr_util.h"
 
-#define SEM_MUTEX_NAME2 "/sem2"
 
 int winner = 0;
 long int proof_solution;
@@ -52,7 +51,7 @@ int main(int argc, char *argv[])
     Block *s_block, *last_block = NULL;
     NetData *s_net_data;
     Mine_struct *mine_struct = NULL;
-    sem_t *mutex,*start_vote;
+    sem_t *mutex;
     sigset_t mask_sigusr1, mask_sigusr2, mask, old_mask;
     mqd_t queue;
 
@@ -92,13 +91,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if ((start_vote = sem_open(SEM_MUTEX_NAME2, O_CREAT, S_IRUSR | S_IWUSR, 0)) == SEM_FAILED)
-    {
-        perror("sem_open");
-        free(workers);
-        free(mine_struct);
-        exit(EXIT_FAILURE);
-    }
 
     queue = mr_monitor_mq_open(MQ_MONITOR_NAME, O_CREAT | O_WRONLY);
     if (queue == (mqd_t)-1)
@@ -185,7 +177,7 @@ int main(int argc, char *argv[])
 
                 mr_notice_miners(s_net_data);//sigusr2
                 for(i=0;i<n_voters;i++){
-                    sem_post(start_vote);
+                    sem_post(&(s_net_data->sem_start_voting));
                 }
                 printf("Nvoters es %i\n", n_voters);
                 sem_post(mutex);
@@ -197,9 +189,11 @@ int main(int argc, char *argv[])
 
                     if(mr_check_votes(s_net_data))
                     {
+                        while (sem_wait(mutex) == -1);
                         s_block->is_valid = 1;
                         s_net_data->last_winner = this_pid;
                         (s_block->wallets[this_index])++;
+                        sem_post(mutex);
                     }
                     else
                     {
@@ -237,7 +231,7 @@ int main(int argc, char *argv[])
             sem_getvalue(&(s_net_data->sem_votation_done), &i);
             printf("Valor antes d votation sem es %i \n", i);
 
-            sem_wait(start_vote);
+            sem_wait(&(s_net_data->sem_start_voting));
             while(sem_wait(mutex) == -1);
             printf("Numero d mineros %i", s_net_data->total_miners);
             printf("Perdedor: %d va a votar bloque %i \n", this_pid, s_block->id);

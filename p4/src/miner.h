@@ -43,6 +43,7 @@ typedef struct _NetData {
     sem_t sem_round_end;
     sem_t sem_scrutinizing;
     sem_t sem_votation_done;
+    sem_t sem_start_voting;
 } NetData;
 
 long int simple_hash(long int number);
