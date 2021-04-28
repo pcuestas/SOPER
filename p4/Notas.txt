@@ -41,8 +41,7 @@ hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
 WAIT DEL HIJO DE MONITOR
 __________________________________________________________________
 
-1. todos tienen que matar a sus trabajadores al recibir SIGUSR2?
-
+1. todos tienen que matar a sus trabajadores al recibir SIGUSR2? [creo que sí - P] 
 
 __________________________________________________________________
 
@@ -53,4 +52,4 @@ __________________________________________________________________
 
 1. net->total_miners ?!?!?!???! pq es 1 (mr_vote está cambiado para q funcione)
 
-2.
+2. Pthread_detach cuando se crean los hilos
