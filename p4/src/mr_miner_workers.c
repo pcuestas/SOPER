@@ -30,10 +30,13 @@ Mine_struct *mr_mine_struct_init(int n_workers){
         return NULL;
 
     mine_struct[0].begin = 0;
+    mine_struct[0].end = PRIME;
 
     for(i = 1; i < n_workers; i++)
     {
-        mine_struct[i-1].end = mine_struct[i].begin = i*interval;
+        //mine_struct[i-1].end = mine_struct[i].begin = i*interval;
+        mine_struct[i].begin = rand()%PRIME;
+        mine_struct[i].end = PRIME;
     }
     mine_struct[n_workers - 1].end = PRIME;
 

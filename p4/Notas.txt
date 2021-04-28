@@ -55,3 +55,9 @@ __________________________________________________________________
 2. Pthread_detach cuando se crean los hilos
 
 3. Si es tu utilma ronda, elegir a un minero para que sea last->winner
+
+
+HACER
+_____________________________________________________________________
+
+1. Si a un minero le llega SIGINT debe finalizar (mejorar esperar a que acabe la ronda);

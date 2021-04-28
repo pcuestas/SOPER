@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
                 
                 while (sem_wait(mutex) == -1);
                 printf("Verdadero ganador: %d bloque %i con sol: %ld y target %ld \n", this_pid, s_block->id,s_block->solution,s_block->target);
-                //n_voters = (s_net_data->total_miners) - 1;
+                n_voters = (s_net_data->total_miners) - 1;
 
                 mr_notice_miners(s_net_data);//sigusr2
                 for(i=0;i<n_voters;i++){
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
                     }
 
                     while (sem_wait(mutex) == -1);
-                    //s_net_data->total_miners = n_voters + 1;
+                    s_net_data->total_miners = n_voters + 1;
                     sem_post(mutex);
 
                     sem_wait(&(s_net_data->sem_round_end));//
@@ -259,11 +259,14 @@ int main(int argc, char *argv[])
 
         if(!n_rounds) //Si es la ultima ronda, te das de baja
         {
+            while (sem_wait(mutex) == -1);
             s_net_data->miners_pid[this_index] = -2;
+            //miner_last_round()
+            sem_post(mutex);
         }
         
 
-        mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
+        //mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
 
         printf("pid: %d round: %d\n\n", this_pid, n_rounds);
     }
