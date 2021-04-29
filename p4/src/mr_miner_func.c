@@ -187,12 +187,12 @@ void mr_vote(sem_t *mutex, NetData *net, Block *b, int index){
 
 void mr_send_end_scrutinizing(sem_t* mutex, NetData *net, int n)
 {
-    while (sem_wait(mutex) == -1);
+    //while (sem_wait(mutex) == -1);
     
     while(n--) 
         sem_post(&(net->sem_scrutinizing));
 
-    sem_post(mutex);
+    //sem_post(mutex);
 }
 
 void mr_lightswitchoff(sem_t *mutex, int *count, sem_t *sem)
@@ -247,12 +247,14 @@ void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_d
     mr_shm_set_new_round(s_block, s_net_data);
     n_proc = s_net_data->total_miners - 1;
 
+    sem_post(mutex);
+
     //Avisar de que se inicia la ronda
     for (i = 0; i < n_proc; i++)
     {
         sem_post(&(s_net_data->sem_round_begin));
     }
-    sem_post(mutex);
+    //sem_post(mutex); arriba
 }
 
 void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index)
@@ -264,47 +266,47 @@ void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, i
     n_voters = (s_net_data->total_miners) - 1;
     s_net_data->num_voters = n_voters;
 
-    mr_notify_miners(s_net_data);//sigusr2
+    mr_notify_miners(s_net_data);//mandar sigusr2
+
+    sem_post(mutex);
+
     for (i = 0; i < n_voters; i++)
     {
         sem_post(&(s_net_data->sem_start_voting));
     }
 
-    sem_post(mutex);
+    //sem_post(mutex); arriba
 
-    if (n_voters)
+    if (!n_voters)
+        mr_winner_update_after_votation(mutex, s_block, s_net_data, this_index);
+    else
     {
         while (sem_wait(&(s_net_data->sem_votation_done)) == -1);
 
         if (mr_check_votes(s_net_data))
         {
-            while (sem_wait(mutex) == -1);
-            mr_winner_update_after_votation(s_block, s_net_data, this_index);
-            sem_post(mutex);
+            mr_winner_update_after_votation(mutex, s_block, s_net_data, this_index);
         }
         else
         {
-            printf("shame\n"); //Elegir nuveo fake_last winner y comenzar nueva ronda
+            printf("shame\n"); //Elegir nuevo fake_last winner y comenzar nueva ronda
         }
     }
 
     while (sem_wait(&(s_net_data->sem_round_end)) == -1); // para que no entren mineros en el bucle hasta que el último haya terminado 
+
     if (n_voters)
-    {
         mr_send_end_scrutinizing(mutex, s_net_data, n_voters);
-        // mutex??
-    }
-    else
-    {
-        mr_winner_update_after_votation(s_block, s_net_data, this_index);
-    }
+        // mutex??--no hace falta
 }
 
-void mr_winner_update_after_votation(Block* s_block, NetData* s_net_data, int this_index)
+void mr_winner_update_after_votation(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index)
 {
+    while (sem_wait(mutex) == -1);
     s_block->is_valid = 1;
     s_net_data->last_winner = getpid();
     (s_block->wallets[this_index])++;
+    sem_post(mutex);
 }
 
 void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data)

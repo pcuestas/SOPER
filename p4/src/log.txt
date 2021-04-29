@@ -1,93 +1,93 @@
-Block number: 22; Target: 78515142;    Solution: 28271790
-0: 23;         
+Block number: 24; Target: 45850628;    Solution: 93154229
+0: 12;         1: 4;         2: 9;         
 
 
-Block number: 21; Target: 251061;    Solution: 78515142
-0: 22;         
+Block number: 23; Target: 43038052;    Solution: 45850628
+0: 12;         1: 4;         2: 8;         
 
 
-Block number: 20; Target: 59042039;    Solution: 251061
-0: 21;         
+Block number: 22; Target: 95787268;    Solution: 43038052
+0: 12;         1: 4;         2: 7;         
 
 
-Block number: 19; Target: 78620258;    Solution: 59042039
-0: 20;         
+Block number: 21; Target: 23327893;    Solution: 95787268
+0: 12;         1: 4;         2: 6;         
 
 
-Block number: 18; Target: 86918302;    Solution: 78620258
-0: 19;         
+Block number: 20; Target: 53120925;    Solution: 23327893
+0: 12;         1: 4;         2: 5;         
 
 
-Block number: 17; Target: 11187956;    Solution: 86918302
-0: 18;         
+Block number: 19; Target: 9833321;    Solution: 53120925
+0: 12;         1: 4;         2: 4;         
 
 
-Block number: 16; Target: 90879553;    Solution: 11187956
-0: 17;         
+Block number: 18; Target: 11170285;    Solution: 9833321
+0: 12;         1: 4;         2: 3;         
 
 
-Block number: 15; Target: 32352631;    Solution: 90879553
-0: 16;         
+Block number: 17; Target: 13458011;    Solution: 11170285
+0: 12;         1: 4;         2: 2;         
 
 
-Block number: 14; Target: 62945799;    Solution: 32352631
-0: 15;         
+Block number: 16; Target: 81036275;    Solution: 13458011
+0: 12;         1: 4;         2: 1;         
 
 
-Block number: 13; Target: 47839699;    Solution: 62945799
-0: 14;         
+Block number: 15; Target: 56174970;    Solution: 81036275
+0: 12;         1: 3;         2: 1;         
 
 
-Block number: 12; Target: 23245277;    Solution: 47839699
-0: 13;         
+Block number: 14; Target: 77948138;    Solution: 56174970
+0: 12;         1: 2;         2: 1;         
 
 
-Block number: 11; Target: 90729283;    Solution: 23245277
-0: 12;         
+Block number: 13; Target: 45672033;    Solution: 77948138
+0: 12;         1: 2;         2: 0;         
 
 
-Block number: 10; Target: 872050;    Solution: 90729283
-0: 11;         
+Block number: 12; Target: 93213861;    Solution: 45672033
+0: 11;         1: 2;         2: 0;         
 
 
-Block number: 9; Target: 36539404;    Solution: 872050
-0: 10;         
+Block number: 11; Target: 10019253;    Solution: 93213861
+0: 10;         1: 2;         2: 0;         
 
 
-Block number: 8; Target: 57059325;    Solution: 36539404
-0: 9;         
+Block number: 10; Target: 18287866;    Solution: 10019253
+0: 10;         1: 1;         2: 0;         
 
 
-Block number: 7; Target: 79539624;    Solution: 57059325
-0: 8;         
+Block number: 9; Target: 51108749;    Solution: 18287866
+0: 9;         1: 1;         2: 0;         
 
 
-Block number: 6; Target: 29978460;    Solution: 79539624
-0: 7;         
+Block number: 8; Target: 12917390;    Solution: 51108749
+0: 8;         1: 1;         2: 0;         
 
 
-Block number: 5; Target: 76087672;    Solution: 29978460
-0: 6;         
+Block number: 7; Target: 34883362;    Solution: 12917390
+0: 8;         1: 0;         2: 0;         
 
 
-Block number: 4; Target: 73790657;    Solution: 76087672
-0: 5;         
+Block number: 6; Target: 71183042;    Solution: 34883362
+0: 7;         1: 0;         2: 0;         
 
 
-Block number: 3; Target: 82098493;    Solution: 73790657
-0: 4;         
+Block number: 5; Target: 86366386;    Solution: 71183042
+0: 6;         1: 0;         2: 0;         
 
 
-Block number: 2; Target: 82532373;    Solution: 82098493
-0: 3;         
+Block number: 4; Target: 46845331;    Solution: 86366386
+0: 5;         1: 0;         2: 0;         
 
 
-Block number: 1; Target: 45820065;    Solution: 82532373
-0: 2;         
+Block number: 3; Target: 61210639;    Solution: 46845331
+0: 4;         1: 0;         2: 0;         
 
 
-Block number: 0; Target: 50547936;    Solution: 45820065
-0: 1;         
+Block number: 2; Target: 43080921;    Solution: 61210639
+0: 3;         1: 0;         2: 0;         
 
 
 A total of 23 blocks were printed

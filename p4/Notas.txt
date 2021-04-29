@@ -54,3 +54,5 @@ se puede poner num_wallets en Block_struct
 hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
 
 - EL log tiene que imprimir toda la cadena enteera todas las veces, o solo la parte nueva
+
+- si llegan mineros tras la salida de otros mineros, se pueden enganchar al monitor que usaron los otros miners?? que el monitor tabién se tenga en cuenta a la hora de hacer unlink de las cosas de la memoria.

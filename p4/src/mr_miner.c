@@ -119,10 +119,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     sem_post(mutex);
-    printf("my index:%d\n", this_index);
 
     //BUCLE DE RONDAS DE MINADO
-
     while (n_rounds-- && !err && !got_sigint)
     { 
         if ((err = mr_timed_wait(&(s_net_data->sem_round_end), 3)))
@@ -130,9 +128,9 @@ int main(int argc, char *argv[])
         sem_post(&(s_net_data->sem_round_end));
         
         winner = 0;
-        while(sem_wait(mutex) == -1);
+        //while(sem_wait(mutex) == -1);
         last_winner = (this_pid == s_net_data->last_winner);
-        sem_post(mutex);
+        //sem_post(mutex);
 
         if (last_winner)
         {

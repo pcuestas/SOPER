@@ -69,7 +69,7 @@ void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_d
 
 void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
 
-void mr_winner_update_after_votation(Block* s_block, NetData* s_net_data, int this_index);
+void mr_winner_update_after_votation(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
 
 void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data);
 
