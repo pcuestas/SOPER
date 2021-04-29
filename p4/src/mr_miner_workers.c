@@ -13,7 +13,7 @@ void *mine(void *d){
         if(data->target == simple_hash(i)){
             winner = 1;
             proof_solution = i;
-            kill(getpid(),SIGUSR2);
+            kill(getpid(), SIGHUP);
         }
     }
 
@@ -30,7 +30,7 @@ Mine_struct *mr_mine_struct_init(int n_workers){
         return NULL;
 
     mine_struct[0].begin = 0;
-    mine_struct[0].end = PRIME;
+    mine_struct[0].end = PRIME;//sobra
 
     for(i = 1; i < n_workers; i++)
     {
@@ -43,11 +43,21 @@ Mine_struct *mr_mine_struct_init(int n_workers){
     return mine_struct;
 }
 
-int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,long int target){
-    int i,j,err=0;
-    for (i = 0; i < nWorkers && !err; i++){
+int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,long int target)
+{
+    int i, j, err = 0;
+    for (i = 0; i < nWorkers && !err; i++)
+    {
         mine_struct[i].target = target;
         err = pthread_create(&workers[i], NULL, mine, (void *)&(mine_struct[i]));
+        if(!err)
+        {
+            err = pthread_detach(workers[i]);
+            if(err)
+                fprintf(stderr, "pthread_detach:%d", err);
+        }
+        else
+            fprintf(stderr, "pthread_create:%d", err);
     }
 
     if(err){

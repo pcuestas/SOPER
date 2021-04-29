@@ -39,6 +39,7 @@ typedef struct _NetData {
     pid_t last_winner;
 
     int num_active_miners;
+    int num_voters;
     sem_t sem_round_begin;
     sem_t sem_round_end;
     sem_t sem_scrutinizing;

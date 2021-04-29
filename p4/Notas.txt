@@ -19,19 +19,10 @@ Minero 1 consigue solucion.
     Manda SigUsr2 para que el resto de mineros voten.
 
 
-Notas
-
-EL primer target se genera aleatoriamente.
 
 Preguntas
 
-antes de lanzar nuevo bloque, el anterior ganador cuenta numero de participantes?
-
-el ganador cuando ha de contar votos, se gana con mayoria simple?
-
-// la comprobación de una posible solucion no debe implicar que se maten todos los hilos trabajodores, solo "pausarlos" 
-
-como se modifican las wallets?
+se puede poner num_wallets en Block_struct
 
 hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
 
@@ -43,16 +34,9 @@ __________________________________________________________________
 
 1. todos tienen que matar a sus trabajadores al recibir SIGUSR2? [creo que sí - P] 
 
-__________________________________________________________________
-
-Para el futuro: q pasa si te declaras gaandor pero no te da tiempo a hacer signal pq te han matado antes (el otro ganador) --> pthread_mutex_lock()??
 
 PROBLEMAS
 __________________________________________________________________
-
-1. net->total_miners ?!?!?!???! pq es 1 (mr_vote está cambiado para q funcione)
-
-2. Pthread_detach cuando se crean los hilos
 
 3. Si es tu utilma ronda, elegir a un minero para que sea last->winner
 

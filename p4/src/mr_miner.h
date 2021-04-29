@@ -48,19 +48,41 @@ void mr_shm_quorum(NetData *net);
 
 int mr_miner_set_handlers(sigset_t mask);
 
-void mr_masks_set_up(sigset_t *mask, sigset_t *mask_sigusr1, sigset_t *mask_sigusr2, sigset_t *old_mask);
+void mr_masks_set_up(sigset_t *mask, sigset_t *mask_wait_workers, sigset_t *old_mask);
 
 
 int mr_check_votes(NetData *net);
 
 void mr_vote(NetData *net, Block *b, int index);
 
-void mr_send_end_scrutinizing(NetData *net, int n);
+void mr_send_end_scrutinizing(sem_t *mutex, NetData *net, int n);
 
 void mr_lightswitchoff(sem_t *mutex, int *count, sem_t *sem);
 
-void mr_notice_miners(NetData *net);
+void mr_notify_miners(NetData *net);
 
 void mr_print_chain_file(Block *last_block, int n_wallets);
+
+
+
+void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_data);
+
+void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
+
+void mr_winner_update_after_votation(Block* s_block, NetData* s_net_data, int this_index);
+
+void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data);
+
+/**
+ * @brief 
+ * 
+ * @param last_block 
+ * @param s_block 
+ * @param s_net_data 
+ * @param queue 
+ * @param winner 
+ * @return 1 iff error, else 0
+ */
+int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner);
 
 #endif

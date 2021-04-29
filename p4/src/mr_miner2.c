@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
                     ;
                 printf("Verdadero ganador: %d bloque %i con sol: %ld y target %ld \n", this_pid, s_block->id, s_block->solution, s_block->target);
                 //n_voters = (s_net_data->total_miners) - 1;
-                mr_notice_miners(s_net_data); //sigusr2
+                mr_notify_miners(s_net_data); //sigusr2
                 for (i = 0; i < n_voters; i++)
                 {
                     sem_post(start_vote);
