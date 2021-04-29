@@ -125,9 +125,7 @@ int main(int argc, char *argv[])
     //BUCLE DE RONDAS DE MINADO
 
     while (n_rounds-- && !err && !got_sigint)
-    {  
-        sem_getvalue(&(s_net_data->sem_round_end), &i);
-        printf("Valor (sem_round_end) antes de empezar bucle %i \n", i);
+    { 
         if (mr_timed_wait(&(s_net_data->sem_round_end), 3, &err, &time_out) == EXIT_FAILURE)
             break;
         sem_post(&(s_net_data->sem_round_end));
@@ -143,25 +141,21 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("Perdedor espera ronda nueva: \n");
             //Esperar a que empiece la ronda. RECIBIR SIGSUSPEND 1
             if (mr_timed_wait(&(s_net_data->sem_round_begin), 3, &err, &time_out) == EXIT_FAILURE)
             {
                 printf("break!\n");
                 break;
             }
-            else printf("round begin\n");
         }
 
         //LANZAR TRABAJADORES
         err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target);
         if (err) 
             break;
-        printf("workers lanzados sin error\n");
 
         //Esperar a conseguir la solución o a que la consiga otro
         sigsuspend(&mask_wait_workers);
-        printf("he salido de sigsuspend got_sigint=%d\n",got_sigint);
 
         //Matar trabajdores
         mr_workers_cancel(workers, n_workers);

@@ -132,8 +132,6 @@ void mr_shm_quorum(NetData *net)
             n += (!(kill(pid, SIGUSR1)));
     }
 
-    printf("Quorum %i \n", n);
-
     net->total_miners = n;
 }
 
@@ -180,9 +178,7 @@ void mr_vote(NetData *net, Block *b, int index){
     int flag = (b->target == simple_hash(b->solution));
     
     net->voting_pool[index] = flag ? VOTE_YES : VOTE_NO;
-    printf("Voto %i al bloque %i para la sol %ld al target %ld\n",flag,b->id,b->solution,b->target);
     (net->num_voters)--;
-    printf("votantes restantes:%d\n", net->num_voters);
     
     //El ultimo minero avisa al ganador
     if(net->num_voters == 0){
@@ -205,8 +201,7 @@ void mr_lightswitchoff(sem_t *mutex, int *count, sem_t *sem)
 {
     while (sem_wait(mutex) == -1);
     
-    (*count)--;    
-    printf("termino ronda-total_miners=%d\n",(*count));
+    (*count)--;
     if(!(*count))
         sem_post(sem);
     
@@ -254,10 +249,9 @@ void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_d
     mr_shm_set_new_round(s_block, s_net_data);
     n_proc = s_net_data->total_miners - 1;
 
-    //Avisar de que se inicia la
+    //Avisar de que se inicia la ronda
     for (i = 0; i < n_proc; i++)
     {
-        printf("post round begin bloque %i con %i\n", s_block->id, n_proc);
         sem_post(&(s_net_data->sem_round_begin));
     }
     sem_post(mutex);
@@ -265,10 +259,9 @@ void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_d
 
 void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index)
 {
-    int n_voters, ii, i;
+    int n_voters, i;
 
     while (sem_wait(mutex) == -1);
-    printf("Verdadero ganador: %d bloque %i con sol: %ld y target %ld \n", getpid(), s_block->id,s_block->solution,s_block->target);
     
     n_voters = (s_net_data->total_miners) - 1;
     s_net_data->num_voters = n_voters;
@@ -276,24 +269,17 @@ void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, i
     mr_notify_miners(s_net_data);//sigusr2
     for (i = 0; i < n_voters; i++)
     {
-        sem_getvalue(&(s_net_data->sem_start_voting), &ii);
-        printf("Valor antes de empieza a votar (sem_start_voting) es %i \n", ii);
-        printf("empieza a votar!\n");
         sem_post(&(s_net_data->sem_start_voting));
-        sem_getvalue(&(s_net_data->sem_start_voting), &ii);
-        printf("Valor después de empieza a votar (sem_start_voting) es %i \n", ii);
     }
-    printf("Nvoters es %i\n", n_voters);
+
     sem_post(mutex);
 
     if (n_voters)
     {
-        printf("Espero  a votacion\n");
         while (sem_wait(&(s_net_data->sem_votation_done)) == -1);
 
         if (mr_check_votes(s_net_data))
         {
-            printf("votos favorables\n");
             while (sem_wait(mutex) == -1);
             mr_winner_update_after_votation(s_block, s_net_data, this_index);
             sem_post(mutex);
@@ -302,26 +288,18 @@ void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, i
         {
             printf("shame\n"); //Elegir nuveo fake_last winner y comenzar nueva ronda
         }
+    }
 
-        /* total_miners no se modifica
-        while (sem_wait(mutex) == -1);
-        s_net_data->total_miners = n_voters + 1;
-        sem_post(mutex);*/
-
+    while (sem_wait(&(s_net_data->sem_round_end)) == -1); // para que no entren mineros en el bucle hasta que el último haya terminado 
+    if (n_voters)
+    {
         mr_send_end_scrutinizing(mutex, s_net_data, n_voters);
         // mutex??
     }
     else
     {
-        printf("No ha habido votacion bloque %i \n", s_block->id);
         mr_winner_update_after_votation(s_block, s_net_data, this_index);
     }
-
-    sem_getvalue(&(s_net_data->sem_round_end), &ii);
-    printf("Valor (sem_round_end) antes de bloquear %i \n", ii);
-    while (sem_wait(&(s_net_data->sem_round_end)) == -1); // para que no entren mineros en el bucle hasta que el último haya terminado 
-    sem_getvalue(&(s_net_data->sem_round_end), &ii);
-    printf("Valor (sem_round_end) después de bloquear %i \n", ii);
 }
 
 void mr_winner_update_after_votation(Block* s_block, NetData* s_net_data, int this_index)
@@ -357,7 +335,6 @@ void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data)
 
 int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner)
 {
-    printf("bloque válido\n");
     //Añadir bloque correcto a la cadena de cada minero
     (*last_block) = mr_shm_block_copy(s_block, *last_block);
 

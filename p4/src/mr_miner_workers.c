@@ -75,7 +75,6 @@ void mr_workers_cancel(pthread_t *workers, int n_workers){
     int j;
     
     for (j = 0; j < n_workers; j++){
-        printf("cancel thread:%d\n", j);
         pthread_cancel(workers[j]);
     }
      

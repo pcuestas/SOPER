@@ -139,3 +139,19 @@ int mr_fd_write_block(Block *block, int fd[2])
 
     return 0;
 }
+
+void mr_monitor_printer_print_blocks(Block *last_block, int file)
+{
+    int i;
+
+    if(last_block == NULL)
+    {
+        print_blocks_file(last_block, 1, file);
+        return ;
+    }
+
+    /*encuentra la primera wallet no vacía*/
+    for(i = MAX_MINERS - 1; (i >= 0) && !(last_block->wallets[i]); --i);
+
+    print_blocks_file(last_block, i + 1, file);
+}

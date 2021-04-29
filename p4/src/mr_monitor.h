@@ -38,6 +38,8 @@ void handler_sigalrm(int sig);
  */
 void mr_monitor_printer(int fd[2]);
 
+void mr_monitor_printer_print_blocks(Block *last_block, int file);
+
 int mr_shm_init_monitor(NetData **d);
 
 /**
