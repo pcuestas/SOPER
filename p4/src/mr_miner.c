@@ -54,7 +54,7 @@ int mr_miner_set_handlers(sigset_t mask)
 int main(int argc, char *argv[])
 {
     int n_workers, n_rounds, err = 0, last_winner, this_index, winner;
-    int time_out,i;
+    int time_out;
     pid_t this_pid = getpid();
     pthread_t *workers = NULL;
     Block *s_block, *last_block = NULL;
@@ -143,30 +143,24 @@ int main(int argc, char *argv[])
         {
             //Esperar a que empiece la ronda. RECIBIR SIGSUSPEND 1
             if (mr_timed_wait(&(s_net_data->sem_round_begin), 3, &err, &time_out) == EXIT_FAILURE)
-            {
-                printf("break!\n");
                 break;
-            }
         }
 
-        //LANZAR TRABAJADORES
+        //lanzar trabajadores
         err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target);
         if (err) 
             break;
 
         //Esperar a conseguir la solución o a que la consiga otro
         sigsuspend(&mask_wait_workers);
-
-        //Matar trabajdores
-        mr_workers_cancel(workers, n_workers);
+        mr_workers_cancel(workers, n_workers);//matar trabajdores
         
         if (got_sighup) /*los trabajadores de este proceso han encontrado solución*/
         {
             got_sighup = 0;
-            //Por si dos mineros se han declarado ganador
+            //Por si dos mineros se han declarado ganador:
             while (sem_wait(mutex) == -1);
-            printf("Posible ganador: %d bloque %i\n", this_pid, s_block->id);
-            winner = (s_block->solution == -1);// 1 ssi eres el primero
+            winner = (s_block->solution == -1);// 1 ssi es el primero
             if(winner)
                 mr_shm_set_solution(s_block, proof_solution);
             sem_post(mutex);
@@ -175,60 +169,29 @@ int main(int argc, char *argv[])
             {               
                 mr_real_winner_actions(mutex, s_block, s_net_data, this_index);
             }
-            else
-            {
-                printf("Falso ganador: %d bloque %i\n", this_pid, s_block->id);
-            }
-        }
-        else
-        {
-            winner = 0; 
-            printf("Perdedor\n");
         }
         if(!winner)
         {
-            sem_getvalue(&(s_net_data->sem_votation_done), &i);
-            printf("Valor antes de votation sem_votation_done es %i \n", i);
-
-            sem_getvalue(&(s_net_data->sem_start_voting), &i);
-            printf("Valor antes de espera (sem_start_voting) es %i \n", i);
-            while (sem_wait(&(s_net_data->sem_start_voting)) == -1)
-            {
-                printf("espera: -1\n");
-            }
-            sem_getvalue(&(s_net_data->sem_start_voting), &i);
-            printf("Valor después de espera (sem_start_voting) es %i \n", i);
-
-            printf("empiezo a votar\n");
-            while (sem_wait(mutex) == -1);
-            printf("Numero de votantes %i\n", s_net_data->num_voters);
-            printf("Perdedor: %d va a votar bloque %i \n", this_pid, s_block->id);
-            mr_vote(s_net_data, s_block, this_index);
-            sem_post(mutex);
-
-            printf("Ya he votado\n");
-            while (sem_wait(&(s_net_data->sem_scrutinizing))==-1);            
+            while (sem_wait(&(s_net_data->sem_start_voting)) == -1);
+            mr_vote(mutex, s_net_data, s_block, this_index);
+            while (sem_wait(&(s_net_data->sem_scrutinizing)) == -1);            
         }
 
         if(s_block->is_valid){
-            err = mr_valid_block_action(&last_block, s_block, s_net_data, queue, winner);
+            err = mr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
         }
         
         sigprocmask(SIG_SETMASK, &old_mask, &mask); // receive all signals remaining
         sigprocmask(SIG_SETMASK, &mask, &old_mask); // restore mask
 
         if(!n_rounds || got_sigint)
-        {//Si es la ultima ronda, te das de baja
-            printf("Mi ultima rondaa: \n");
-            while (sem_wait(mutex) == -1);
-            mr_miner_last_round(s_net_data, this_index);
-            sem_post(mutex);
+        {//Si es su última ronda, se das de baja
+            mr_miner_last_round(mutex, s_net_data, this_index);
         }    
         
         mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
 
-        printf("pid: %d round: %d\n\n", this_pid, n_rounds);
-
+        printf("pid: %d rounds remaining: %d\n\n", this_pid, n_rounds);
     }
     
     

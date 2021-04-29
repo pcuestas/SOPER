@@ -53,7 +53,7 @@ void mr_masks_set_up(sigset_t *mask, sigset_t *mask_wait_workers, sigset_t *old_
 
 int mr_check_votes(NetData *net);
 
-void mr_vote(NetData *net, Block *b, int index);
+void mr_vote(sem_t *mutex, NetData *net, Block *b, int index);
 
 void mr_send_end_scrutinizing(sem_t *mutex, NetData *net, int n);
 
@@ -83,9 +83,9 @@ void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data);
  * @param winner 
  * @return 1 iff error, else 0
  */
-int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner);
+int mr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner);
 
 
-void mr_miner_last_round(NetData* s_net_data, int this_index);
+void mr_miner_last_round(sem_t *mutex, NetData* s_net_data, int this_index);
 
 #endif

@@ -156,35 +156,33 @@ void mr_masks_set_up(sigset_t *mask, sigset_t *mask_wait_workers, sigset_t *old_
 
 int mr_check_votes(NetData *net)
 {
-    int i, count, yes = 0, no = 0;
+    int i, count;
     char vote;
 
     for (i = count = 0; i <= (net->last_miner); i++)
     {
         vote = net->voting_pool[i];
-        yes += (vote == VOTE_YES);
-        no += (vote == VOTE_NO);
-        if(vote == VOTE_YES){
-            printf("index:%d voted yes\n", i);
-        }
-        //count += (vote == VOTE_YES) - (vote == VOTE_NO);
+        count += (vote == VOTE_YES) - (vote == VOTE_NO);
     }
-    printf("votos:%d yes--%d no\n", yes, no);
-    return yes >= no;
-    //return (count >= 0);
+    
+    return (count >= 0);
 }
 
-void mr_vote(NetData *net, Block *b, int index){
-    int flag = (b->target == simple_hash(b->solution));
+void mr_vote(sem_t *mutex, NetData *net, Block *b, int index){
+    int flag;
     
+    while (sem_wait(mutex) == -1);
+    
+    flag = (b->target == simple_hash(b->solution));
     net->voting_pool[index] = flag ? VOTE_YES : VOTE_NO;
     (net->num_voters)--;
     
     //El ultimo minero avisa al ganador
     if(net->num_voters == 0){
-        printf("POST");
         sem_post(&(net->sem_votation_done));
     }
+
+    sem_post(mutex);
 }
 
 void mr_send_end_scrutinizing(sem_t* mutex, NetData *net, int n)
@@ -333,7 +331,7 @@ void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data)
     munmap(s_net_data, sizeof(NetData));
 }
 
-int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner)
+int mr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner)
 {
     //Añadir bloque correcto a la cadena de cada minero
     (*last_block) = mr_shm_block_copy(s_block, *last_block);
@@ -341,7 +339,8 @@ int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_dat
     if ((*last_block) == NULL)
         return 1;
 
-    if (s_net_data->monitor_pid > 0 && (mq_send(queue, (char *)(*last_block), sizeof(Block), 1 + winner) == -1))
+    if ((s_net_data->monitor_pid > 0) && 
+        (mq_send(queue, (char *)(*last_block), sizeof(Block), 1 + winner) == -1))
     {
         perror("mq_send");
         return 1;
@@ -349,9 +348,12 @@ int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_dat
     return 0;
 }
 
-void mr_miner_last_round(NetData* s_net_data, int this_index)
+void mr_miner_last_round(sem_t *mutex, NetData* s_net_data, int this_index)
 {
     int i;
+
+    while (sem_wait(mutex) == -1);
+
     s_net_data->miners_pid[this_index] = -2;
     if (getpid() == s_net_data->last_winner)
     {
@@ -365,4 +367,5 @@ void mr_miner_last_round(NetData* s_net_data, int this_index)
             }
         }
     }
+    sem_post(mutex);
 }
