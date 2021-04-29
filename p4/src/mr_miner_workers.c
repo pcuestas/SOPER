@@ -1,7 +1,7 @@
 #include "miner.h"
 #include "mr_miner.h"
 
-extern int winner;
+extern int end_threads;
 extern long int proof_solution;
 
 
@@ -9,14 +9,14 @@ void *mine(void *d){
     Mine_struct *data = (Mine_struct*)d;
     long int i;
     
-    for(i = data->begin ; i < data->end && !winner ; i++){
+    for(i = data->begin ; i < data->end && !end_threads ; i++){
         if(data->target == simple_hash(i)){
-            winner = 1;
+            end_threads = 1;
             proof_solution = i;
             kill(getpid(), SIGHUP);
         }
     }
-
+    pause();// until cancelled
     return NULL;    
 }
 
@@ -46,6 +46,7 @@ Mine_struct *mr_mine_struct_init(int n_workers){
 int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,long int target)
 {
     int i, j, err = 0;
+    end_threads = 0;
     for (i = 0; i < nWorkers && !err; i++)
     {
         mine_struct[i].target = target;
@@ -72,7 +73,9 @@ int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,
 
 void mr_workers_cancel(pthread_t *workers, int n_workers){
     int j;
+    
     for (j = 0; j < n_workers; j++){
+        printf("cancel thread:%d\n", j);
         pthread_cancel(workers[j]);
     }
      

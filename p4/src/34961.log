@@ -86,28 +86,4 @@ Block number: 6; Target: 75135020;    Solution: 34795668
 0: 5;         1: 2;         2: 0;         3: 0;         
 
 
-Block number: 5; Target: 54459654;    Solution: 75135020
-0: 4;         1: 2;         2: 0;         3: 0;         
-
-
-Block number: 4; Target: 4914617;    Solution: 54459654
-0: 4;         1: 1;         2: 0;         3: 0;         
-
-
-Block number: 3; Target: 23137337;    Solution: 4914617
-0: 4;         1: 0;         2: 0;         3: 0;         
-
-
-Block number: 2; Target: 15592330;    Solution: 23137337
-0: 3;         1: 0;         2: 0;         3: 0;         
-
-
-Block number: 1; Target: 57705937;    Solution: 15592330
-0: 2;         1: 0;         2: 0;         3: 0;         
-
-
-Block number: 0; Target: 41085712;    Solution: 57705937
-0: 1;         1: 0;         2: 0;         3: 0;         
-
-
-A total of 28 blocks were printed
+A total of 22 blocks were printed

@@ -3,11 +3,8 @@
 #include "mr_util.h"
 
 
-int winner = 0;
+int end_threads = 0;
 long int proof_solution;
-
-static volatile sig_atomic_t got_sigusr1 = 0;//
-static volatile sig_atomic_t got_sigusr2 = 0;//no hacen falta
 
 static volatile sig_atomic_t got_sighup = 0;
 static volatile sig_atomic_t got_sigint = 0;
@@ -45,6 +42,7 @@ int mr_miner_set_handlers(sigset_t mask)
         perror("sigaction SIGHUPINT");
         return (EXIT_FAILURE);
     }
+    
     if (sigaction(SIGINT, &act, NULL) < 0)
     {
         perror("sigaction SIGINT");
@@ -55,7 +53,7 @@ int mr_miner_set_handlers(sigset_t mask)
 
 int main(int argc, char *argv[])
 {
-    int n_workers, n_rounds, err = 0, last_winner, this_index;
+    int n_workers, n_rounds, err = 0, last_winner, this_index, winner;
     int time_out,i;
     pid_t this_pid = getpid();
     pthread_t *workers = NULL;
@@ -122,15 +120,18 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     sem_post(mutex);
+    printf("my index:%d\n", this_index);
 
     //BUCLE DE RONDAS DE MINADO
 
     while (n_rounds-- && !err && !got_sigint)
     {  
+        sem_getvalue(&(s_net_data->sem_round_end), &i);
+        printf("Valor (sem_round_end) antes de empezar bucle %i \n", i);
         if (mr_timed_wait(&(s_net_data->sem_round_end), 3, &err, &time_out) == EXIT_FAILURE)
             break;
         sem_post(&(s_net_data->sem_round_end));
-
+        
         winner = 0;
         while(sem_wait(mutex) == -1);
         last_winner = (this_pid == s_net_data->last_winner);
@@ -148,16 +149,19 @@ int main(int argc, char *argv[])
             {
                 printf("break!\n");
                 break;
-            } 
+            }
+            else printf("round begin\n");
         }
 
         //LANZAR TRABAJADORES
         err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target);
         if (err) 
             break;
+        printf("workers lanzados sin error\n");
 
         //Esperar a conseguir la solución o a que la consiga otro
         sigsuspend(&mask_wait_workers);
+        printf("he salido de sigsuspend got_sigint=%d\n",got_sigint);
 
         //Matar trabajdores
         mr_workers_cancel(workers, n_workers);
@@ -185,13 +189,22 @@ int main(int argc, char *argv[])
         else
         {
             winner = 0; 
+            printf("Perdedor\n");
         }
         if(!winner)
         {
             sem_getvalue(&(s_net_data->sem_votation_done), &i);
             printf("Valor antes de votation sem_votation_done es %i \n", i);
 
-            while (sem_wait(&(s_net_data->sem_start_voting)) == -1);
+            sem_getvalue(&(s_net_data->sem_start_voting), &i);
+            printf("Valor antes de espera (sem_start_voting) es %i \n", i);
+            while (sem_wait(&(s_net_data->sem_start_voting)) == -1)
+            {
+                printf("espera: -1\n");
+            }
+            sem_getvalue(&(s_net_data->sem_start_voting), &i);
+            printf("Valor después de espera (sem_start_voting) es %i \n", i);
+
             printf("empiezo a votar\n");
             while (sem_wait(mutex) == -1);
             printf("Numero de votantes %i\n", s_net_data->num_voters);
@@ -207,20 +220,21 @@ int main(int argc, char *argv[])
             err = mr_valid_block_action(&last_block, s_block, s_net_data, queue, winner);
         }
         
-        if(!n_rounds)
+        sigprocmask(SIG_SETMASK, &old_mask, &mask); // receive all signals remaining
+        sigprocmask(SIG_SETMASK, &mask, &old_mask); // restore mask
+
+        if(!n_rounds || got_sigint)
         {//Si es la ultima ronda, te das de baja
+            printf("Mi ultima rondaa: \n");
             while (sem_wait(mutex) == -1);
-            s_net_data->miners_pid[this_index] = -2;
-            //miner_last_round()
+            mr_miner_last_round(s_net_data, this_index);
             sem_post(mutex);
         }    
-
+        
         mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
 
         printf("pid: %d round: %d\n\n", this_pid, n_rounds);
 
-        sigprocmask(SIG_SETMASK, &old_mask, &mask); // receive all signals remaining
-        sigprocmask(SIG_SETMASK, &mask, &old_mask); // restore mask
     }
     
     

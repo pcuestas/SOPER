@@ -72,11 +72,11 @@ void mr_monitor_printer(int fd[2])
                 fprintf(stderr, "Existe una alarma previa establecida\n");
             }
 
-            print_blocks_file(last_block, 1, file);
+            print_blocks_file(last_block, 4, file);
         }
     }
 
-    print_blocks_file(last_block, 1, file);
+    print_blocks_file(last_block, 4, file);
 
     mr_blocks_free(last_block);
     close(fd[0]);

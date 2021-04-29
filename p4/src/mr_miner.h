@@ -85,4 +85,7 @@ void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data);
  */
 int mr_valid_block_action(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner);
 
+
+void mr_miner_last_round(NetData* s_net_data, int this_index);
+
 #endif

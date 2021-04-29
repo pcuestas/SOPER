@@ -20,11 +20,6 @@ Minero 1 consigue solucion.
 
 
 
-Preguntas
-
-se puede poner num_wallets en Block_struct
-
-hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
 
 
 
@@ -36,12 +31,26 @@ __________________________________________________________________
 
 
 PROBLEMAS
-__________________________________________________________________
-
-3. Si es tu utilma ronda, elegir a un minero para que sea last->winner
+_________________________________________________________________
 
 
 HACER
 _____________________________________________________________________
 
 1. Si a un minero le llega SIGINT debe finalizar (mejorar esperar a que acabe la ronda);
+
+
+sigaction SIGINT a los mineros
+
+siprocmask no limpiar máscara
+
+
+
+PREGUNTAS
+_________________________________________________________________
+
+se puede poner num_wallets en Block_struct
+
+hay que impedir de alguna manera que los mineros modifiquen campos como wallets?
+
+- EL log tiene que imprimir toda la cadena enteera todas las veces, o solo la parte nueva
