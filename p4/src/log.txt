@@ -1,92 +1,92 @@
-Block number: 22; Target: 36333371;    Solution: 61545181
+Block number: 22; Target: 78515142;    Solution: 28271790
 0: 23;         
 
 
-Block number: 21; Target: 45896414;    Solution: 36333371
+Block number: 21; Target: 251061;    Solution: 78515142
 0: 22;         
 
 
-Block number: 20; Target: 43909819;    Solution: 45896414
+Block number: 20; Target: 59042039;    Solution: 251061
 0: 21;         
 
 
-Block number: 19; Target: 32063934;    Solution: 43909819
+Block number: 19; Target: 78620258;    Solution: 59042039
 0: 20;         
 
 
-Block number: 18; Target: 76273091;    Solution: 32063934
+Block number: 18; Target: 86918302;    Solution: 78620258
 0: 19;         
 
 
-Block number: 17; Target: 71954897;    Solution: 76273091
+Block number: 17; Target: 11187956;    Solution: 86918302
 0: 18;         
 
 
-Block number: 16; Target: 66565891;    Solution: 71954897
+Block number: 16; Target: 90879553;    Solution: 11187956
 0: 17;         
 
 
-Block number: 15; Target: 15235521;    Solution: 66565891
+Block number: 15; Target: 32352631;    Solution: 90879553
 0: 16;         
 
 
-Block number: 14; Target: 55937718;    Solution: 15235521
+Block number: 14; Target: 62945799;    Solution: 32352631
 0: 15;         
 
 
-Block number: 13; Target: 61676441;    Solution: 55937718
+Block number: 13; Target: 47839699;    Solution: 62945799
 0: 14;         
 
 
-Block number: 12; Target: 1525088;    Solution: 61676441
+Block number: 12; Target: 23245277;    Solution: 47839699
 0: 13;         
 
 
-Block number: 11; Target: 41818411;    Solution: 1525088
+Block number: 11; Target: 90729283;    Solution: 23245277
 0: 12;         
 
 
-Block number: 10; Target: 47608433;    Solution: 41818411
+Block number: 10; Target: 872050;    Solution: 90729283
 0: 11;         
 
 
-Block number: 9; Target: 47120692;    Solution: 47608433
+Block number: 9; Target: 36539404;    Solution: 872050
 0: 10;         
 
 
-Block number: 8; Target: 86470091;    Solution: 47120692
+Block number: 8; Target: 57059325;    Solution: 36539404
 0: 9;         
 
 
-Block number: 7; Target: 74969183;    Solution: 86470091
+Block number: 7; Target: 79539624;    Solution: 57059325
 0: 8;         
 
 
-Block number: 6; Target: 37247925;    Solution: 74969183
+Block number: 6; Target: 29978460;    Solution: 79539624
 0: 7;         
 
 
-Block number: 5; Target: 48829482;    Solution: 37247925
+Block number: 5; Target: 76087672;    Solution: 29978460
 0: 6;         
 
 
-Block number: 4; Target: 46775508;    Solution: 48829482
+Block number: 4; Target: 73790657;    Solution: 76087672
 0: 5;         
 
 
-Block number: 3; Target: 80579191;    Solution: 46775508
+Block number: 3; Target: 82098493;    Solution: 73790657
 0: 4;         
 
 
-Block number: 2; Target: 42872523;    Solution: 80579191
+Block number: 2; Target: 82532373;    Solution: 82098493
 0: 3;         
 
 
-Block number: 1; Target: 71085837;    Solution: 42872523
+Block number: 1; Target: 45820065;    Solution: 82532373
 0: 2;         
 
 
-Block number: 0; Target: 43034454;    Solution: 71085837
+Block number: 0; Target: 50547936;    Solution: 45820065
 0: 1;         
 
 
