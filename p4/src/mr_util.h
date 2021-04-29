@@ -44,6 +44,6 @@ Block* mr_shm_block_copy(Block *shm_b, Block *last_block);
 
 void print_blocks_file(Block *plast_block, int num_wallets, int fd);
 
-int mr_timed_wait(sem_t *sem, int seconds, int *err, int *time_out);
+int mr_timed_wait(sem_t *sem, int seconds);
 
 #endif

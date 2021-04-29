@@ -1,0 +1,33 @@
+Block number: 7; Target: 87524824;    Solution: 98501335
+0: 8;         
+
+
+Block number: 6; Target: 61917525;    Solution: 87524824
+0: 7;         
+
+
+Block number: 5; Target: 81752414;    Solution: 61917525
+0: 6;         
+
+
+Block number: 4; Target: 34121164;    Solution: 81752414
+0: 5;         
+
+
+Block number: 3; Target: 34121164;    Solution: 34121164
+0: 4;         
+
+
+Block number: 2; Target: 49004846;    Solution: 34121164
+0: 3;         
+
+
+Block number: 1; Target: 82311309;    Solution: 49004846
+0: 2;         
+
+
+Block number: 0; Target: 78748123;    Solution: 82311309
+0: 1;         
+
+
+A total of 8 blocks were printed

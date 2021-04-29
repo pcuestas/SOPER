@@ -16,27 +16,24 @@ void *mine(void *d){
             kill(getpid(), SIGHUP);
         }
     }
-    pause();// until cancelled
+    //pause();// until cancelled
     return NULL;    
 }
 
 
 Mine_struct *mr_mine_struct_init(int n_workers){
-    Mine_struct *mine_struct = (Mine_struct *)calloc(n_workers, sizeof(Mine_struct));
     int i;
     long int interval = PRIME / n_workers;
+    Mine_struct *mine_struct = (Mine_struct *)calloc(n_workers, sizeof(Mine_struct));
     
     if(mine_struct == NULL)
         return NULL;
 
     mine_struct[0].begin = 0;
-    mine_struct[0].end = PRIME;//sobra
 
     for(i = 1; i < n_workers; i++)
     {
-        //mine_struct[i-1].end = mine_struct[i].begin = i*interval;
-        mine_struct[i].begin = rand()%PRIME;
-        mine_struct[i].end = PRIME;
+        mine_struct[i-1].end = mine_struct[i].begin = i*interval;
     }
     mine_struct[n_workers - 1].end = PRIME;
 
@@ -47,6 +44,7 @@ int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct,int nWorkers,
 {
     int i, j, err = 0;
     end_threads = 0;
+
     for (i = 0; i < nWorkers && !err; i++)
     {
         mine_struct[i].target = target;

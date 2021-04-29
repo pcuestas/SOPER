@@ -54,7 +54,6 @@ int mr_miner_set_handlers(sigset_t mask)
 int main(int argc, char *argv[])
 {
     int n_workers, n_rounds, err = 0, last_winner, this_index, winner;
-    int time_out;
     pid_t this_pid = getpid();
     pthread_t *workers = NULL;
     Block *s_block, *last_block = NULL;
@@ -126,7 +125,7 @@ int main(int argc, char *argv[])
 
     while (n_rounds-- && !err && !got_sigint)
     { 
-        if (mr_timed_wait(&(s_net_data->sem_round_end), 3, &err, &time_out) == EXIT_FAILURE)
+        if ((err = mr_timed_wait(&(s_net_data->sem_round_end), 3)))
             break;
         sem_post(&(s_net_data->sem_round_end));
         
@@ -142,19 +141,20 @@ int main(int argc, char *argv[])
         else
         {
             //Esperar a que empiece la ronda. RECIBIR SIGSUSPEND 1
-            if (mr_timed_wait(&(s_net_data->sem_round_begin), 3, &err, &time_out) == EXIT_FAILURE)
+            if ((err = mr_timed_wait(&(s_net_data->sem_round_begin), 3)))
                 break;
         }
 
         //lanzar trabajadores
-        err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target);
-        if (err) 
+        if ((err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target))) 
             break;
 
         //Esperar a conseguir la solución o a que la consiga otro
         sigsuspend(&mask_wait_workers);
-        mr_workers_cancel(workers, n_workers);//matar trabajdores
         
+        //mr_workers_cancel(workers, n_workers);//matar trabajdores
+        end_threads = 1;
+
         if (got_sighup) /*los trabajadores de este proceso han encontrado solución*/
         {
             got_sighup = 0;
@@ -193,17 +193,14 @@ int main(int argc, char *argv[])
 
         printf("pid: %d rounds remaining: %d\n\n", this_pid, n_rounds);
     }
-    
-    
-    
 
     mr_print_chain_file(last_block, s_net_data->last_miner + 1);
 
+    free(workers);
+    free(mine_struct);
     mr_blocks_free(last_block);
     mq_close(queue);
     munmap(s_block, sizeof(Block));
-
-    
 
     mr_close_net_mutex(mutex, s_net_data);
 

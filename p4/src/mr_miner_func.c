@@ -320,6 +320,7 @@ void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data)
         sem_destroy(&(s_net_data->sem_scrutinizing));
         sem_destroy(&(s_net_data->sem_start_voting));
         sem_destroy(&(s_net_data->sem_votation_done));
+        sem_unlink(SEM_MUTEX_NAME);
         shm_unlink(SHM_NAME_BLOCK);
         shm_unlink(SHM_NAME_NET);
         sem_unlink(SEM_MUTEX_NAME);

@@ -1,0 +1,25 @@
+Block number: 5; Target: 13825010;    Solution: 40849317
+0: 6;         
+
+
+Block number: 4; Target: 63578181;    Solution: 13825010
+0: 5;         
+
+
+Block number: 3; Target: 41141358;    Solution: 63578181
+0: 4;         
+
+
+Block number: 2; Target: 47749385;    Solution: 41141358
+0: 3;         
+
+
+Block number: 1; Target: 19481450;    Solution: 47749385
+0: 2;         
+
+
+Block number: 0; Target: 25794863;    Solution: 19481450
+0: 1;         
+
+
+A total of 6 blocks were printed

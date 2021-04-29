@@ -1,6 +1,9 @@
 #include "mr_monitor.h"
 #include "mr_util.h"
 
+
+extern volatile sig_atomic_t got_sigalrm;
+
 int mr_shm_init_monitor(NetData **d)
 {
     int created;
@@ -94,7 +97,7 @@ int mr_monitor_block_is_repeated(Block *b, Monitor_blocks *blocks, int *err)
  * @param fd 
  * @return int 
  */
-int mr_fd_read_block(Block *block, int fd[2])
+int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int file, int *err)
 {
     int total_size_read = 0;
     int target_size = sizeof(Block);
@@ -103,19 +106,24 @@ int mr_fd_read_block(Block *block, int fd[2])
     do
     {
         size_read = read(fd[0], ((char *)block) + total_size_read, target_size - total_size_read);
-        if (size_read == -1 && errno != EINTR)
+        if (size_read == -1)
         {
-            perror("read");
-            return -1;
+            if(errno == EINTR && got_sigalrm)
+                (*err) = mr_printer_handle_sigalrm(last_block, file);
+            else if(errno != EINTR)
+            {
+                perror("read");
+                return -1;
+            }
         }
         else if (size_read == 0)
             return total_size_read;
-        else if (size_read != -1)
+        else
             total_size_read += size_read;
 
-    } while (total_size_read != target_size);
+    } while (total_size_read != target_size && !(*err));
 
-    return total_size_read;
+    return (*err) ? 0 : total_size_read;
 }
 
 int mr_fd_write_block(Block *block, int fd[2])
@@ -154,4 +162,16 @@ void mr_monitor_printer_print_blocks(Block *last_block, int file)
     for(i = MAX_MINERS - 1; (i >= 0) && !(last_block->wallets[i]); --i);
 
     print_blocks_file(last_block, i + 1, file);
+}
+
+int mr_printer_handle_sigalrm(Block *last_block, int file)
+{
+    got_sigalrm = 0;
+    if (alarm(PRINTER_WAIT))
+    {
+        fprintf(stderr, "Existe una alarma previa establecida\n");
+        return 1;
+    }
+    mr_monitor_printer_print_blocks(last_block, file);
+    return 0;
 }

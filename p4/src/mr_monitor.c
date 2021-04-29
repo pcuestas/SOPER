@@ -2,8 +2,8 @@
 #include "mr_util.h"
 #include "mr_monitor.h"
 
-static volatile int got_sigint = 0;
-static volatile int got_sigalrm = 0;
+static volatile sig_atomic_t got_sigint = 0;
+volatile sig_atomic_t got_sigalrm = 0;
 
 void handler_sigint(int sig)
 {
@@ -58,7 +58,7 @@ void mr_monitor_printer(int fd[2])
         err = 1;
     }
 
-    while (!err && (ret = mr_fd_read_block(&block, fd) > 0))
+    while (!err && (ret = mr_fd_read_block(&block, fd, last_block, file, &err) > 0))
     {
         last_block = mr_shm_block_copy(&block, last_block);
 
@@ -66,12 +66,7 @@ void mr_monitor_printer(int fd[2])
             err = 1;
         if (!err && got_sigalrm)
         {
-            got_sigalrm = 0;
-            if (alarm(PRINTER_WAIT))
-            {
-                fprintf(stderr, "Existe una alarma previa establecida\n");
-            }
-            mr_monitor_printer_print_blocks(last_block, file);
+            err = mr_printer_handle_sigalrm(last_block, file);
         }
     }
 

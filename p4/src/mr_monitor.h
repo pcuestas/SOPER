@@ -66,15 +66,10 @@ int mr_mq_receive(Block *block, mqd_t queue);
  */
 int mr_monitor_block_is_repeated(Block *b, Monitor_blocks *blocks, int *err);
 
-/**
- * @brief 
- * 
- * @param block 
- * @param fd 
- * @return int 
- */
-int mr_fd_read_block(Block *block, int fd[2]);
+int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int file, int *err);
 
 int mr_fd_write_block(Block *block, int fd[2]);
+
+int mr_printer_handle_sigalrm(Block *last_block, int file);
 
 #endif
