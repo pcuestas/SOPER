@@ -18,7 +18,6 @@
 #include <signal.h>
 
 #define MAX_BLOCKS 10
-#define LOG_FILE "log.txt"
 #define PRINTER_WAIT 5
 
 typedef struct _monitor_blocks{
@@ -37,8 +36,6 @@ void handler_sigalrm(int sig);
  * @param fd 
  */
 void mr_monitor_printer(int fd[2]);
-
-void mr_monitor_printer_print_blocks(Block *last_block, int file);
 
 int mr_shm_init_monitor(NetData **d);
 
@@ -66,10 +63,12 @@ int mr_mq_receive(Block *block, mqd_t queue);
  */
 int mr_monitor_block_is_repeated(Block *b, Monitor_blocks *blocks, int *err);
 
-int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int file, int *err);
+int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int n_wallets, int file, int *err);
 
 int mr_fd_write_block(Block *block, int fd[2]);
 
-int mr_printer_handle_sigalrm(Block *last_block, int file);
+int mr_printer_handle_sigalrm(Block *last_block, int n_wallets, int file);
+
+void mr_monitor_close_net_mutex(sem_t *mutex, NetData* s_net_data);
 
 #endif

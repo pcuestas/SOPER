@@ -97,7 +97,7 @@ int mr_monitor_block_is_repeated(Block *b, Monitor_blocks *blocks, int *err)
  * @param fd 
  * @return int 
  */
-int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int file, int *err)
+int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int n_wallets, int file, int *err)
 {
     int total_size_read = 0;
     int target_size = sizeof(Block);
@@ -109,7 +109,7 @@ int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int file, int *
         if (size_read == -1)
         {
             if(errno == EINTR && got_sigalrm)
-                (*err) = mr_printer_handle_sigalrm(last_block, file);
+                (*err) = mr_printer_handle_sigalrm(last_block, n_wallets, file);
             else if(errno != EINTR)
             {
                 perror("read");
@@ -132,7 +132,7 @@ int mr_fd_write_block(Block *block, int fd[2])
     int total_size_written = 0;
     int target_size = sizeof(Block);
     int size_written = 0;
-
+    
     do
     {
         size_written = write(fd[1], ((char *)block) + total_size_written, target_size - total_size_written);
@@ -148,23 +148,8 @@ int mr_fd_write_block(Block *block, int fd[2])
     return 0;
 }
 
-void mr_monitor_printer_print_blocks(Block *last_block, int file)
-{
-    int i;
 
-    if(last_block == NULL)
-    {
-        print_blocks_file(last_block, 1, file);
-        return ;
-    }
-
-    /*encuentra la primera wallet no vacía*/
-    for(i = MAX_MINERS - 1; (i >= 0) && !(last_block->wallets[i]); --i);
-
-    print_blocks_file(last_block, i + 1, file);
-}
-
-int mr_printer_handle_sigalrm(Block *last_block, int file)
+int mr_printer_handle_sigalrm(Block *last_block, int n_wallets, int file)
 {
     got_sigalrm = 0;
     if (alarm(PRINTER_WAIT))
@@ -172,6 +157,31 @@ int mr_printer_handle_sigalrm(Block *last_block, int file)
         fprintf(stderr, "Existe una alarma previa establecida\n");
         return 1;
     }
-    mr_monitor_printer_print_blocks(last_block, file);
+    print_blocks_file(last_block, n_wallets, file);
     return 0;
+}
+
+void mr_monitor_close_net_mutex(sem_t *mutex, NetData* s_net_data)
+{
+    while(sem_wait(mutex) == -1);
+    s_net_data->monitor_pid = -2;
+
+    if(!(s_net_data->num_active_miners))
+    {
+        printf("destroy everything\n");
+        sem_destroy(&(s_net_data->sem_round_begin));
+        sem_destroy(&(s_net_data->sem_round_end));
+        sem_destroy(&(s_net_data->sem_scrutinizing));
+        sem_destroy(&(s_net_data->sem_start_voting));
+        sem_destroy(&(s_net_data->sem_votation_done));
+        sem_unlink(SEM_MUTEX_NAME);
+        shm_unlink(SHM_NAME_BLOCK);
+        shm_unlink(SHM_NAME_NET);
+        sem_unlink(SEM_MUTEX_NAME);
+        mq_unlink(MQ_MONITOR_NAME);
+    }
+    sem_post(mutex);
+
+    sem_close(mutex);
+    munmap(s_net_data, sizeof(NetData));
 }

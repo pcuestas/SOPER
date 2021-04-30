@@ -1,6 +1,7 @@
 #include "miner.h"
 #include "mr_util.h"
 #include "mr_monitor.h"
+#include <stdint.h>
 
 static volatile sig_atomic_t got_sigint = 0;
 volatile sig_atomic_t got_sigalrm = 0;
@@ -24,9 +25,10 @@ void mr_monitor_printer(int fd[2])
 {
     Block *last_block = NULL;
     Block block;
+    char filename[1024];
     int file;
     struct sigaction act;
-    int ret, err = 0;
+    int ret, err = 0, n_wallets = 0;
     sigset_t mask;
     close(fd[1]);
 
@@ -45,7 +47,9 @@ void mr_monitor_printer(int fd[2])
         exit(EXIT_FAILURE);
     }
 
-    if ((file = open(LOG_FILE, O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) == -1)
+    sprintf(filename, "monitor%jd.log", (intmax_t)getpid());
+
+    if ((file = open(filename, O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) == -1)
     {
         perror("open");
         close(fd[0]);
@@ -58,19 +62,21 @@ void mr_monitor_printer(int fd[2])
         err = 1;
     }
 
-    while (!err && (ret = mr_fd_read_block(&block, fd, last_block, file, &err) > 0))
+    while (!err && (ret = mr_fd_read_block(&block, fd, last_block, n_wallets, file, &err) > 0))
     {
+        n_wallets = block.is_valid;
+        block.is_valid = 1;
         last_block = mr_shm_block_copy(&block, last_block);
 
         if (last_block == NULL)
             err = 1;
         if (!err && got_sigalrm)
         {
-            err = mr_printer_handle_sigalrm(last_block, file);
+            err = mr_printer_handle_sigalrm(last_block, n_wallets, file);
         }
     }
 
-    mr_monitor_printer_print_blocks(last_block, file);
+    print_blocks_file(last_block, n_wallets, file);
 
     mr_blocks_free(last_block);
     close(fd[0]);
@@ -158,18 +164,14 @@ int main(int argc, char *argv[])
 
         if (!err && !mr_monitor_block_is_repeated(&block, &blocks, &err))
         { //ver que es correcto y no repetido
+            block.is_valid = s_net_data->last_miner + 1;
             err = mr_fd_write_block(&block, fd);
         }
     }
 
     close(fd[1]);
 
-    while (sem_wait(mutex) == -1);    
-    s_net_data->monitor_pid = -2;
-    sem_post(mutex);
-
-    sem_close(mutex);
-    munmap(s_net_data, sizeof(NetData));
+    mr_monitor_close_net_mutex(mutex, s_net_data);
 
     wait(NULL);
     exit(EXIT_SUCCESS);

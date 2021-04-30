@@ -128,9 +128,7 @@ int main(int argc, char *argv[])
         sem_post(&(s_net_data->sem_round_end));
         
         winner = 0;
-        //while(sem_wait(mutex) == -1);
         last_winner = (this_pid == s_net_data->last_winner);
-        //sem_post(mutex);
 
         if (last_winner)
         {
@@ -150,8 +148,12 @@ int main(int argc, char *argv[])
         //Esperar a conseguir la solución o a que la consiga otro
         sigsuspend(&mask_wait_workers);
         
-        //mr_workers_cancel(workers, n_workers);//matar trabajdores
         end_threads = 1;
+
+        if (s_block->is_valid)
+        {
+            err = mr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
+        }
 
         if (got_sighup) /*los trabajadores de este proceso han encontrado solución*/
         {
@@ -163,23 +165,28 @@ int main(int argc, char *argv[])
                 mr_shm_set_solution(s_block, proof_solution);
             sem_post(mutex);
 
-            if(winner)
-            {               
-                mr_real_winner_actions(mutex, s_block, s_net_data, this_index);
-            }
+            if(winner && (err = mr_real_winner_actions(mutex, s_block, s_net_data, this_index)))
+                break;
         }
         if(!winner)
         {
-            while (sem_wait(&(s_net_data->sem_start_voting)) == -1);
+            if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3)))
+                break;
             mr_vote(mutex, s_net_data, s_block, this_index);
-            while (sem_wait(&(s_net_data->sem_scrutinizing)) == -1);            
+            if ((err = mr_timed_wait(&(s_net_data->sem_scrutinizing), 3)))
+                break;           
         }
 
-        if(s_block->is_valid){
+        if(s_block->is_valid)
+        {
             err = mr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
         }
+        else
+        {   //Una ronda con votación fallida no cuenta
+            n_rounds++;
+        }
         
-        sigprocmask(SIG_SETMASK, &old_mask, &mask); // receive all signals remaining
+        sigprocmask(SIG_SETMASK, &old_mask, &mask); // receive all remaining signals 
         sigprocmask(SIG_SETMASK, &mask, &old_mask); // restore mask
 
         if(!n_rounds || got_sigint)
@@ -200,7 +207,7 @@ int main(int argc, char *argv[])
     mq_close(queue);
     munmap(s_block, sizeof(Block));
 
-    mr_close_net_mutex(mutex, s_net_data);
+    mr_miner_close_net_mutex(mutex, s_net_data);
 
     exit(EXIT_SUCCESS);
 }

@@ -8,7 +8,7 @@ extern long int proof_solution;
 void *mine(void *d){
     Mine_struct *data = (Mine_struct*)d;
     long int i;
-    
+
     for(i = data->begin ; i < data->end && !end_threads ; i++){
         if(data->target == simple_hash(i)){
             end_threads = 1;

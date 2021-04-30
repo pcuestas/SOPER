@@ -55,7 +55,7 @@ int mr_check_votes(NetData *net);
 
 void mr_vote(sem_t *mutex, NetData *net, Block *b, int index);
 
-void mr_send_end_scrutinizing(sem_t *mutex, NetData *net, int n);
+void mr_send_end_scrutinizing(NetData *net, int n);
 
 void mr_lightswitchoff(sem_t *mutex, int *count, sem_t *sem);
 
@@ -67,11 +67,13 @@ void mr_print_chain_file(Block *last_block, int n_wallets);
 
 void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_data);
 
-void mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
+int mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
 
 void mr_winner_update_after_votation(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
 
-void mr_close_net_mutex(sem_t *mutex, NetData* s_net_data);
+void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data);
+
+void mr_miner_loser_modify_block(sem_t *mutex, Block *s_block);
 
 /**
  * @brief 
