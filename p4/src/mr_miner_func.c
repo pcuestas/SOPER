@@ -75,7 +75,20 @@ int mr_shm_init_miner(Block **b, NetData **d, int *this_index)
         (*d)->last_miner = 0;
         (*d)->last_winner = this_pid;
         (*d)->num_active_miners = 1;
+    }
+    else
+    {   
+        (*d)->last_miner++;
+        (*d)->miners_pid[(*d)->last_miner] = this_pid;
+        ((*d)->num_active_miners) ++;
+    }    
 
+    (*this_index) = (*d)->last_miner; 
+
+    if((*d)->num_active_miners == 1)
+    {   
+        /*el primer minero activo siempre reestablece los semáforos y se declara ganador*/
+        (*d)->last_winner = this_pid;
         if(sem_init(&((*d)->sem_round_begin), 1, 0) != 0)
         {
             perror("sem_init");
@@ -125,20 +138,6 @@ int mr_shm_init_miner(Block **b, NetData **d, int *this_index)
             return EXIT_FAILURE;
         }
     }
-    else
-    {   
-        (*d)->last_miner++;
-        (*d)->miners_pid[(*d)->last_miner] = this_pid;
-        ((*d)->num_active_miners) ++;
-        if((*d)->num_active_miners == 1)
-        {
-            (*d)->last_winner = this_pid;
-        }
-    }   
-    
-
-    (*this_index) = (*d)->last_miner; 
-
     return EXIT_SUCCESS;
 }
 
@@ -332,19 +331,22 @@ void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data)
     while(sem_wait(mutex) == -1);
     (s_net_data->num_active_miners)--;
     
-    if(!(s_net_data->num_active_miners) && (s_net_data->monitor_pid < 0))
-    {   /*si no hay más mineros ni monitor, liberar todo y hacer unlink*/
-        printf("destroy everything\n");
+    if(!(s_net_data->num_active_miners))
+    {   /*el último minero destruye los semáforos*/
         sem_destroy(&(s_net_data->sem_round_begin));
         sem_destroy(&(s_net_data->sem_round_end));
         sem_destroy(&(s_net_data->sem_scrutinizing));
         sem_destroy(&(s_net_data->sem_start_voting));
         sem_destroy(&(s_net_data->sem_votation_done));
-        sem_unlink(SEM_MUTEX_NAME);
-        shm_unlink(SHM_NAME_BLOCK);
-        shm_unlink(SHM_NAME_NET);
-        sem_unlink(SEM_MUTEX_NAME);
-        mq_unlink(MQ_MONITOR_NAME);
+        if (s_net_data->monitor_pid < 0)
+        {   /*si no hay más mineros ni monitor, hacer unlink*/
+            printf("destroy everything\n");
+            sem_unlink(SEM_MUTEX_NAME);
+            shm_unlink(SHM_NAME_BLOCK);
+            shm_unlink(SHM_NAME_NET);
+            sem_unlink(SEM_MUTEX_NAME);
+            mq_unlink(MQ_MONITOR_NAME);
+        }
     }
     sem_post(mutex);
 

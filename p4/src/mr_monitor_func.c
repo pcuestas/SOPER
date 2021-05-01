@@ -173,13 +173,8 @@ void mr_monitor_close_net_mutex(sem_t *mutex, NetData* s_net_data)
     s_net_data->monitor_pid = -2;
 
     if(!(s_net_data->num_active_miners))
-    {
+    {   /*borrar segmentos de memoria compartida si no quedan mineros activos*/
         printf("destroy everything\n");
-        sem_destroy(&(s_net_data->sem_round_begin));
-        sem_destroy(&(s_net_data->sem_round_end));
-        sem_destroy(&(s_net_data->sem_scrutinizing));
-        sem_destroy(&(s_net_data->sem_start_voting));
-        sem_destroy(&(s_net_data->sem_votation_done));
         sem_unlink(SEM_MUTEX_NAME);
         shm_unlink(SHM_NAME_BLOCK);
         shm_unlink(SHM_NAME_NET);
