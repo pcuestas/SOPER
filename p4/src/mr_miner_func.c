@@ -4,6 +4,37 @@
 #include <stdint.h>
 
 
+int mr_miner_set_handlers(sigset_t mask)
+{
+    struct sigaction act;
+
+    act.sa_mask = mask;
+    act.sa_flags = 0;
+    act.sa_handler = SIG_IGN; /* ignorar SIGUSR1 y SIGUSR2*/
+    if (sigaction(SIGUSR1, &act, NULL) < 0)
+    {
+        perror("sigaction SIGUSR1");
+        return (EXIT_FAILURE);
+    }
+    if (sigaction(SIGUSR2, &act, NULL) < 0)
+    {
+        perror("sigaction SIGUSR2");
+        return (EXIT_FAILURE);
+    }
+
+    act.sa_handler = handler_miner;
+    if (sigaction(SIGHUP, &act, NULL) < 0)
+    {
+        perror("sigaction SIGHUPINT");
+        return (EXIT_FAILURE);
+    }    
+    if (sigaction(SIGINT, &act, NULL) < 0)
+    {
+        perror("sigaction SIGINT");
+        return (EXIT_FAILURE);
+    }
+    return EXIT_SUCCESS;
+}
 
 int mr_shm_init_miner(Block **b, NetData **d, int *this_index)
 {
@@ -219,29 +250,24 @@ void mr_print_chain_file(Block *last_block, int n_wallets)
 
 void mr_notify_miners(NetData *net)
 {
-    int i, count = 0;
+    int i;
     pid_t this_pid = getpid(), pid;
 
     for (i = 0; i <= net->last_miner; i++)
     {
         pid = net->miners_pid[i];
         if ((this_pid != pid) && (pid > 0))
-        {
-            count += !(kill(pid, SIGUSR2));
-        }
+            kill(pid, SIGUSR2);
     }
 }
 
 
-void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_data)
+void mr_last_winner_prepare_round(Block* s_block, NetData* s_net_data)
 {
     int n_proc, i;
     /*Preparar bloque y contar numero de mineros*/
-    while (sem_wait(mutex) == -1);
     mr_shm_set_new_round(s_block, s_net_data);
     n_proc = s_net_data->total_miners - 1;
-
-    sem_post(mutex);
 
     //Avisar de que se inicia la ronda
     for (i = 0; i < n_proc; i++)
@@ -250,18 +276,15 @@ void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_d
     }
 }
 
-int mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index)
+int mr_real_winner_actions(Block* s_block, NetData* s_net_data, int this_index)
 {
     int n_voters, i;
 
-    while (sem_wait(mutex) == -1);
     
     n_voters = (s_net_data->total_miners) - 1;
     s_net_data->num_voters = n_voters;
 
     mr_notify_miners(s_net_data);//mandar sigusr2
-
-    sem_post(mutex);
 
     for (i = 0; i < n_voters; i++)
     {
@@ -269,7 +292,7 @@ int mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, in
     }
 
     if (!n_voters)
-        mr_winner_update_after_votation(mutex, s_block, s_net_data, this_index);
+        mr_winner_update_after_votation(s_block, s_net_data, this_index);
     else
     {
         
@@ -278,11 +301,11 @@ int mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, in
 
         if (mr_check_votes(s_net_data))
         {
-            mr_winner_update_after_votation(mutex, s_block, s_net_data, this_index);
+            mr_winner_update_after_votation(s_block, s_net_data, this_index);
         }
         else
         {               
-            mr_miner_loser_modify_block(mutex, s_block);
+            mr_miner_loser_modify_block(s_block);
             printf("shame\n"); //Elegir nuevo fake_last winner y comenzar nueva ronda
         }
     }
@@ -297,22 +320,20 @@ int mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, in
     return 0;
 }
 
-void mr_winner_update_after_votation(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index)
+void mr_winner_update_after_votation(Block* s_block, NetData* s_net_data, int this_index)
 {
-    while (sem_wait(mutex) == -1);
     s_block->is_valid = 1;
     s_net_data->last_winner = getpid();
     (s_block->wallets[this_index])++;
-    sem_post(mutex);
 }
 
 void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data)
 {
     while(sem_wait(mutex) == -1);
     (s_net_data->num_active_miners)--;
-
+    
     if(!(s_net_data->num_active_miners) && (s_net_data->monitor_pid < 0))
-    {
+    {   /*si no hay más mineros ni monitor, liberar todo y hacer unlink*/
         printf("destroy everything\n");
         sem_destroy(&(s_net_data->sem_round_begin));
         sem_destroy(&(s_net_data->sem_round_end));
@@ -333,12 +354,13 @@ void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data)
 
 int mr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner)
 {
-    //Añadir bloque correcto a la cadena de cada minero
+    /*Añadir bloque correcto a la cadena de cada minero*/
     (*last_block) = mr_shm_block_copy(s_block, *last_block);
 
     if ((*last_block) == NULL)
         return 1;
 
+    /*Si hay monitor, mandar el nuevo bloque*/
     if ((s_net_data->monitor_pid > 0) && 
         (mq_send(queue, (char *)(*last_block), sizeof(Block), 1 + winner) == -1))
     {
@@ -370,10 +392,8 @@ void mr_miner_last_round(sem_t *mutex, NetData* s_net_data, int this_index)
 }
 
 
-void mr_miner_loser_modify_block(sem_t *mutex, Block* s_block)
-{   
-    while (sem_wait(mutex));
+void mr_miner_loser_modify_block(Block* s_block)
+{
     s_block->id--;
     s_block->solution = s_block->target;
-    sem_post(mutex);
 }

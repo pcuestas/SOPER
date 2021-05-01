@@ -18,44 +18,10 @@ void handler_miner(int sig)
         got_sighup = 1;        
 }
 
-int mr_miner_set_handlers(sigset_t mask)
-{
-    struct sigaction act;
-
-    act.sa_mask = mask;
-    act.sa_flags = 0;
-    act.sa_handler = handler_miner; // sig_ign para sigusr1 ? 
-
-    if (sigaction(SIGUSR1, &act, NULL) < 0)
-    {
-        perror("sigaction SIGUSR1");
-        return (EXIT_FAILURE);
-    }
-
-    if (sigaction(SIGUSR2, &act, NULL) < 0)
-    {
-        perror("sigaction SIGUSR2");
-        return (EXIT_FAILURE);
-    }
-    if (sigaction(SIGHUP, &act, NULL) < 0)
-    {
-        perror("sigaction SIGHUPINT");
-        return (EXIT_FAILURE);
-    }
-    
-    if (sigaction(SIGINT, &act, NULL) < 0)
-    {
-        perror("sigaction SIGINT");
-        return (EXIT_FAILURE);
-    }
-    return EXIT_SUCCESS;
-}
-
 int main(int argc, char *argv[])
 {
-    int n_workers, n_rounds, err = 0, last_winner, this_index, winner;
+    int n_workers, n_rounds, err = 0, this_index, winner;
     pid_t this_pid = getpid();
-    pthread_t *workers = NULL;
     Block *s_block, *last_block = NULL;
     NetData *s_net_data;
     Mine_struct *mine_struct = NULL;
@@ -80,23 +46,15 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if (!(workers = (pthread_t *)calloc(n_workers, sizeof(pthread_t))))
-    {
-        perror("calloc");
-        exit(EXIT_FAILURE);
-    }
-
     if (!(mine_struct = mr_mine_struct_init(n_workers)))
     {
         perror("calloc");
-        free(workers);
         exit(EXIT_FAILURE);
     }
 
     if ((mutex = sem_open(SEM_MUTEX_NAME, O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED)
     {
         perror("sem_open");
-        free(workers);
         free(mine_struct);
         exit(EXIT_FAILURE);
     }
@@ -104,7 +62,6 @@ int main(int argc, char *argv[])
     queue = mr_monitor_mq_open(MQ_MONITOR_NAME, O_CREAT | O_WRONLY);
     if (queue == (mqd_t)-1)
     {
-        free(workers);
         free(mine_struct);
         sem_close(mutex);
         exit(EXIT_FAILURE);
@@ -115,12 +72,11 @@ int main(int argc, char *argv[])
     if (mr_shm_init_miner(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
     {
         free(mine_struct);
-        free(workers);
         exit(EXIT_FAILURE);
     }
     sem_post(mutex);
 
-    //BUCLE DE RONDAS DE MINADO
+    /*BUCLE DE RONDAS DE MINADO*/
     while (n_rounds-- && !err && !got_sigint)
     { 
         if ((err = mr_timed_wait(&(s_net_data->sem_round_end), 3)))
@@ -128,48 +84,42 @@ int main(int argc, char *argv[])
         sem_post(&(s_net_data->sem_round_end));
         
         winner = 0;
-        last_winner = (this_pid == s_net_data->last_winner);
 
-        if (last_winner)
-        {
-            mr_last_winner_prepare_round(mutex, s_block, s_net_data);
+        if ((this_pid == s_net_data->last_winner))
+        {   /*el último ganador, prepara la ronda*/
+            mr_last_winner_prepare_round(s_block, s_net_data);
         }
         else
-        {
-            //Esperar a que empiece la ronda. RECIBIR SIGSUSPEND 1
+        {   /*esperar a que el anterior ganador prepare la ronda*/
             if ((err = mr_timed_wait(&(s_net_data->sem_round_begin), 3)))
                 break;
         }
 
-        //lanzar trabajadores
-        if ((err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target))) 
+        /*lanzar trabajadores*/
+        if ((err = mr_workers_launch(mine_struct, n_workers, s_block->target))) 
             break;
 
-        //Esperar a conseguir la solución o a que la consiga otro
+        /*Esperar a conseguir la solución o a que la consiga otro*/
         sigsuspend(&mask_wait_workers);
         
         end_threads = 1;
 
-        if (s_block->is_valid)
-        {
-            err = mr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
-        }
-
-        if (got_sighup) /*los trabajadores de este proceso han encontrado solución*/
-        {
+        if (got_sighup) 
+        {   /*los trabajadores de este proceso han encontrado solución*/
             got_sighup = 0;
-            //Por si dos mineros se han declarado ganador:
+            /*por si dos mineros se han declarado ganador:*/
             while (sem_wait(mutex) == -1);
-            winner = (s_block->solution == -1);// 1 ssi es el primero
+            winner = (s_block->solution == -1);/* 1 ssi es el primero ("verdadero ganador")*/
             if(winner)
                 mr_shm_set_solution(s_block, proof_solution);
             sem_post(mutex);
 
-            if(winner && (err = mr_real_winner_actions(mutex, s_block, s_net_data, this_index)))
+            if(winner && 
+            (err = mr_real_winner_actions(s_block, s_net_data, this_index)))
                 break;
         }
         if(!winner)
-        {
+        {   /*los perdedores de la ronda*/
             if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3)))
                 break;
             mr_vote(mutex, s_net_data, s_block, this_index);
@@ -178,21 +128,15 @@ int main(int argc, char *argv[])
         }
 
         if(s_block->is_valid)
-        {
             err = mr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
-        }
         else
-        {   //Una ronda con votación fallida no cuenta
-            n_rounds++;
-        }
+            n_rounds++;/*una ronda con votación fallida no cuenta*/
         
-        sigprocmask(SIG_SETMASK, &old_mask, &mask); // receive all remaining signals 
-        sigprocmask(SIG_SETMASK, &mask, &old_mask); // restore mask
+        sigprocmask(SIG_SETMASK, &old_mask, &mask); /*recibir las señales restantes*/ 
+        sigprocmask(SIG_SETMASK, &mask, &old_mask); /*reestablecer la máscara*/
 
-        if(!n_rounds || got_sigint)
-        {//Si es su última ronda, se das de baja
+        if(!n_rounds || got_sigint) /*si es su última ronda, se da de baja*/
             mr_miner_last_round(mutex, s_net_data, this_index);
-        }    
         
         mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
 
@@ -201,7 +145,6 @@ int main(int argc, char *argv[])
 
     mr_print_chain_file(last_block, s_net_data->last_miner + 1);
 
-    free(workers);
     free(mine_struct);
     mr_blocks_free(last_block);
     mq_close(queue);
@@ -209,5 +152,5 @@ int main(int argc, char *argv[])
 
     mr_miner_close_net_mutex(mutex, s_net_data);
 
-    exit(EXIT_SUCCESS);
+    pthread_exit(EXIT_SUCCESS);// asegurar que terminan todos los trabajadores
 }

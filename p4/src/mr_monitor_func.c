@@ -18,6 +18,11 @@ int mr_shm_init_monitor(NetData **d)
     {
         (*d)->last_miner = -1;
     }
+    else if ((*d)->monitor_pid > 0)
+    {   /*si hay ya un monitor, salir*/
+        munmap((*d), sizeof(NetData));
+        return EXIT_FAILURE;
+    }
 
     (*d)->monitor_pid = getpid();
 
@@ -157,7 +162,8 @@ int mr_printer_handle_sigalrm(Block *last_block, int n_wallets, int file)
         fprintf(stderr, "Existe una alarma previa establecida\n");
         return 1;
     }
-    print_blocks_file(last_block, n_wallets, file);
+    if(n_wallets)
+        print_blocks_file(last_block, n_wallets, file);
     return 0;
 }
 

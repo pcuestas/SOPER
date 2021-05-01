@@ -56,11 +56,8 @@ void mr_monitor_printer(int fd[2])
         exit(EXIT_FAILURE);
     }
 
-    if (alarm(PRINTER_WAIT))
-    {
-        fprintf(stderr, "Existe una alarma previa establecida\n");
-        err = 1;
-    }
+    /*poner la primera alarma*/
+    err = mr_printer_handle_sigalrm(last_block, n_wallets, file);
 
     while (!err && (ret = mr_fd_read_block(&block, fd, last_block, n_wallets, file, &err) > 0))
     {
@@ -76,17 +73,13 @@ void mr_monitor_printer(int fd[2])
         }
     }
 
-    print_blocks_file(last_block, n_wallets, file);
-
-    mr_blocks_free(last_block);
     close(fd[0]);
+    if (!err)
+        print_blocks_file(last_block, n_wallets, file);
+    mr_blocks_free(last_block);
     close(file);
 
-    if (err || ret < 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    exit(EXIT_SUCCESS);
+    exit((err || (ret < 0)) ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 int main(int argc, char *argv[])
@@ -143,6 +136,8 @@ int main(int argc, char *argv[])
     if (mr_shm_init_monitor(&s_net_data) == EXIT_FAILURE)
     {
         close(fd[1]);
+        sem_post(mutex);/*en el caso de que ya haya monitor, para que la red no se detenga*/
+        sem_close(mutex);
         exit(EXIT_FAILURE);
     }
     sem_post(mutex);

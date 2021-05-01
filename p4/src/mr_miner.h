@@ -31,10 +31,9 @@ typedef struct Mine_struct
 /*workers*/
 Mine_struct *mr_mine_struct_init(int n_workers);
 void *mine(void *d);
-void mr_workers_cancel(pthread_t *workers, int n_workers);
-int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct, int nWorkers, long int target);
+int mr_workers_launch(Mine_struct *mine_struct, int nWorkers, long int target);
 
-void handler(int sig);
+void handler_miner(int sig);
 
 void mr_shm_set_new_round(Block *b, NetData *d);
 
@@ -65,15 +64,15 @@ void mr_print_chain_file(Block *last_block, int n_wallets);
 
 
 
-void mr_last_winner_prepare_round(sem_t *mutex, Block* s_block, NetData* s_net_data);
+void mr_last_winner_prepare_round(Block* s_block, NetData* s_net_data);
 
-int mr_real_winner_actions(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
+int mr_real_winner_actions(Block* s_block, NetData* s_net_data, int this_index);
 
-void mr_winner_update_after_votation(sem_t *mutex, Block* s_block, NetData* s_net_data, int this_index);
+void mr_winner_update_after_votation(Block* s_block, NetData* s_net_data, int this_index);
 
 void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data);
 
-void mr_miner_loser_modify_block(sem_t *mutex, Block *s_block);
+void mr_miner_loser_modify_block(Block *s_block);
 
 /**
  * @brief 
