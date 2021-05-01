@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     int n_workers, n_rounds, err = 0, this_index, winner;
     pid_t this_pid = getpid();
     Block *s_block, *last_block = NULL;
+    pthread_t *workers = NULL;
     NetData *s_net_data;
     Mine_struct *mine_struct = NULL;
     sem_t *mutex;
@@ -48,13 +49,20 @@ int main(int argc, char *argv[])
 
     if (!(mine_struct = mr_mine_struct_init(n_workers)))
     {
+        exit(EXIT_FAILURE);
+    }
+
+    if (!(workers = (pthread_t*)calloc(n_workers, sizeof(pthread_t))))
+    {
         perror("calloc");
+        free(mine_struct);
         exit(EXIT_FAILURE);
     }
 
     if ((mutex = sem_open(SEM_MUTEX_NAME, O_CREAT, S_IRUSR | S_IWUSR, 1)) == SEM_FAILED)
     {
         perror("sem_open");
+        free(workers);
         free(mine_struct);
         exit(EXIT_FAILURE);
     }
@@ -62,6 +70,7 @@ int main(int argc, char *argv[])
     queue = mr_monitor_mq_open(MQ_MONITOR_NAME, O_CREAT | O_WRONLY);
     if (queue == (mqd_t)-1)
     {
+        free(workers);
         free(mine_struct);
         sem_close(mutex);
         exit(EXIT_FAILURE);
@@ -71,7 +80,10 @@ int main(int argc, char *argv[])
     while (sem_wait(mutex) == -1);    
     if (mr_shm_init_miner(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
     {
+        free(workers);
         free(mine_struct);
+        sem_post(mutex);
+        sem_close(mutex);
         exit(EXIT_FAILURE);
     }
     sem_post(mutex);
@@ -96,13 +108,13 @@ int main(int argc, char *argv[])
         }
 
         /*lanzar trabajadores*/
-        if ((err = mr_workers_launch(mine_struct, n_workers, s_block->target))) 
+        if ((err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target))) 
             break;
 
         /*Esperar a conseguir la solución o a que la consiga otro*/
         sigsuspend(&mask_wait_workers);
         
-        end_threads = 1;
+        mr_workers_join(workers, n_workers);
 
         if (got_sighup) 
         {   /*los trabajadores de este proceso han encontrado solución*/
@@ -146,11 +158,12 @@ int main(int argc, char *argv[])
     mr_print_chain_file(last_block, s_net_data->last_miner + 1);
 
     free(mine_struct);
+    free(workers);
     mr_blocks_free(last_block);
     mq_close(queue);
     munmap(s_block, sizeof(Block));
 
     mr_miner_close_net_mutex(mutex, s_net_data);
 
-    pthread_exit(EXIT_SUCCESS);// asegurar que terminan todos los trabajadores
+    exit(EXIT_SUCCESS);
 }
