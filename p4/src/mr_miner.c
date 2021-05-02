@@ -9,7 +9,11 @@ long int proof_solution;
 static volatile sig_atomic_t got_sighup = 0;
 static volatile sig_atomic_t got_sigint = 0;
 
-
+/**
+ * @brief manejador de señales del minero
+ * 
+ * @param sig 
+ */
 void handler_miner(int sig)
 {
     if (sig == SIGINT)
@@ -42,7 +46,7 @@ int main(int argc, char *argv[])
     n_workers = atoi(argv[1]);
     n_rounds = atoi(argv[2]);
 
-    if (mr_miner_set_handlers(mask) == EXIT_FAILURE)
+    if (mrr_set_handlers(mask) == EXIT_FAILURE)
     {
         exit(EXIT_FAILURE);
     }
@@ -78,7 +82,7 @@ int main(int argc, char *argv[])
 
     //Registrar minero en la red
     while (sem_wait(mutex) == -1);    
-    if (mr_shm_init_miner(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
+    if (mrr_shm_init(&s_block, &s_net_data, &this_index) == EXIT_FAILURE)
     {
         free(workers);
         free(mine_struct);
