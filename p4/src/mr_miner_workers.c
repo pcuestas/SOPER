@@ -50,14 +50,14 @@ int mr_workers_launch(pthread_t* workers, Mine_struct* mine_struct, int nWorkers
         mine_struct[i].target = target;
         err = pthread_create(&workers[i], NULL, mine, (void *)&(mine_struct[i]));
         if (err)
-            fprintf(stderr, "pthread_create: %d", err);
+            fprintf(stderr, "pthread_create: %s\n", strerror(err));
     }
 
     if (err)
     {
         end_threads = 1;
         for (j = 0; j < i; j++)
-            pthread_join(workers[j], NULL);
+            pthread_cancel(workers[j]);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -67,6 +67,9 @@ void mr_workers_join(pthread_t* workers, int n_workers)
 {
     int i;
     end_threads = 1;
-    for(i = 0; i < n_workers; i++) 
+    /*
+    for(i = 0; i < n_workers; i++)
+    {
         pthread_join(workers[i], NULL);
+    }*/
 }

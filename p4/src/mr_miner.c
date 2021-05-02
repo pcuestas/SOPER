@@ -88,6 +88,8 @@ int main(int argc, char *argv[])
     }
     sem_post(mutex);
 
+    if(!n_rounds) n_rounds-- ;
+
     /*BUCLE DE RONDAS DE MINADO*/
     while (n_rounds-- && !err && !got_sigint)
     { 

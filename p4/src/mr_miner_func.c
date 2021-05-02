@@ -141,15 +141,16 @@ int mr_shm_init_miner(Block **b, NetData **d, int *this_index)
     return EXIT_SUCCESS;
 }
 
-void mr_shm_set_new_round(Block *b, NetData *d){
+void mr_shm_set_new_round(Block *b, NetData *d)
+{
     int i;
-    
+
     b->target = b->solution;
     b->id++;
     b->is_valid = 0;
     b->solution = -1;
 
-    for(i = 0; i <= d->last_miner; i++)
+    for (i = 0; i <= d->last_miner; i++)
         d->voting_pool[i] = VOTE_NOT_VOTED;
 
     mr_shm_quorum(d);
@@ -170,7 +171,8 @@ void mr_shm_quorum(NetData *net)
     net->total_miners = n;
 }
 
-void mr_shm_set_solution(Block *b, long int solution){
+void mr_shm_set_solution(Block *b, long int solution)
+{
     b->solution = solution;
 }
 
@@ -203,14 +205,14 @@ int mr_check_votes(NetData *net)
     return ((2 * count) >= net->total_miners);
 }
 
-void mr_vote(sem_t *mutex, NetData *net, Block *b, int index){
+void mr_vote(sem_t *mutex, NetData *net, Block *b, int index)
+{
     int flag;
     
     flag = (b->target == simple_hash(b->solution));
     net->voting_pool[index] = flag ? VOTE_YES : VOTE_NO;
     
     mr_lightswitchoff(mutex, &(net->num_voters), &(net->sem_votation_done));
-
 }
 
 void mr_send_end_scrutinizing(NetData *net, int n)
