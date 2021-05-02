@@ -49,16 +49,17 @@ int mr_workers_launch(pthread_t* workers, Mine_struct* mine_struct, int n_worker
     int i, j, err = 0;
     end_threads = 0;
 
-    for (i = 0; i < n_workers && !err; i++)
-    {
+    for (i = 0; i < n_workers && !err; i++){
         mine_struct[i].target = target;
         err = pthread_create(&workers[i], NULL, mine, (void *)&(mine_struct[i]));
+        
         if (err)
         {
             errno = err;
             perror("pthread_create");
         }
     }
+
 
     if (err)
     {
@@ -75,9 +76,7 @@ void mr_workers_cancel(pthread_t* workers, int n_workers)
     int i;
     end_threads = 1;
 
-    for(i = 0; i < n_workers; i++)
-    {
-        pthread_detach(workers[i]);
-        pthread_cancel(workers[i]);
-    }
+    for(i = 0; i < n_workers; i++){   
+        pthread_join(workers[i],NULL);
+    }   
 }

@@ -38,3 +38,10 @@ $(MONITOR): % : %.o $(OBJ_MONITOR)
 
 clean:
 	$(RM) *.o $(ALL) *.log
+
+
+remove:
+	rm /dev/shm/sem.mr_mutex
+	rm /dev/shm/block
+	rm /dev/shm/netdata
+	rm /dev/mqueue/mr_mq_monitor
