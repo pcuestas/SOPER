@@ -246,7 +246,7 @@ void mr_print_chain_file(Block *last_block, int n_wallets)
         return;
     }
 
-    print_blocks_file(last_block, n_wallets, fd);
+    mr_blocks_print_to_file(last_block, n_wallets, fd);
 }
 
 void mr_notify_miners(NetData *net)
@@ -358,7 +358,7 @@ void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data)
 int mr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner)
 {
     /*Añadir bloque correcto a la cadena de cada minero*/
-    (*last_block) = mr_shm_block_copy(s_block, *last_block);
+    (*last_block) = mr_block_append(s_block, *last_block);
 
     if ((*last_block) == NULL)
         return 1;

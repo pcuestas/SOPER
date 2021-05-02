@@ -1,12 +1,33 @@
+/**
+ * @file mr_miner_workers.c (Proyecto SOPER)
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez 
+ * 
+ * @brief Fichero con la implemetación de las funciones 
+ * relacionadas con los trabajadores de los mineros. 
+ * Estas funciones están declaradas en mr_miner.h
+ */
 #include "miner.h"
 #include "mr_miner.h"
 
 extern int end_threads;
 extern long int proof_solution;
 
-void *mine(void *d)
+/**
+ * @brief función para el hilo del trabajador. 
+ * Solución al target en la estructura empezando por 
+ * el valor inicial y terminando en el final que pone en su 
+ * estructura pasada por d.
+ * Si encuentra solución, lo comunica a los demás trabajadores 
+ * poniendo la variable global end_threads a 1 y la variable
+ * proof_solution con el valor de la solución. Y manda SIGHUP
+ * al propio proceso para señalizar que es ganador.
+ * 
+ * @param d estructura de tipo WorkerStruct 
+ * @return NULL en todo caso
+ */
+void *mrw_thread_mine(void *d)
 {
-    Mine_struct *data = (Mine_struct *)d;
+    WorkerStruct *data = (WorkerStruct *)d;
     long int i;
 
     for (i = data->begin; i < data->end && !end_threads; i++)
@@ -21,38 +42,56 @@ void *mine(void *d)
     return NULL;
 }
 
-Mine_struct *mr_mine_struct_init(int n_workers)
+/**
+ * @brief inicializa n_workers estructuras de tipo WorkerStruct
+ * en un array, alocando memoria para ello y estableciendo 
+ * los valores iniciales y final de cada trabajador
+ * 
+ * @param n_workers número de trabajadores
+ * @return WorkerStruct* el array reservad ei inicializado
+ */
+WorkerStruct *mrw_struct_init(int n_workers)
 {
     int i;
     long int interval = PRIME / n_workers;
-    Mine_struct *mine_struct;
+    WorkerStruct *workers_struct_arr;
 
-    mine_struct = (Mine_struct *)calloc(n_workers, sizeof(Mine_struct));
-    if (mine_struct == NULL)
+    workers_struct_arr = (WorkerStruct *)calloc(n_workers, sizeof(WorkerStruct));
+    if (workers_struct_arr == NULL)
     {
         perror("calloc");
         return NULL;
     }
 
-    mine_struct[0].begin = 0;
+    workers_struct_arr[0].begin = 0;
     for (i = 1; i < n_workers; i++)
     {
-        mine_struct[i - 1].end = mine_struct[i].begin = i * interval;
+        workers_struct_arr[i - 1].end = workers_struct_arr[i].begin = i * interval;
     }
-    mine_struct[n_workers - 1].end = PRIME;
+    workers_struct_arr[n_workers - 1].end = PRIME;
 
-    return mine_struct;
+    return workers_struct_arr;
 }
 
-int mr_workers_launch(pthread_t* workers, Mine_struct* mine_struct, int n_workers, long int target)
+/**
+ * @brief lanza los hilos de los trabajadores
+ * 
+ * @param workers array de los hilos que se lanzan
+ * @param workers_struct_arr array de las estructuras de los mineros
+ * @param n_workers número de trabajadores
+ * @param target nuevo target
+ * @return EXIT_SUCCESS en caso de éxito, EXIT_FAILURE si hay algún error 
+ */
+int mrw_launch(pthread_t *workers, WorkerStruct *workers_struct_arr, int n_workers, long int target)
 {
     int i, j, err = 0;
     end_threads = 0;
 
-    for (i = 0; i < n_workers && !err; i++){
-        mine_struct[i].target = target;
-        err = pthread_create(&workers[i], NULL, mine, (void *)&(mine_struct[i]));
-        
+    for (i = 0; i < n_workers && !err; i++)
+    {
+        workers_struct_arr[i].target = target;
+        err = pthread_create(&workers[i], NULL, mrw_thread_mine, (void *)&(workers_struct_arr[i]));
+
         if (err)
         {
             errno = err;
@@ -60,23 +99,29 @@ int mr_workers_launch(pthread_t* workers, Mine_struct* mine_struct, int n_worker
         }
     }
 
-
     if (err)
     {
         end_threads = 1;
         for (j = 0; j < i; j++)
-            pthread_cancel(workers[j]);
+            pthread_join(workers[j], NULL);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }
 
-void mr_workers_cancel(pthread_t* workers, int n_workers)
+/**
+ * @brief Hace join a todos los hilos trabajadores
+ * 
+ * @param workers array con los hilos
+ * @param n_workers número de trabajadores
+ */
+void mrw_join(pthread_t* workers, int n_workers)
 {
     int i;
     end_threads = 1;
 
-    for(i = 0; i < n_workers; i++){   
-        pthread_join(workers[i],NULL);
+    for(i = 0; i < n_workers; i++)
+    {   
+        pthread_join(workers[i], NULL);
     }   
 }

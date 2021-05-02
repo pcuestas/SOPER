@@ -1,8 +1,27 @@
+/**
+ * @file mr_util.c (Proyecto SOPER)
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez 
+ * @brief Funciones comunes a los mineros y monitor. 
+ * Declaraciones en mr_util.h
+ */
 #include "mr_util.h"
 #include "miner.h"
+#include <stdbool.h>
 
-
-
+/**
+ * @brief mapea un segmento de memoria compartida, creándolo 
+ * en caso de que no exista, con un tamaño determinado.
+ * 
+ * @param file_name nombre del segmento de memoria compartida
+ * @param p en *p se guarda el puntero a la memoria mapeada
+ * @param size tamaño del segmento 
+ * 
+ * @return MR_SHM_CREATED en caso de que la memoria se haya creado 
+ * con éxito. 
+ * @return MR_SHM_FAILED en caso de error
+ * @return MR_SHM_EXISTS en caso de que la memoria exista y se abra 
+ * con éxito
+ */
 int mr_shm_map(char* file_name, void **p, size_t size)
 {
     int ret_flag = MR_SHM_CREATED;
@@ -12,7 +31,7 @@ int mr_shm_map(char* file_name, void **p, size_t size)
     if (fd == -1)
     {
         if (errno == EEXIST)
-        {
+        {   /*si ya existe, abrirlo*/
             ret_flag = MR_SHM_EXISTS;
             fd = shm_open(file_name, O_RDWR, 0);
         }
@@ -41,22 +60,22 @@ int mr_shm_map(char* file_name, void **p, size_t size)
     return ret_flag;
 }
 
-
 /**
  * @brief abre la cola con nombre queue_name con 
- * las banderas __oflag
+ * las banderas __oflag. El tamaño de mensajes
+ * se pone al valor de la constante MSG_SIZE.
  * 
  * @param queue_name nombre de la cola a abrir
  * @param __oflag igual que __oflag en mq_open
  * @return la cola abierta, o (mdq_t)-1 en caso de error
  */
-mqd_t mr_monitor_mq_open(char *queue_name, int __oflag)
+mqd_t mr_mq_open(char *queue_name, int __oflag)
 {
     struct mq_attr attributes = {
         .mq_flags = 0,
         .mq_maxmsg = 10,
         .mq_curmsgs = 0,
-        .mq_msgsize = sizeof(Block)
+        .mq_msgsize = MSG_SIZE
     };
 
     mqd_t queue = mq_open(queue_name, __oflag,
@@ -68,7 +87,11 @@ mqd_t mr_monitor_mq_open(char *queue_name, int __oflag)
     return queue;
 }
 
-
+/**
+ * @brief Libera la cadena de bloques entera
+ * 
+ * @param last_block último bloque de la cadena
+ */
 void mr_blocks_free(Block *last_block)
 {
     Block *prev;
@@ -81,8 +104,16 @@ void mr_blocks_free(Block *last_block)
     }
 }
 
-
-Block* mr_shm_block_copy(Block *shm_b, Block *last_block){
+/**
+ * @brief Reserva memoria para un nuevo bloque con la 
+ * información de shm_b y lo pone en la cadena a la que 
+ * apunta last_block como nuevo último bloque.
+ * 
+ * @param shm_b bloque que se copia
+ * @param last_block último bloque
+ * @return puntero al nuevo bloque creado (nuevo último bloque)
+ */
+Block* mr_block_append(Block *shm_b, Block *last_block){
     Block *new_block=NULL;
 
     if(!(new_block=(Block*)calloc(1,sizeof(Block)))){
@@ -107,8 +138,10 @@ Block* mr_shm_block_copy(Block *shm_b, Block *last_block){
  * 
  * @param sem semáforo en el que se realiza la espera
  * @param seconds segundos 
+ * 
  * @return 1 en caso de que falle clock_gettime
- * o sem_timedwait. 0 en caso de éxito
+ * o sem_timedwait porque se agota el tiempo
+ * @return 0 en caso de éxito
  */
 int mr_timed_wait(sem_t *sem, int seconds)
 {
@@ -126,7 +159,7 @@ int mr_timed_wait(sem_t *sem, int seconds)
             fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Finaliza el minado\n");
             return 1;
         }
-        else if (errno != EINTR)//errno==EINTR en caso de que sea interrumpida la llamada por una señal
+        else if (errno != EINTR)/*errno==EINTR en caso de que sea interrumpida la llamada por una señal*/
         {
             perror("sem_timedwait");
             return 1;
@@ -135,13 +168,20 @@ int mr_timed_wait(sem_t *sem, int seconds)
     return 0;
 }
 
-
-void print_blocks_file(Block *plast_block, int num_wallets, int fd)
+/**
+ * @brief Imprime la cadena de bloques entera al inicio de 
+ * un fichero
+ * 
+ * @param plast_block úlitimo bloque de la cadena
+ * @param num_wallets número de wallets a imprimir
+ * @param fd descriptor del fichero abierto en el que se imprime
+ */
+void mr_blocks_print_to_file(Block *plast_block, int num_wallets, int fd)
 {
     Block *block = NULL;
     int i, j;
 
-    lseek(fd, 0, SEEK_SET); // error ? -1
+    lseek(fd, 0, SEEK_SET);
 
     for (i = 0, block = plast_block; block != NULL; block = block->prev, i++)
     {

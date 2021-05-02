@@ -21,19 +21,7 @@
 #define VOTE_NO 0
 #define VOTE_NOT_VOTED 2
 
-typedef struct Mine_struct_
-{
-    long int target;
-    long int begin;
-    long int end;
-} Mine_struct;
 
-/*workers*/
-Mine_struct *mr_mine_struct_init(int n_workers);
-void *mine(void *d);
-int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct, int nWorkers, long int target);
-
-void mr_workers_cancel(pthread_t* workers, int n_workers);
 
 void handler_miner(int sig);
 
@@ -90,5 +78,60 @@ int mr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_dat
 
 
 void mr_miner_last_round(sem_t *mutex, NetData* s_net_data, int this_index);
+
+/* * * * * T R A B A J A D O R E S * * * * */
+/**
+ * @brief estructura para los hilos de los trabajadores
+ * 
+ */
+typedef struct WorkerStruct_{
+    long int target;
+    long int begin; // primer valor que probar
+    long int end; // último valor que probar
+} WorkerStruct;
+
+/**
+ * @brief función para el hilo del trabajador. 
+ * Solución al target en la estructura empezando por 
+ * el valor inicial y terminando en el final que pone en su 
+ * estructura pasada por d.
+ * Si encuentra solución, lo comunica a los demás trabajadores 
+ * poniendo la variable global end_threads a 1 y la variable
+ * proof_solution con el valor de la solución. Y manda SIGHUP
+ * al propio proceso para señalizar que es ganador.
+ * 
+ * @param d estructura de tipo WorkerStruct 
+ * @return NULL en todo caso
+ */
+void *mrw_thread_mine(void *d);
+
+/**
+ * @brief inicializa n_workers estructuras de tipo WorkerStruct
+ * en un array, alocando memoria para ello y estableciendo 
+ * los valores iniciales y final de cada trabajador
+ * 
+ * @param n_workers número de trabajadores
+ * @return WorkerStruct* el array reservad ei inicializado
+ */
+WorkerStruct *mrw_struct_init(int n_workers);
+
+/**
+ * @brief lanza los hilos de los trabajadores
+ * 
+ * @param workers array de los hilos que se lanzan
+ * @param workers_struct_arr array de las estructuras de los mineros
+ * @param n_workers número de trabajadores
+ * @param target nuevo target
+ * @return EXIT_SUCCESS en caso de éxito, EXIT_FAILURE si hay algún error 
+ */
+int mrw_launch(pthread_t *workers, WorkerStruct *mine_struct, int nWorkers, long int target);
+
+/**
+ * @brief Hace join a todos los hilos trabajadores
+ * 
+ * @param workers array con los hilos
+ * @param n_workers número de trabajadores
+ */
+void mrw_join(pthread_t* workers, int n_workers);
 
 #endif

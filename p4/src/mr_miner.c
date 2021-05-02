@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     Block *s_block, *last_block = NULL;
     pthread_t *workers = NULL;
     NetData *s_net_data;
-    Mine_struct *mine_struct = NULL;
+    WorkerStruct *mine_struct = NULL;
     sem_t *mutex;
     sigset_t mask_wait_workers, mask, old_mask;
     mqd_t queue;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if (!(mine_struct = mr_mine_struct_init(n_workers)))
+    if (!(mine_struct = mrw_struct_init(n_workers)))
     {
         exit(EXIT_FAILURE);
     }
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    queue = mr_monitor_mq_open(MQ_MONITOR_NAME, O_CREAT | O_WRONLY);
+    queue = mr_mq_open(MQ_MONITOR_NAME, O_CREAT | O_WRONLY);
     if (queue == (mqd_t)-1)
     {
         free(workers);
@@ -110,13 +110,13 @@ int main(int argc, char *argv[])
         }
 
         /*lanzar trabajadores*/
-        if ((err = mr_workers_launch(workers, mine_struct, n_workers, s_block->target))) 
+        if ((err = mrw_launch(workers, mine_struct, n_workers, s_block->target))) 
             break;
 
         /*Esperar a conseguir la solución o a que la consiga otro*/
         sigsuspend(&mask_wait_workers);
         
-        mr_workers_cancel(workers, n_workers);
+        mrw_join(workers, n_workers);
 
         if (got_sighup) 
         {   /*los trabajadores de este proceso han encontrado solución*/

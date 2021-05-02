@@ -3,18 +3,10 @@
 #include "mr_monitor.h"
 #include <stdint.h>
 
-static volatile sig_atomic_t got_sigint = 0;
+volatile sig_atomic_t got_sigint = 0;
 volatile sig_atomic_t got_sigalrm = 0;
 
-void handler_sigint(int sig)
-{
-    got_sigint = 1;
-}
 
-void handler_sigalrm(int sig)
-{
-    got_sigalrm = 1;
-}
 
 /**
  * @brief hijo
@@ -57,25 +49,25 @@ void mr_monitor_printer(int fd[2])
     }
 
     /*poner la primera alarma*/
-    err = mr_printer_handle_sigalrm(last_block, n_wallets, file);
+    err = mrp_handle_sigalrm(last_block, n_wallets, file);
 
-    while (!err && (ret = mr_fd_read_block(&block, fd, last_block, n_wallets, file, &err) > 0))
+    while (!err && (ret = mrp_fd_read_block(&block, fd, last_block, n_wallets, file, &err) > 0))
     {
         n_wallets = block.is_valid;
         block.is_valid = 1;
-        last_block = mr_shm_block_copy(&block, last_block);
+        last_block = mr_block_append(&block, last_block);
 
         if (last_block == NULL)
             err = 1;
         if (!err && got_sigalrm)
         {
-            err = mr_printer_handle_sigalrm(last_block, n_wallets, file);
+            err = mrp_handle_sigalrm(last_block, n_wallets, file);
         }
     }
 
     close(fd[0]);
     if (!err)
-        print_blocks_file(last_block, n_wallets, file);
+        mr_blocks_print_to_file(last_block, n_wallets, file);
     mr_blocks_free(last_block);
     close(file);
 
@@ -90,7 +82,7 @@ int main(int argc, char *argv[])
     NetData *s_net_data;
     sem_t *mutex;
     struct sigaction act;
-    Monitor_blocks blocks;
+    MonitorBlocks blocks;
     Block block;
     blocks.last_block = 0;
 
@@ -133,7 +125,7 @@ int main(int argc, char *argv[])
     }
 
     while (sem_wait(mutex) == -1);
-    if (mr_shm_init_monitor(&s_net_data) == EXIT_FAILURE)
+    if (mrt_shm_init(&s_net_data) == EXIT_FAILURE)
     {
         close(fd[1]);
         sem_post(mutex);/*en el caso de que ya haya monitor, para que la red no se detenga*/
@@ -142,7 +134,7 @@ int main(int argc, char *argv[])
     }
     sem_post(mutex);
 
-    queue = mr_monitor_mq_open(MQ_MONITOR_NAME, O_CREAT | O_RDONLY);
+    queue = mr_mq_open(MQ_MONITOR_NAME, O_CREAT | O_RDONLY);
     if (queue == (mqd_t)-1)
     {
         close(fd[1]);
@@ -155,18 +147,18 @@ int main(int argc, char *argv[])
 
     while (!err && !got_sigint)
     {
-        err = mr_mq_receive(&block, queue);
+        err = mrt_mq_receive(&block, queue);
 
-        if (!err && !mr_monitor_block_is_repeated(&block, &blocks, &err))
+        if (!err && !mrt_block_is_repeated(&block, &blocks, &err))
         { //ver que es correcto y no repetido
             block.is_valid = s_net_data->last_miner + 1;
-            err = mr_fd_write_block(&block, fd);
+            err = mrt_fd_write_block(&block, fd);
         }
     }
 
     close(fd[1]);
 
-    mr_monitor_close_net_mutex(mutex, s_net_data);
+    mrt_close_net_mutex(mutex, s_net_data);
 
     wait(NULL);
     exit(EXIT_SUCCESS);
