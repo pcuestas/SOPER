@@ -42,7 +42,7 @@ typedef struct _NetData {
     int num_voters;
     sem_t sem_round_begin;
     sem_t sem_round_end;
-    sem_t sem_scrutinizing;
+    sem_t sem_scrutiny;
     sem_t sem_votation_done;
     sem_t sem_start_voting;
 } NetData;

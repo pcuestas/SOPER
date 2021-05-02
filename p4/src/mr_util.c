@@ -6,7 +6,6 @@
  */
 #include "mr_util.h"
 #include "miner.h"
-#include <stdbool.h>
 
 /**
  * @brief mapea un segmento de memoria compartida, creándolo 
@@ -113,15 +112,17 @@ void mr_blocks_free(Block *last_block)
  * @param last_block último bloque
  * @return puntero al nuevo bloque creado (nuevo último bloque)
  */
-Block* mr_block_append(Block *shm_b, Block *last_block){
-    Block *new_block=NULL;
+Block *mr_block_append(Block *shm_b, Block *last_block)
+{
+    Block *new_block = NULL;
 
-    if(!(new_block=(Block*)calloc(1,sizeof(Block)))){
+    if (!(new_block = (Block *)calloc(1, sizeof(Block))))
+    {
         return NULL;
     }
 
     memcpy(new_block, shm_b, sizeof(Block));
-    if(last_block != NULL)
+    if (last_block != NULL)
         last_block->next = new_block;
     new_block->prev = last_block;
 

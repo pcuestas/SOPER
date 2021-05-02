@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     mqd_t queue;
 
     /*inicializar las máscaras y hacer sigprocmask*/
-    mr_masks_set_up(&mask, &mask_wait_workers, &old_mask);
+    mrr_masks_set_up(&mask, &mask_wait_workers, &old_mask);
 
     if (argc != 3)
     {
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
         if ((this_pid == s_net_data->last_winner))
         {   /*el último ganador, prepara la ronda*/
-            mr_last_winner_prepare_round(s_block, s_net_data);
+            mrr_last_winner_prepare_round(s_block, s_net_data);
         }
         else
         {   /*esperar a que el anterior ganador prepare la ronda*/
@@ -129,24 +129,24 @@ int main(int argc, char *argv[])
             while (sem_wait(mutex) == -1);
             winner = (s_block->solution == -1);/* 1 ssi es el primero ("verdadero ganador")*/
             if(winner)
-                mr_shm_set_solution(s_block, proof_solution);
+                mrr_set_solution(s_block, proof_solution);
             sem_post(mutex);
 
             if(winner && 
-            (err = mr_real_winner_actions(s_block, s_net_data, this_index)))
+            (err = mrr_winner_actions(s_block, s_net_data, this_index)))
                 break;
         }
         if(!winner)
         {   /*los perdedores de la ronda*/
             if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3)))
                 break;
-            mr_vote(mutex, s_net_data, s_block, this_index);
-            if ((err = mr_timed_wait(&(s_net_data->sem_scrutinizing), 3)))
+            mrr_vote(mutex, s_net_data, s_block, this_index);
+            if ((err = mr_timed_wait(&(s_net_data->sem_scrutiny), 3)))
                 break;           
         }
 
         if(s_block->is_valid)
-            err = mr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
+            err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
         else
             n_rounds++;/*una ronda con votación fallida no cuenta*/
         
@@ -154,13 +154,13 @@ int main(int argc, char *argv[])
         sigprocmask(SIG_SETMASK, &mask, &old_mask); /*reestablecer la máscara*/
 
         if(!n_rounds || got_sigint) /*si es su última ronda, se da de baja*/
-            mr_miner_last_round(mutex, s_net_data, this_index);
+            mrr_last_round(mutex, s_net_data, this_index);
         
         mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
         printf("miner:%d-remaining rounds:%d\n", this_pid, n_rounds);
     }
 
-    mr_print_chain_file(last_block, s_net_data->last_miner + 1);
+    mrr_print_chain(last_block, s_net_data->last_miner + 1);
 
     free(mine_struct);
     free(workers);
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     mq_close(queue);
     munmap(s_block, sizeof(Block));
 
-    mr_miner_close_net_mutex(mutex, s_net_data);
+    mrr_close_net_mutex(mutex, s_net_data);
 
     exit(EXIT_SUCCESS);
 }
