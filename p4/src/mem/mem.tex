@@ -130,7 +130,9 @@
 
     El monitor, como pone en los requisitos del enunciado, no comprueba que la solución sea la correcta (con la función \emph{hash}), sino que comprueba que si tiene un bloque con ese mismo \emph{id}, el bloque recibido tenga la misma solución y objetivo. Por este motivo, y como los mineros solo mandan los bloques que se han votado como correctos, no se da nunca el caso de que el monitor reconozca un ``bloque erróneo''.
 
-    El monitor (proceso padre) le manda a su hijo los bloques nuevos. Debido a que tanto el padre como el hijo pueden recibir señales durante la escritura o lectura en la \textit{pipe}, hemos utilizado el siguiente algoritmo, que asegura la lectura o escritura completa de la información y el manejo de las señales en cada caso:
+    El monitor (proceso padre) le manda a su hijo los bloques nuevos. Para mandar el número de \emph{wallets} que el hijo imprime, hemos hecho uso del campo \texttt{is\_valid} del bloque que se escribe en la tubería, que no tiene ninguna utilidad en este caso, ya que el monitor solo recibe bloques válidos y, de todas formas, el hijo del monitor nunca utiliza este campo.
+    
+    Debido a que tanto el padre como el hijo pueden recibir señales durante la escritura o lectura en la \textit{pipe}, hemos utilizado el siguiente algoritmo, que asegura la lectura o escritura completa de la información y el manejo de las señales en cada caso (sería similar en el caso de la escritura, cambiando \emph{read} por \emph{write}):
 
     \begin{lstlisting}[language=C]
 do{

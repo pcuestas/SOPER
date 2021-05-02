@@ -146,8 +146,8 @@ int mrt_block_is_repeated(Block *b, MonitorBlocks *blocks, int *err)
  * @param n_wallets número de wallets
  * @param file fichero al que se imprime cada vez que se recibe SIGALRM
  * @param err *err toma el valor 1 en caso de error
- * @return número de bytes leídos. 
- * @return 0 en caso de que se lea EOF o de que haya error 
+ * @return número de bytes leídos
+ * ó 0 en caso de que se lea EOF o de que haya error 
  */
 int mrp_fd_read_block(Block *block, int fd[2], Block* last_block, int n_wallets, int file, int *err)
 {

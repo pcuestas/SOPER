@@ -56,7 +56,7 @@ void handler_sigalrm(int sig);
  * 
  * @param fd 
  */
-void mr_monitor_printer(int fd[2]);
+void mrtp_printer_main(int fd[2]);
 
 /**
  * @brief mapea e inicializa la memoria compartida 

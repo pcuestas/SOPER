@@ -9,11 +9,11 @@ volatile sig_atomic_t got_sigalrm = 0;
 
 
 /**
- * @brief hijo
+ * @brief función del hijo del monitor
  * 
- * @param fd 
+ * @param fd tubería abierta
  */
-void mr_monitor_printer(int fd[2])
+void mrtp_printer_main(int fd[2])
 {
     Block *last_block = NULL;
     Block block;
@@ -53,7 +53,7 @@ void mr_monitor_printer(int fd[2])
 
     while (!err && (ret = mrp_fd_read_block(&block, fd, last_block, n_wallets, file, &err) > 0))
     {
-        n_wallets = block.is_valid;
+        n_wallets = block.is_valid; /*recibimos el número de wallets por este campo no necesario*/
         block.is_valid = 1;
         last_block = mr_block_append(&block, last_block);
 
@@ -71,7 +71,7 @@ void mr_monitor_printer(int fd[2])
     mr_blocks_free(last_block);
     close(file);
 
-    exit((err || (ret < 0)) ? EXIT_FAILURE : EXIT_SUCCESS);
+    exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 int main(int argc, char *argv[])
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     }
     else if (child == 0)
     {
-        mr_monitor_printer(fd); // el hijo termina por su cuenta
+        mrtp_printer_main(fd); // el hijo termina por su cuenta
     }
     close(fd[0]);
 
