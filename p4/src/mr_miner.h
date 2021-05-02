@@ -26,7 +26,7 @@ typedef struct Mine_struct
     long int target;
     long int begin;
     long int end;
-    Block
+
 } Mine_struct;
 
 /*workers*/

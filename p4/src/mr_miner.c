@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
         /*Esperar a conseguir la solución o a que la consiga otro*/
         sigsuspend(&mask_wait_workers);
         
-        mr_workers_join(workers, n_workers);
+        mr_workers_cancel(workers, n_workers);
 
         if (got_sighup) 
         {   /*los trabajadores de este proceso han encontrado solución*/
