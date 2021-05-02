@@ -133,7 +133,6 @@ int mr_fd_read_block(Block *block, int fd[2], Block* last_block, int n_wallets, 
 
 int mr_fd_write_block(Block *block, int fd[2])
 {
-
     int total_size_written = 0;
     int target_size = sizeof(Block);
     int size_written = 0;
@@ -178,7 +177,6 @@ void mr_monitor_close_net_mutex(sem_t *mutex, NetData* s_net_data)
         sem_unlink(SEM_MUTEX_NAME);
         shm_unlink(SHM_NAME_BLOCK);
         shm_unlink(SHM_NAME_NET);
-        sem_unlink(SEM_MUTEX_NAME);
         mq_unlink(MQ_MONITOR_NAME);
     }
     sem_post(mutex);

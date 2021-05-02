@@ -51,12 +51,7 @@ _________________________________________________________________
 
 se puede poner num_wallets en Block_struct
 
-- si llegan mineros tras la salida de otros mineros, se pueden enganchar al monitor que usaron los otros miners?? que el monitor tabién se tenga en cuenta a la hora de hacer unlink de las cosas de la memoria !!!!! Y ese minero tiene que ser considerado last winner! (la memoria ya esta creada)
-
-mr_monitor_printer_print_blocks()!!!!!
-
-
-
+- es el minero el que manda sigusr2 a los demás??
 
 ________________________________________________
 
@@ -72,3 +67,4 @@ Memoria
 
 - 
 
+/

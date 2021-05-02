@@ -77,111 +77,103 @@
 \tableofcontents
 \end{tcolorbox}
 
-\section*{Memoria compratida}
+\pagebreak
 
-\addcontentsline{toc}{subsection}{Ejercicio 1}
-\subsection*{Ejercicio 1}
+\addcontentsline{toc}{section}{Calificación base}
+\section*{Calificación base}
 
-a) Primero (línea 2), se intenta crear un segmento de memoria compartida, con las opción \texttt{O\_EXCL}, si existe el segmento, \texttt{shm\_open} devuelva error ($-1$). Después (línea 3), se trata este error y, en caso de que el error se deba a que el segmento con ese nombre ya existía, se abre este segmento (esta vez sin usar la flag de crear). Si el error no era porque ya existiera o si al intentar abrir el segmento ya existente hay otro error, se llama a \texttt{perror} y termina el programa. 
+\addcontentsline{toc}{subsection}{Nivel 1: Minero multihilo}
+\subsection*{Nivel 1: Minero multihilo}
 
-b) Para forzar la inicialización (en la primera llamada), habría que quitar la opción \texttt{O\_EXCL} (para que si existe, no se devuelva error), y añadir la opción \texttt{O\_TRUNC}, con la que, si existe, se trunca a tamaño 0. De este modo, se forzaría la inicialización. 
+    Para este primer nivel hemos diferenciado dos partes. En primer lugar iniciar correctamente los segmentos de memoria compartida del bloque y la red, y por otro lado, la creación de los hilos y su correcta terminanción. 
+
+    En la red, hemos incluido más atributos (para siguientes niveles) y es el primer minero el que se encarga de inicializarlos correctamente.
+    De la misma forma, si el minero crea el segmento que corresponde al bloque, configura una "primera solución" que se usará para generar el primer \textit{target} (y por ende, el resto).
+
+    Por otro lado, para lo relativo a los hilos, alocamos un \textit{array} de \textbf{pthread\_t} e iniciamos la estructura de minado que cada trabajador (hilo) va a recibir. Esta estructura solo se inicializa una vez pues es común para todas las rondas y se libera cuando el minero abandona la red. 
+    
+    \begin{lstlisting}[language=C]
+        typedef struct Mine_struct_{
+            long int target;
+            long int begin;
+            long int end;
+        } Mine_struct;  \end{lstlisting}
 
 
-\addcontentsline{toc}{subsection}{Ejercicio 2}
-\subsection*{Ejercicio 2}
+    En esta versión con un solo minero no se produce votación puesto que el quorum siempre resulta en 1 minero activo. Por lo tanto, el minero siempre se considera ganador y añade el bloque minado a su propia cadena. La ronda de minado finaliza cuando un trabajdor encuentra la solución y manda una señal a su proceso para que salga de la función bloqueante \texttt{sigsuspend}. Todas las señales tratadas tienen el mismo manejador el cual solo pone a 1 la variable de tipo \texttt{sig\_atomic\_t} que indica que señal se ha recibido. Para distinguir si se sale de \texttt{sigsuspend} siendo ganador o perdedor, el trabajador que encuentra la solución manda a su proceso \texttt{SIGHUP} (el resto de mineros recibirán \texttt{SIGUSR2}).
+    
+    Al acabar cada ronda de minado se cancelam los hilos de los trabajadores desde el \textit{main} solo para asegurar que nunca se empiece una nueva ronda con trabajadores aun activos (aunque sea algo prácticamente imposible). Los hilos se marcan como \textit{detached} para evitar pérdidas de memoria como se pued ver en la siguiente imagen de una ejecución de un minero con 1000 trabajadores (lo que supone 2000 llamadas a \textit{pthread\_init}). 
 
-a) Para obtener el tamaño basta con:
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[scale=.41]{./pruebas/valgrind_1000_trabajadores}
+        \caption{100 trabajadores con Valgrind}
+    \end{figure}
 
-\begin{lstlisting}[language=C]
-    if (fstat(fd, &statbuf) != 0) {
-        perror("fstat");
-        exit(EXIT_FAILURE);
-    } 
-\end{lstlisting} 
-Y tras esto, el tamaño se encuentra en \texttt{statbuf.st\_size}.
+    
+    Dependiendo de la velocidad relativa de ejecución de los hilos (trabajadores y \textit{main}), los trabajadores pueden acabar por la llamada a \textit{pthread\_cancel} como hemos mencionado anteriormente, o por su cuenta al salir del bucle de la búsqueda de la \textbf{POW} cuando el trabajador que ha encontrado la solución cambia una variable global para indicarlo.
 
-b) Para truncar a 5 bytes:
-\begin{lstlisting}[language=C]
-    if (ftruncate(fd, 5) != 0) {
-        perror("ftruncate");
-        exit(EXIT_FAILURE);
+    
+    Al finalizar las rondas de minado se imprime la cadena de vloques en un fichero para lo cual hemos usado como base la función proporcionada cambiado \textit{printf} por \textit{dprintf}. Por último,liberan todos los recursos con las respectivas funciones de \textit{free} y \textit{unlink}.
+
+    
+
+\addcontentsline{toc}{subsection}{Nivel 2: Comunicación con el monitor}
+\subsection*{Nivel 2: Comunicación con el monitor}
+
+    Para la comunciación con el monitor, se tiene que crear una cola de mensajes (a la que todos acceden abriéndola con su nombre). El primero en llegar la crea (sea minero o monitor), y los demás simplemente la abren.
+    
+    Además, el primero que llega, también crea los segmentos de memoria compartida e inicializa los campos a su respectivo valor inicial. Para evitar que dos procesos accedan a la vez en su escritura inicial, hemos tenido que usar un semáforo con nombre que impida el acceso simultáneo de dos procesos a la estructura compartida.
+    Este \textit{mutex} es el único semáforo con nombre que hemos utilizado en el proyecto.
+
+    El único minero que hay por ahora, al declararse ganador, envía por la cola de mensajes su nuevo bloque.
+
+    El monitor, como pone en los requisitos del enunciado, no comprueba que la solución sea la correcta (con la función \emph{hash}), sino que comprueba que si tiene un bloque con ese mismo \emph{id}, el bloque recibido tenga la misma solución y objetivo. Por este motivo, y como los mineros solo mandan los bloques que se han votado como correctos, no se da nunca el caso de que el monitor reconozca un ``bloque erróneo''.
+
+    El monitor (proceso padre) le manda a su hijo los bloques nuevos. Debido a que tanto el padre como el hijo pueden recibir señales durante la escritura o lectura en la \textit{pipe}, hemos utilizado el siguiente algoritmo, que asegura la lectura o escritura completa de la información y el manejo de las señales en cada caso:
+
+    \begin{lstlisting}[language=C]
+do{
+    size_read = read(fd[0], ((char*)block) + total_size_read, target_size - total_size_read);
+    if (size_read == -1)
+    {
+        if(errno == EINTR && got_signal)
+            handle_signal();
+        else if(errno != EINTR)
+            handle_read_error();
     }
-\end{lstlisting}
- 
-El fichero resultante contiene: \fbox{\texttt{Test\textvisiblespace}}. Es decir, solamente los $5$ primeros carácteres.
+    else if (size_read == 0)
+        return total_size_read;
+    else
+        total_size_read += size_read;
+} while (total_size_read != target_size);\end{lstlisting}
+
+    En el caso del hijo, \texttt{handle\_signal()} lo que hace es poner una nueva alarma de 5 segundos e imprimir toda la cadena en su fichero.
+
+    En el caso del padre, cuando termina la lectura y ha recibido \texttt{SIGINT}, libera todo, cerrando la tubería y termina después de que su hijo haya finalizado.
+
+    Al terminar, si el minero o el monitor ve que ya no hay más procesos enganchados a la memoria compartida, se encarga de borrar (\emph{unlink}) los segmentos de memoria compartida, el \emph{mutex} y la cola de mensajes.
+
+\addcontentsline{toc}{subsection}{Nivel 3: Red de mineros sin votación}
+\subsection*{Nivel 3: Red de mineros sin votación}
+
+En esta primera versión sin votación nuestro objetivo fue asegurar que los mineros empezasen las rondas a la vez, parasen de minar cuando otro minero hubiese encontrado la solución e impedir que dos mieros se declaren ganadores en una misma ronda. Los mineros que ingresan a la red deben esperar a que finalice la ronda actual, es decir, hasta que el ganador de la ronda les de paso a la siguiente ronda.
+
+Tenemos que tener en cuenta que el ganador de una ronda se va a salir, porque esta es su última ronda (o porque ha recibido \texttt{SIGINT}), en la siguiente ronda la red pueda seguir funcionando. 
+TURNSTILE:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
 
 
-\addcontentsline{toc}{subsection}{Ejercicio 3}
-\subsection*{Ejercicio 3}
+\addcontentsline{toc}{subsection}{Nivel 4: Red de mineros con votación}
+\subsection*{Nivel 4: Red de mineros con votación}
 
-a) Cada vez que se ejecuta el programa, el counter incrementa su valor en $1$. Esto es porque el programa abre el fichero en caso de que ya exista, y varía el valor que ya existe. Si borramos el fichero antes de ejecutar, el fichero se crea de nuevo y tras la ejecución el valor vuelve a ser $1$.
-
-b) El fichero es binario, por lo que las variables no aparecen con los valores en forma de carácteres que se puedan leer con un editor de texto.
+En este nivel aseguramos además las siguientes restricciones de sincronización: los mineros perdedores no pueden empezar a votar hasta que el minero ganador haya subido la solución a memoria compartida y el minero ganador no puede empezar el recuento hasta que todos hayan votado.
 
 
-\addcontentsline{toc}{subsection}{Ejercicio 4}
-\subsection*{Ejercicio 4}
+\addcontentsline{toc}{section}{extra}
+\section*{extra}
+sigint al ganador (turnstile)
 
-a) No, ya que de ese modo, ningún otro lector podría abrir el segmento de memoria compartida.
+2 monitores
 
-b) No, porque se supone que es el escritor el primero que accede a la memoria compartida, para escribir en ella, por lo que debe ser el que determine su tamaño.
-
-c) \texttt{mmap} crea un mapeo del segmento de memoria compartida dentro de las direcciones virtuales del proceso, por tanto se puede manejar como si esta memoria perteneciera al heap del proceso, con más facilidad que escribir en un fichero.
-
-d) Sí se puede, habría que escribir en el segmento de memoria compartida con \texttt{write} tratándolo como un descriptor de fichero.
-
-\addcontentsline{toc}{subsection}{Ejercicio 5}
-\subsection*{Ejercicio 5}
-
-a) Se envían en orden creciente (1,2,3..) pero se reciben según la prioridad con la que fueron enviados. Y para mensajes de la misma prioridad, siguiendo un criterio FIFO (first in, first out).
-
-b) Si se cambia por \texttt{O\_RDONLY} la llamada a \texttt{mq\_send} devuelve error y el proceso termina. Del mismo modo, si se cambia por \texttt{O\_WRONLY} el error ocurre al intentar recibir los mensajes.
-
-
-
-\addcontentsline{toc}{subsection}{Ejercicio 6}
-\subsection*{Ejercicio 6}
-
-
-a) El emisor envía el mensaje y el receptor lo recibe e imprime por \textit{stdout}
-
-b) El receptor se bloquea en la orden \texttt{mq\_receive} hasta que el emisor envía el mensaje.
-
-c) Si se ejecuta primero el emisor, el receptor recibe el mensaje y lo imprime correctamente. Si se ejecuta primero el receptor, este no se bloquea hasta recibir el mensaje, sino que la función \texttt{mq\_receive} devuelve error el estar la cola de mensajes vacía y se imprime el mensaje por \textit{stderr}
-(\texttt{"Error  receiving  message"\\n}). 
-
-d) (Asumimos que se crea la cola de mensajes como bloqueante.) No, ya que si un receptor llega antes que otro, el segundo se quedará esperando al siguiente mensaje en caso de que solo haya uno; o recibirá el siguiente mensaje de la cola en caso de que haya más.
-
-
-
-
-\addcontentsline{toc}{subsection}{Ejercicio 7}
-\subsection*{Ejercicio 7}
-
-
-\addcontentsline{toc}{subsubsection}{a) Memoria compartida}
-\subsubsection*{a) Memoria compartida}
-
-El proceso \textit{stream-ui} tiene que inicializar el segmento de memoria por lo que en la llamada a \texttt{shm\_open} incluimos las \textit{flags} \texttt{O\_CREAT} y \texttt{O\_EXCL} de forma que si ya existe un segmento de memoria con el mismo nombre,la función devuelva error.
-
-En cuanto a los dos procesos que se lanzan \textit{stream-server} y \textit{stream-client}, tras la llamada a \texttt{fork} ejecutamos \texttt{execl} pasando como argumento el nombre del fichero de entrada o salida dependiendo del caso.
-
-Los procesos \textit{stream-server} y \textit{stream-client} abren la memoria compartida con las \textit{flags} \texttt{PROT\_READ} y \texttt{PROT\_WRITE} ya que van a escribir y leer (para acceder a los contadores por ejemplo) en la memoria.
-
-
-\addcontentsline{toc}{subsubsection}{b) Semáforos}
-\subsubsection*{b) Semáforos}
-Los semáforos, como son anónimos, los inicializa el proceso \emph{stream-ui}
-dentro de la memoria compartida (con \texttt{sem\_init}), y los destruye cuando los otros dos procesos ya han terminado. Para las esperas con tiempo máximo (2 segundos), hemos creado una función auxiliar (\texttt{st\_timed\_wait}), que las encapsula. En caso de que se supere el tiempo de espera, los procesos \textit{stream-server} y \textit{stream-client} desechan la operación y vuelven a esperar mensajes. Con el \emph{mutex}, esperamos con \texttt{sem\_wait}, ya que no se puede dar el caso de que un proceso se bloquee indefinidamente esperando. 
-
-
-\addcontentsline{toc}{subsubsection}{c) Colas de instrucciones}
-\subsubsection*{c) Colas de instrucciones}
-
-El proceso \textit{stream-ui} tiene que crear las dos colas de mensajes y como solo va a enviar mensajes, añadimos la \textit{flag} \texttt{O\_WRONLY} a parte de  \texttt{O\_CREAT} y  \texttt{O\_EXCL}. Por su parte, el proceso cliente y servidor, abren las colas, pero en este caso con la \textit{flag} \texttt{O\_RDONLY} pues solo van a recibir mensajes.   
-
-El proceso \emph{stream-ui} manda las cadenas \texttt{exit}, \texttt{post} o \texttt{get}, solamente al proceso al que debe ir dirigida (en el caso de \texttt{exit}, a ambos). 
-
-Finalmente, cuando cualquiera de los procesos (cliente o servidor) reciben el mensaje \texttt{exit} salen del bucle y finalizan liberando sus recursos. Del mismo modo, si el servidor llega al final del fichero, o el cliente lee el carácter \texttt{`\textbackslash0'}, saldrán del bucle e ignorarán cualquier orden (mensaje) que les llegue que no sea \texttt{exit}.
 
 \end{document}

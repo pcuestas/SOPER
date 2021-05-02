@@ -343,7 +343,6 @@ void mr_miner_close_net_mutex(sem_t *mutex, NetData* s_net_data)
         if (s_net_data->monitor_pid < 0)
         {   /*si no hay más mineros ni monitor, hacer unlink*/
             printf("destroy everything\n");
-            sem_unlink(SEM_MUTEX_NAME);
             shm_unlink(SHM_NAME_BLOCK);
             shm_unlink(SHM_NAME_NET);
             sem_unlink(SEM_MUTEX_NAME);

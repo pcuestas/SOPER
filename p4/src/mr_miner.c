@@ -153,8 +153,7 @@ int main(int argc, char *argv[])
             mr_miner_last_round(mutex, s_net_data, this_index);
         
         mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
-
-        printf("pid: %d rounds remaining: %d\n\n", this_pid, n_rounds);
+        printf("miner:%d-remaining rounds:%d\n", this_pid, n_rounds);
     }
 
     mr_print_chain_file(last_block, s_net_data->last_miner + 1);

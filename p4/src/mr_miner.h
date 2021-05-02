@@ -21,12 +21,11 @@
 #define VOTE_NO 0
 #define VOTE_NOT_VOTED 2
 
-typedef struct Mine_struct
+typedef struct Mine_struct_
 {
     long int target;
     long int begin;
     long int end;
-
 } Mine_struct;
 
 /*workers*/

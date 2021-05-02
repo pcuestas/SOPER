@@ -1,0 +1,7 @@
+\babel@toc {spanish}{}
+\contentsline {section}{Calificación base}{2}{section*.1}%
+\contentsline {subsection}{Nivel 1: Minero multihilo}{2}{section*.2}%
+\contentsline {subsection}{Nivel 2: Comunicación con el monitor}{2}{figure.1}%
+\contentsline {subsection}{Nivel 3: Red de mineros sin votación}{3}{lstnumber.-2.14}%
+\contentsline {subsection}{Nivel 4: Red de mineros con votación}{3}{section*.5}%
+\contentsline {section}{extra}{4}{section*.6}%
