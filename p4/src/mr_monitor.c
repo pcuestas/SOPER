@@ -3,13 +3,11 @@
 #include "mr_monitor.h"
 #include <stdint.h>
 
-volatile sig_atomic_t got_sigint = 0;
-volatile sig_atomic_t got_sigalrm = 0;
-
-
+volatile sig_atomic_t got_sigint  = 0; /*flag para SIGINT */
+volatile sig_atomic_t got_sigalrm = 0; /*flag para SIGALRM*/
 
 /**
- * @brief función del hijo del monitor
+ * @brief Función principal del hijo del monitor
  * 
  * @param fd tubería abierta
  */
@@ -24,6 +22,7 @@ void mrtp_printer_main(int fd[2])
     sigset_t mask;
     close(fd[1]);
 
+    /*bloquear SIGINT para que solo la reciba el padre*/
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);
     sigprocmask(SIG_BLOCK, &mask, NULL);
@@ -60,9 +59,7 @@ void mrtp_printer_main(int fd[2])
         if (last_block == NULL)
             err = 1;
         if (!err && got_sigalrm)
-        {
             err = mrp_handle_sigalrm(last_block, n_wallets, file);
-        }
     }
 
     close(fd[0]);
@@ -102,7 +99,7 @@ int main(int argc, char *argv[])
     }
     else if (child == 0)
     {
-        mrtp_printer_main(fd); // el hijo termina por su cuenta
+        mrtp_printer_main(fd); /* el hijo termina por su cuenta*/
     }
     close(fd[0]);
 
@@ -150,7 +147,7 @@ int main(int argc, char *argv[])
         err = mrt_mq_receive(&block, queue);
 
         if (!err && !mrt_block_is_repeated(&block, &blocks, &err))
-        { //ver que es correcto y no repetido
+        { /*si no repetido, escibirlo en la tubería*/
             block.is_valid = s_net_data->last_miner + 1;
             err = mrt_fd_write_block(&block, fd);
         }
@@ -160,6 +157,6 @@ int main(int argc, char *argv[])
 
     mrt_close_net_mutex(mutex, s_net_data);
 
-    wait(NULL);
+    wait(NULL); /*esperar al hijo*/
     exit(EXIT_SUCCESS);
 }
