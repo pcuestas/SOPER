@@ -26,14 +26,15 @@ typedef struct Mine_struct
     long int target;
     long int begin;
     long int end;
+    Block
 } Mine_struct;
 
 /*workers*/
 Mine_struct *mr_mine_struct_init(int n_workers);
 void *mine(void *d);
-int mr_workers_launch(pthread_t* workers, Mine_struct* mine_struct, int nWorkers, long int target);
+int mr_workers_launch(pthread_t *workers, Mine_struct *mine_struct, int nWorkers, long int target);
 
-void mr_workers_join(pthread_t* workers, int n_workers);
+void mr_workers_cancel(pthread_t* workers, int n_workers);
 
 void handler_miner(int sig);
 
