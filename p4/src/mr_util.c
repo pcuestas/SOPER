@@ -17,9 +17,9 @@
  * 
  * @return MR_SHM_CREATED en caso de que la memoria se haya creado 
  * con éxito. 
- * @return MR_SHM_FAILED en caso de error
- * @return MR_SHM_EXISTS en caso de que la memoria exista y se abra 
- * con éxito
+ * MR_SHM_FAILED en caso de error.
+ * MR_SHM_EXISTS en caso de que la memoria exista y se abra 
+ * con éxito.
  */
 int mr_shm_map(char* file_name, void **p, size_t size)
 {

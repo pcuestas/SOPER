@@ -1,6 +1,6 @@
 /**
- * @file mr_util.h
- * @author your name (you@domain.com)
+ * @file mr_util.h (Proyecto SOPER)
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
  * @brief Funciones comunes a mr_miner.c y mr_monitor.c
  */
 #ifndef MR_UTIL_H

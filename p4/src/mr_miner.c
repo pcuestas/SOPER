@@ -37,14 +37,15 @@ int main(int argc, char *argv[])
     /*inicializar las máscaras y hacer sigprocmask*/
     mrr_masks_set_up(&mask, &mask_wait_workers, &old_mask);
 
-    if (argc != 3)
+    if ((argc != 3) || ((n_workers = atoi(argv[1])) <= 0))
     {
-        fprintf(stderr, "Uso: %s <Número_de_trabajadores> <Número_de_rondas>\n", argv[0]);
+        fprintf(stderr, "Uso: %s <Número_de_trabajadores> <Número_de_rondas>\n<Número_de_trabajadores> > 0\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
 
-    n_workers = atoi(argv[1]);
-    n_rounds = atoi(argv[2]);
+    n_rounds = atoi(argv[2]);    
+    if(!n_rounds)      /*para que si tiene n_rounds == 0, */
+        n_rounds-- ;   /*continue hasta que se le pare    */
 
     if (mrr_set_handlers(mask) == EXIT_FAILURE)
     {
@@ -92,8 +93,6 @@ int main(int argc, char *argv[])
     }
     sem_post(mutex);
 
-    if(!n_rounds) n_rounds-- ;
-
     /*BUCLE DE RONDAS DE MINADO*/
     while (n_rounds-- && !err && !got_sigint)
     { 
@@ -133,10 +132,10 @@ int main(int argc, char *argv[])
             sem_post(mutex);
 
             if(winner && 
-            (err = mrr_winner_actions(s_block, s_net_data, this_index)))
+              (err = mrr_winner_actions(s_block, s_net_data, this_index)))
                 break;
         }
-        if(!winner)
+        if (!winner)
         {   /*los perdedores de la ronda*/
             if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3)))
                 break;
@@ -146,11 +145,14 @@ int main(int argc, char *argv[])
         }
 
         if(s_block->is_valid)
-            err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner);
+        {
+            if((err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner)))
+                break;
+        }          
         else
             n_rounds++;/*una ronda con votación fallida no cuenta*/
         
-        sigprocmask(SIG_SETMASK, &old_mask, &mask); /*recibir las señales restantes*/ 
+        sigprocmask(SIG_SETMASK, &old_mask, &mask); /*recibir las señales pendientes*/ 
         sigprocmask(SIG_SETMASK, &mask, &old_mask); /*reestablecer la máscara*/
 
         if(!n_rounds || got_sigint) /*si es su última ronda, se da de baja*/
@@ -170,5 +172,5 @@ int main(int argc, char *argv[])
 
     mrr_close_net_mutex(mutex, s_net_data);
 
-    exit(EXIT_SUCCESS);
+    exit(err ? EXIT_FAILURE : EXIT_SUCCESS);
 }
