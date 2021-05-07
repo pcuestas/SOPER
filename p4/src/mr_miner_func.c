@@ -121,6 +121,7 @@ int mrr_shm_init(Block **b, NetData **d, int *this_index)
 
     if ((*d)->num_active_miners == 1)
     {
+        (*d)->time_out = 0;
         /*el primer minero activo siempre reestablece los semáforos y se declara ganador*/
         (*d)->last_winner = this_pid;
         if (sem_init(&((*d)->sem_round_begin), 1, 0) != 0)
@@ -420,7 +421,7 @@ void mrr_last_winner_prepare_round(Block *s_block, NetData *s_net_data)
  */
 int mrr_winner_actions(Block *s_block, NetData *s_net_data, int this_index)
 {
-    int n_voters, i;
+    int n_voters, i, err;
 
     n_voters = (s_net_data->total_miners) - 1;
     s_net_data->num_voters = n_voters;
@@ -436,7 +437,7 @@ int mrr_winner_actions(Block *s_block, NetData *s_net_data, int this_index)
         mrr_winner_update_after_votation(s_block, s_net_data, this_index);
     else
     {
-        if ((mr_timed_wait(&(s_net_data->sem_votation_done), 3)))
+        if ((mr_timed_wait(&(s_net_data->sem_votation_done), 3, &err)))
             return 1;
 
         if (mrr_check_votes(s_net_data))
@@ -447,7 +448,7 @@ int mrr_winner_actions(Block *s_block, NetData *s_net_data, int this_index)
     }
 
     /*para que no entren mineros en el bucle hasta que el último haya terminado:*/
-    if ((mr_timed_wait(&(s_net_data->sem_round_end), 3)))
+    if ((mr_timed_wait(&(s_net_data->sem_round_end), 3, &err)))
         return 1;
 
     if (n_voters)

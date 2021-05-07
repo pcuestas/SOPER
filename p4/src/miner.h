@@ -40,6 +40,7 @@ typedef struct _NetData {
 
     int num_active_miners; /*número de mineros activos*/
     int num_voters; /*número de votantes*/
+    int time_out;
     sem_t sem_round_begin;
     sem_t sem_round_end;
     sem_t sem_scrutiny;

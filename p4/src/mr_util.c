@@ -139,14 +139,17 @@ Block *mr_block_append(Block *shm_b, Block *last_block)
  * 
  * @param sem semáforo en el que se realiza la espera
  * @param seconds segundos 
+ * @param time_out toma el valor 1 si hay fallo por espera agotada.
+ * 0 en caso contrario
  * 
  * @return 1 en caso de que falle clock_gettime
- * o sem_timedwait porque se agota el tiempo
- * @return 0 en caso de éxito
+ * o sem_timedwait porque se agota el tiempo.
+ * 0 en caso de éxito
  */
-int mr_timed_wait(sem_t *sem, int seconds)
+int mr_timed_wait(sem_t *sem, int seconds, int* time_out)
 {
     struct timespec ts;
+    *time_out = 0;
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
     {
         perror("clock_gettime");
@@ -158,6 +161,7 @@ int mr_timed_wait(sem_t *sem, int seconds)
         if (errno == ETIMEDOUT)
         {
             fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Finaliza el minado\n");
+            *time_out = 1;
             return 1;
         }
         else if (errno != EINTR)/*errno==EINTR en caso de que sea interrumpida la llamada por una señal*/

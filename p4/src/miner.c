@@ -42,7 +42,4 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "\nSearch failed\n");
     exit(EXIT_FAILURE);
 }
-
-
-
 */

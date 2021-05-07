@@ -24,7 +24,7 @@ void handler_miner(int sig)
 
 int main(int argc, char *argv[])
 {
-    int n_workers, n_rounds, err = 0, this_index, winner;
+    int n_workers, n_rounds, err = 0, this_index, winner, time_out;
     pid_t this_pid = getpid();
     Block *s_block, *last_block = NULL;
     pthread_t *workers = NULL;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     /*BUCLE DE RONDAS DE MINADO*/
     while (n_rounds-- && !err && !got_sigint)
     { 
-        if ((err = mr_timed_wait(&(s_net_data->sem_round_end), 3)))
+        if ((err = mr_timed_wait(&(s_net_data->sem_round_end), 3, &time_out)))
             break;
         sem_post(&(s_net_data->sem_round_end));
         
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         }
         else
         {   /*esperar a que el anterior ganador prepare la ronda*/
-            if ((err = mr_timed_wait(&(s_net_data->sem_round_begin), 3)))
+            if ((err = mr_timed_wait(&(s_net_data->sem_round_begin), 3, &time_out)))
                 break;
         }
 
@@ -132,15 +132,15 @@ int main(int argc, char *argv[])
             sem_post(mutex);
 
             if(winner && 
-              (err = mrr_winner_actions(s_block, s_net_data, this_index)))
+              (time_out = mrr_winner_actions(s_block, s_net_data, this_index)))
                 break;
         }
         if (!winner)
         {   /*los perdedores de la ronda*/
-            if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3)))
+            if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3, &time_out)))
                 break;
             mrr_vote(mutex, s_net_data, s_block, this_index);
-            if ((err = mr_timed_wait(&(s_net_data->sem_scrutiny), 3)))
+            if ((err = mr_timed_wait(&(s_net_data->sem_scrutiny), 3, &time_out)))
                 break;           
         }
 
@@ -159,7 +159,20 @@ int main(int argc, char *argv[])
             mrr_last_round(mutex, s_net_data, this_index);
         
         mr_lightswitchoff(mutex, &(s_net_data->total_miners), &(s_net_data->sem_round_end));
+
         printf("miner:%d-remaining rounds:%d\n", this_pid, n_rounds);
+    }
+
+    if(time_out){
+        //Actualizar campo active_miners por si un minero ha muerto de forma inesperada
+        while (sem_wait(mutex) == -1);
+        if (s_net_data->time_out == 0)
+        {
+            s_net_data->time_out = 1;
+            mrr_quorum(s_net_data);
+            s_net_data->num_active_miners = s_net_data->total_miners;
+        }
+        sem_post(mutex);
     }
 
     mrr_print_chain(last_block, s_net_data->last_miner + 1);

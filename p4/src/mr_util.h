@@ -86,12 +86,14 @@ Block* mr_block_append(Block *shm_b, Block *last_block);
  * 
  * @param sem semáforo en el que se realiza la espera
  * @param seconds segundos 
+ * @param time_out toma el valor 1 si hay fallo por espera agotada.
+ * 0 en caso contrario
  * 
  * @return 1 en caso de que falle clock_gettime
- * o sem_timedwait porque se agota el tiempo
- * @return 0 en caso de éxito
+ * o sem_timedwait porque se agota el tiempo.
+ * 0 en caso de éxito
  */
-int mr_timed_wait(sem_t *sem, int seconds);
+int mr_timed_wait(sem_t *sem, int seconds, int* time_out);
 
 /**
  * @brief Imprime la cadena de bloques entera al inicio de 

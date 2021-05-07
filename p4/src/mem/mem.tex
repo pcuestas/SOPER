@@ -88,7 +88,7 @@
     Para este primer nivel hemos diferenciado dos partes. En primer lugar iniciar correctamente los segmentos de memoria compartida del bloque y la red, y por otro lado, la creación de los hilos y su correcta terminanción. 
 
     En la red, hemos incluido más atributos (para siguientes niveles) y es el primer minero el que se encarga de inicializarlos correctamente.
-    De la misma forma, si el minero crea el segmento que corresponde al bloque, configura una "primera solución" que se usará para generar el primer \textit{target} (y por ende, el resto).
+    De la misma forma, si el minero crea el segmento que corresponde al bloque, configura una "primera solución" que se usará para generar el primer \textit{target} (y, por ende, el resto).
 
     Por otro lado, para lo relativo a los hilos, alocamos un \textit{array} de \textbf{pthread\_t} e iniciamos la estructura de minado que cada trabajador (hilo) va a recibir. Esta estructura solo se inicializa una vez pues es común para todas las rondas y se libera cuando el minero abandona la red. 
     
@@ -101,8 +101,8 @@
 
 
     En esta versión con un solo minero no se produce votación puesto que el quorum siempre resulta en 1 minero activo. Por lo tanto, el minero siempre se considera ganador y añade el bloque minado a su propia cadena. La ronda de minado finaliza cuando un trabajdor encuentra la solución y manda una señal a su proceso para que salga de la función bloqueante \texttt{sigsuspend}. Todas las señales tratadas tienen el mismo manejador el cual solo pone a 1 la variable de tipo \texttt{sig\_atomic\_t} que indica que señal se ha recibido. Para distinguir si se sale de \texttt{sigsuspend} siendo ganador o perdedor, el trabajador que encuentra la solución manda a su proceso \texttt{SIGHUP} (el resto de mineros recibirán \texttt{SIGUSR2}).
-    
-    Al acabar cada ronda de minado se cancelam los hilos de los trabajadores desde el \textit{main} solo para asegurar que nunca se empiece una nueva ronda con trabajadores aun activos (aunque sea algo prácticamente imposible). Los hilos se marcan como \textit{detached} para evitar pérdidas de memoria como se pued ver en la siguiente imagen de una ejecución de un minero con 1000 trabajadores (lo que supone 2000 llamadas a \textit{pthread\_init}). 
+
+    Los trabajadores de cada minero acaban cuando la variable \textit{end\_threads} vale 1. Esta variable se modifica cuando un hilo trabajador encuentra la solución o cuando el \textit{main} despierta tras recibir \texttt{SIGUSR2} de parte del ganador. El \textit{main} hace una llamada a \textit{pthread\_join} por cada hilo lanzado para asegurar que no hay pérdidas de memoria. La siguiente imagen muestra una ejecución de un minero con 1000 trabajdores y el análisis de Valgrind.
 
     \begin{figure}[h!]
         \centering
@@ -110,11 +110,9 @@
         \caption{100 trabajadores con Valgrind}
     \end{figure}
 
-    
-    Dependiendo de la velocidad relativa de ejecución de los hilos (trabajadores y \textit{main}), los trabajadores pueden acabar por la llamada a \textit{pthread\_cancel} como hemos mencionado anteriormente, o por su cuenta al salir del bucle de la búsqueda de la \textbf{POW} cuando el trabajador que ha encontrado la solución cambia una variable global para indicarlo.
 
     
-    Al finalizar las rondas de minado se imprime la cadena de vloques en un fichero para lo cual hemos usado como base la función proporcionada cambiado \textit{printf} por \textit{dprintf}. Por último,liberan todos los recursos con las respectivas funciones de \textit{free} y \textit{unlink}.
+    Al finalizar las rondas de minado se imprime la cadena de bloques en un fichero para lo cual hemos usado como base la función proporcionada cambiado \textit{printf} por \textit{dprintf}. Por último,liberan todos los recursos con las respectivas funciones de \textit{free} y \textit{unlink}.
 
     
 
@@ -161,21 +159,37 @@ do{
 
 En esta primera versión sin votación nuestro objetivo fue asegurar que los mineros empezasen las rondas a la vez, parasen de minar cuando otro minero hubiese encontrado la solución e impedir que dos mieros se declaren ganadores en una misma ronda. Los mineros que ingresan a la red deben esperar a que finalice la ronda actual, es decir, hasta que el ganador de la ronda les de paso a la siguiente ronda.
 
-Tenemos que tener en cuenta que el ganador de una ronda se va a salir, porque esta es su última ronda (o porque ha recibido \texttt{SIGINT}), en la siguiente ronda la red pueda seguir funcionando. 
-TURNSTILE:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
+Tenemos que tener en cuenta que el ganador de una ronda se va a salir (ya sea porque esta es su última ronda o porque ha recibido \texttt{SIGINT}), en la siguiente ronda la red pueda seguir funcionando. Para esto, cada minero, si es su última ronda, `quita' su \textit{pid} (poniendo un valor negativo) del array de \textit{pids} y en caso de ser ganador, le cede el puesto al primer minero que encuentra (con \emph{pid} positivo).
 
+Para que esta medida sea efectiva, los mineros tienen que pararse al principio del bucle, hasta que todos los demás hayan terminado la anterior iteración (por si el ganador de la anterior ronda tiene que designar un ganador que prepare la ronda por él). Para esto, hemos puesto un mecanismo de \textit{turnstile}\footnotemark (cada minero, al principio del bucle, hace un \textit{down} y, seguidamente un \textit{up} del semáforo que hemos llamado \texttt{sem\_round\_end}). El semáforo está inicializado a 1 y el ganador de la ronda, antes de señalizar la finalización del recuento de votos, lo pone a 0 (con un \textit{down}) para `bloquear' la entrada
+de mineros a la siguiente ronda. El último minero en finalizar la ronda hace \textit{up} del semáforo para permitir el paso a los demás.
+
+\footnotetext{El término \textit{turnstile} provienen de \href{https://greenteapress.com/semaphores/LittleBookOfSemaphores.pdf}{The Little Book Of Semaphores}}
 
 \addcontentsline{toc}{subsection}{Nivel 4: Red de mineros con votación}
 \subsection*{Nivel 4: Red de mineros con votación}
 
 En este nivel aseguramos además las siguientes restricciones de sincronización: los mineros perdedores no pueden empezar a votar hasta que el minero ganador haya subido la solución a memoria compartida y el minero ganador no puede empezar el recuento hasta que todos hayan votado.
 
+Para la parte de la votación hemos usado dos semáforos. El primero \texttt{sem\_start\_voting} obliga a los perdedores a esperar a que el ganador haya preparado el bloque para la votación (subir la solución). Este semáforo anónimo (se encuentra en la memoria compartida de la red), es \textit{n-ario} y el ganador hace up tantas veces como votantes haya (número que ha sido calculado haciendo quorum anteriormente). Por otro lado, el ganador espera al semáforo \texttt{sem\_end\_votation} para hacer el recuento. Este semáforo solo toma valores 0 o 1, y es el último minero perdedor el que hace up del semáforo tras votar. Finalmente los perdedores, han de esperar al resultado de la votación. Esta condición de sincronización se resuelve igual que la de esperar para comenzar a votar; en este caso usamos el semáforo \texttt{sem\_scrutiny}.
 
-\addcontentsline{toc}{section}{extra}
-\section*{extra}
-sigint al ganador (turnstile)
+En general la idea usada para resolver la sincronización de la votación es reducirlo al caso de dos procesos: un proceso ganador y un proceso perdedor (salvo que este proceso es en realidad un grupo de procesos). De esta forma se trata de un problema de \textit{leader \& follower}. Los semáforos del ganador toman valores 0 o 1, mientras que los del grupo perdedor, son semáforos que toman valores 0-n.
 
-2 monitores
+
+
+
+\addcontentsline{toc}{subsection}{Nivel 5}
+\subsection*{Nivel 5}
+
+El último requisito que nos faltaba era poner una espera con tiempo máximo en los semáforos, que tenemos ahora para que si un minero se queda pillado, el resto deje de esperar y termine. Para esto, hemos usado \texttt{sem\_timedwait}. 
+
+En algunos casos, cuando un minero era muy lento y tardaba mucho (por ejemplo, ejecutando un minero con \textit{valgrind}). Cuando los mineros se daban cuenta de esto y terminaban su ejecución, muchas veces los semáforos quedaban con valores incorrectos que impedían el correc5to funcionamiento de la red. Para evitar esto, usamos una variable en la memoria compartida que cuenta el número de mineros activos, de modo que si un minero va a liberar y se da cuenta de que es el último minero activo, destruye todos los semáforos, para que el primer minero que llegue los inicialice correctamente.
+
+\addcontentsline{toc}{section}{Mejoras}
+\section*{Mejoras}
+La primera mejora introducida es impedir que haya dos monitores activos. Si la red cuenta con un monitor y se intenta laznar otro, este segundo proceso finalizará. La implementación de esta mejora se reduce a un bloque if en la función que inicia el segmento de memoria compartida del monitor.
+
+La siguiente mejora, extiende el requisito de la práctica de que si el minero ganador de un ronda sufre un problema y no prepara la siguiente ronda, el resto de mineros puede terminar. En nuestro caso si el ganador de la última ronda recibe \texttt{SIGINT} (y, por lo tanto, debe finalizar), ``asignará el título de último ganador'' a un minero activo (como ya se ha explicado en el Nivel 3). Para asegurarnos de que la red continue funcionando incluso si un minero recibe \texttt{SIGINT}, debemos permitir que se reciba esta señal antes de comprobar si esta ronda es la última del minero. Para ello, en el bucle de las rondas, quitamos y volvemos a poner la máscara del proceso (con \texttt{sigprocmask}). 
 
 
 \end{document}
