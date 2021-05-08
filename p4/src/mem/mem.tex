@@ -72,14 +72,43 @@
 
 \title{Sistemas Operativos. Práctica 3.}
 \author{Pablo Cuesta Sierra y Álvaro Zamanillo Sáez}
-\date{}
+%\date{}
 \maketitle
 
 \begin{tcolorbox}
 \tableofcontents
 \end{tcolorbox}
 
-\pagebreak
+\addcontentsline{toc}{subsection}{Pequeña nota sobre los ficheros}
+\subsection*{Pequeña nota sobre los ficheros}
+
+Al principio del desarrollo del proyecto, no sabíamos hasta que punto podíamos modificar los ficheros proporcionados, por lo que los tocamos lo mínimo e hicimos ficheros separados para el resto del código. En el fichero \emph{miner.h} únicamente hemos ampliado la estructura de la \emph{netdata} con algunos enteros y semáforos.
+
+Nuestro proyecto está organizado de la siguiente forma:
+\begin{itemize}
+    \item
+    Los \emph{main} de minero y monitor se encuentran, respectivamente, en \emph{mr\_miner.c} y \emph{mr\_monitor.c}.
+    En este segundo fichero está, además, el código del hijo del monitor.
+    
+    \item
+    \emph{mr\_util.h} contiene las declaraciones de las funciones comunes al proceso del minero y del monitor. Estas implementaciones están en \emph{mr\_util.c}.
+
+    \item
+    \emph{mr\_miner.h} contiene las declaraciones de las funciones del proceso del minero, implementadas en los ficheros \emph{mr\_miner\_func.c} y \emph{mr\_miner\_workers.c}
+
+    \item 
+    \emph{mr\_monitor.h} contiene las declaraciones de las funciones del proceso del mointor, implementadas en \emph{mr\_monitor\_func.c}.
+\end{itemize}
+
+
+
+
+\addcontentsline{toc}{subsection}{Sobre el número de trabajadores}
+\subsection*{Sobre el número de trabajadores}
+
+Como en el pdf del enunciado no se dice nada a cerca del número máximo de trabajadores, y a pesar de que en \emph{miner.h} hay una macro definida llamada \texttt{MAX\_WORKERS}, no hemos limitado el número de trabajadores. En el caso de que el número de trabajadores sea excesivo, de manera que no se pueda reservar la memoria o lanzar tantos hilos, el programa terminará liberando correctamente, tras mostrar el error por la terminal.
+
+
 
 \addcontentsline{toc}{section}{Calificación base}
 \section*{Calificación base}

@@ -1,9 +1,11 @@
-\BOOKMARK [1][-]{section*.1}{Calificaci\363n base}{}% 1
-\BOOKMARK [2][-]{section*.2}{Nivel 1: Minero multihilo}{section*.1}% 2
-\BOOKMARK [2][-]{figure.1}{Nivel 2: Comunicaci\363n con el monitor}{section*.1}% 3
-\BOOKMARK [2][-]{lstnumber.-2.15}{Nivel 3: Red de mineros sin votaci\363n}{section*.1}% 4
-\BOOKMARK [2][-]{section*.5}{Nivel 4: Red de mineros con votaci\363n}{section*.1}% 5
-\BOOKMARK [2][-]{section*.6}{Nivel 5}{section*.1}% 6
-\BOOKMARK [1][-]{section*.7}{Mejoras}{}% 7
-\BOOKMARK [2][-]{section*.8}{Un \372nico monitor activo}{section*.7}% 8
-\BOOKMARK [2][-]{section*.9}{Mantenimiento de la red en caso de la salida repentina de un ganador}{section*.7}% 9
+\BOOKMARK [2][-]{section*.1}{Peque\361a nota sobre los ficheros}{}% 1
+\BOOKMARK [2][-]{section*.2}{Sobre el n\372mero de trabajadores}{}% 2
+\BOOKMARK [1][-]{section*.3}{Calificaci\363n base}{}% 3
+\BOOKMARK [2][-]{section*.4}{Nivel 1: Minero multihilo}{section*.3}% 4
+\BOOKMARK [2][-]{figure.1}{Nivel 2: Comunicaci\363n con el monitor}{section*.3}% 5
+\BOOKMARK [2][-]{lstnumber.-2.15}{Nivel 3: Red de mineros sin votaci\363n}{section*.3}% 6
+\BOOKMARK [2][-]{section*.7}{Nivel 4: Red de mineros con votaci\363n}{section*.3}% 7
+\BOOKMARK [2][-]{section*.8}{Nivel 5}{section*.3}% 8
+\BOOKMARK [1][-]{section*.9}{Mejoras}{}% 9
+\BOOKMARK [2][-]{section*.10}{Un \372nico monitor activo}{section*.9}% 10
+\BOOKMARK [2][-]{section*.11}{Mantenimiento de la red en caso de la salida repentina de un ganador}{section*.9}% 11

@@ -1,3 +1,8 @@
+/**
+ * @file mr_monitor.c (Proyecto SOPER)
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ * @brief main del monitor y función de su hijo.
+ */
 #include "miner.h"
 #include "mr_util.h"
 #include "mr_monitor.h"

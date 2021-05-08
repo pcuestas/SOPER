@@ -1,7 +1,11 @@
+/**
+ * @file mr_miner.c (Proyecto SOPER)
+ * @author Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ * @brief main del minero.
+ */
 #include "miner.h"
 #include "mr_miner.h"
 #include "mr_util.h"
-
 
 int end_threads = 0;
 long int proof_solution;

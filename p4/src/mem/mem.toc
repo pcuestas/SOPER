@@ -1,10 +1,12 @@
 \babel@toc {spanish}{}
-\contentsline {section}{Calificación base}{2}{section*.1}%
-\contentsline {subsection}{Nivel 1: Minero multihilo}{2}{section*.2}%
+\contentsline {subsection}{Pequeña nota sobre los ficheros}{1}{section*.1}%
+\contentsline {subsection}{Sobre el número de trabajadores}{1}{section*.2}%
+\contentsline {section}{Calificación base}{1}{section*.3}%
+\contentsline {subsection}{Nivel 1: Minero multihilo}{2}{section*.4}%
 \contentsline {subsection}{Nivel 2: Comunicación con el monitor}{2}{figure.1}%
 \contentsline {subsection}{Nivel 3: Red de mineros sin votación}{3}{lstnumber.-2.15}%
-\contentsline {subsection}{Nivel 4: Red de mineros con votación}{4}{section*.5}%
-\contentsline {subsection}{Nivel 5}{4}{section*.6}%
-\contentsline {section}{Mejoras}{4}{section*.7}%
-\contentsline {subsection}{Un único monitor activo}{4}{section*.8}%
-\contentsline {subsection}{Mantenimiento de la red en caso de la salida repentina de un ganador}{4}{section*.9}%
+\contentsline {subsection}{Nivel 4: Red de mineros con votación}{4}{section*.7}%
+\contentsline {subsection}{Nivel 5}{4}{section*.8}%
+\contentsline {section}{Mejoras}{4}{section*.9}%
+\contentsline {subsection}{Un único monitor activo}{4}{section*.10}%
+\contentsline {subsection}{Mantenimiento de la red en caso de la salida repentina de un ganador}{4}{section*.11}%
