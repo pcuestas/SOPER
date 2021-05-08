@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
         else
             n_rounds++;/*una ronda con votación fallida no cuenta*/
         
-        sigprocmask(SIG_SETMASK, &old_mask, &mask); /*recibir las señales pendientes*/ 
+        sigprocmask(SIG_SETMASK, &old_mask, &mask); /*recibir las señales pendientes (posiblemente SIGINT)*/ 
         sigprocmask(SIG_SETMASK, &mask, &old_mask); /*reestablecer la máscara*/
 
         if(!n_rounds || got_sigint) /*si es su última ronda, se da de baja*/
@@ -163,17 +163,8 @@ int main(int argc, char *argv[])
         printf("miner:%d-remaining rounds:%d\n", this_pid, n_rounds);
     }
 
-    if(time_out){
-        //Actualizar campo active_miners por si un minero ha muerto de forma inesperada
-        while (sem_wait(mutex) == -1);
-        if (s_net_data->time_out == 0)
-        {
-            s_net_data->time_out = 1;
-            mrr_quorum(s_net_data);
-            s_net_data->num_active_miners = s_net_data->total_miners;
-        }
-        sem_post(mutex);
-    }
+    if(time_out)
+        mrr_fix_net(mutex, s_net_data);    
 
     mrr_print_chain(last_block, s_net_data->last_miner + 1);
 

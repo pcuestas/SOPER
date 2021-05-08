@@ -495,7 +495,6 @@ void mrr_close_net_mutex(sem_t *mutex, NetData *s_net_data)
         sem_destroy(&(s_net_data->sem_votation_done));
         if (s_net_data->monitor_pid < 0)
         { /*si no hay más mineros ni monitor, hacer unlink*/
-            printf("destroy everything\n");
             shm_unlink(SHM_NAME_BLOCK);
             shm_unlink(SHM_NAME_NET);
             sem_unlink(SEM_MUTEX_NAME);
@@ -578,4 +577,24 @@ void mrr_loser_modify_block(Block* s_block)
 {
     s_block->id--;
     s_block->solution = s_block->target;
+}
+
+/**
+ * @brief si es el primer minero en salir del bucle de rondas por 
+ * time_out, recontar mineros activos (quorum) y actualizar el campo
+ * num_active_miners de la red
+ * 
+ * @param mutex mutex compartido
+ * @param s_net_data netdata (shm)
+ */
+void mrr_fix_net(sem_t* mutex, NetData* s_net_data)
+{
+    while (sem_wait(mutex) == -1);
+    if (s_net_data->time_out == 0)
+    {/*solo el primero que llegue entrará en este if*/
+        s_net_data->time_out = 1;
+        mrr_quorum(s_net_data);/*recontar mineros activos*/
+        s_net_data->num_active_miners = s_net_data->total_miners;
+    }
+    sem_post(mutex);
 }

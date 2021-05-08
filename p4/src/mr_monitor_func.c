@@ -57,6 +57,7 @@ int mrt_shm_init(NetData **d)
     }
     else if ((*d)->monitor_pid > 0)
     {   /*si hay ya un monitor, salir*/
+        printf("There is a monitor already\n");
         munmap((*d), sizeof(NetData));
         return EXIT_FAILURE;
     }
@@ -185,8 +186,8 @@ int mrp_fd_read_block(Block *block, int fd[2], Block* last_block, int n_wallets,
  * @param block bloque que se escribe 
  * @param fd tubería
  * 
- * @return 1 en caso de error
- * @return 0 en caso de éxito
+ * @return 1 en caso de error.
+ * 0 en caso de éxito
  */
 int mrt_fd_write_block(Block *block, int fd[2])
 {
@@ -250,7 +251,6 @@ void mrt_close_net_mutex(sem_t *mutex, NetData* s_net_data)
 
     if(!(s_net_data->num_active_miners))
     {   /*borrar segmentos de memoria compartida si no quedan mineros activos*/
-        printf("destroy everything\n");
         sem_unlink(SEM_MUTEX_NAME);
         shm_unlink(SHM_NAME_BLOCK);
         shm_unlink(SHM_NAME_NET);

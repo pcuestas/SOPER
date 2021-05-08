@@ -1,8 +1,9 @@
 \babel@toc {spanish}{}
-\contentsline {section}{Calificaci\IeC {\'o}n base}{2}{section*.1}
-\contentsline {subsection}{Nivel 1: Minero multihilo}{2}{section*.2}
-\contentsline {subsection}{Nivel 2: Comunicaci\IeC {\'o}n con el monitor}{2}{figure.1}
-\contentsline {subsection}{Nivel 3: Red de mineros sin votaci\IeC {\'o}n}{3}{lstnumber.-2.14}
-\contentsline {subsection}{Nivel 4: Red de mineros con votaci\IeC {\'o}n}{4}{section*.5}
-\contentsline {subsection}{Nivel 5}{4}{section*.6}
-\contentsline {section}{Mejoras}{4}{section*.7}
+\contentsline {section}{Calificación base}{2}{section*.1}%
+\contentsline {subsection}{Nivel 1: Minero multihilo}{2}{section*.2}%
+\contentsline {subsection}{Nivel 2: Comunicación con el monitor}{2}{figure.1}%
+\contentsline {subsection}{Nivel 3: Red de mineros sin votación}{3}{lstnumber.-2.15}%
+\contentsline {subsection}{Nivel 4: Red de mineros con votación}{4}{section*.5}%
+\contentsline {subsection}{Nivel 5}{4}{section*.6}%
+\contentsline {section}{Mejoras}{4}{section*.7}%
+\contentsline {subsection}{Un único monitor activo}{4}{section*.8}%

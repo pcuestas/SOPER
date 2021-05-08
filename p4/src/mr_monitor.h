@@ -118,8 +118,8 @@ int mrp_fd_read_block(Block *block, int fd[2], Block* last_block, int n_wallets,
  * @param block bloque que se escribe 
  * @param fd tubería
  * 
- * @return 1 en caso de error
- * @return 0 en caso de éxito
+ * @return 1 en caso de error.
+ * 0 en caso de éxito
  */
 int mrt_fd_write_block(Block *block, int fd[2]);
 

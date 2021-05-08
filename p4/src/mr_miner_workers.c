@@ -48,7 +48,7 @@ void *mrw_thread_mine(void *d)
  * los valores iniciales y final de cada trabajador
  * 
  * @param n_workers número de trabajadores
- * @return WorkerStruct* el array reservad ei inicializado
+ * @return WorkerStruct* el array reservado e inicializado
  */
 WorkerStruct *mrw_struct_init(int n_workers)
 {

@@ -7,7 +7,7 @@
 ######################################################
 
 CC=gcc
-CFLAGS=-pedantic -Wall -g
+CFLAGS=
 HEADERS=miner.h mr_miner.h mr_monitor.h mr_util.h
 LIB=-lpthread -lrt
 
@@ -41,7 +41,7 @@ clean:
 
 
 remove:
-	rm /dev/shm/sem.mr_mutex
-	rm /dev/shm/block
-	rm /dev/shm/netdata
-	rm /dev/mqueue/mr_mq_monitor
+	rm /dev/shm/sem.mr_mutex \
+	   /dev/shm/block \
+	   /dev/shm/netdata \
+	   /dev/mqueue/mr_mq_monitor

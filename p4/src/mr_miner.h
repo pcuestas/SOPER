@@ -249,6 +249,16 @@ int mrr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_da
  */
 void mrr_last_round(sem_t *mutex, NetData* s_net_data, int this_index);
 
+/**
+ * @brief si es el primer minero en salir del bucle de rondas por 
+ * time_out, recontar mineros activos (quorum) y actualizar el campo
+ * num_active_miners de la red
+ * 
+ * @param mutex mutex compartido
+ * @param s_net_data netdata (shm)
+ */
+void mrr_fix_net(sem_t* mutex, NetData* s_net_data);
+
 
 /* * * * * T R A B A J A D O R E S * * * * */
 /**
@@ -282,7 +292,7 @@ void *mrw_thread_mine(void *d);
  * los valores iniciales y final de cada trabajador
  * 
  * @param n_workers número de trabajadores
- * @return WorkerStruct* el array reservad ei inicializado
+ * @return WorkerStruct* el array reservado e inicializado
  */
 WorkerStruct *mrw_struct_init(int n_workers);
 
