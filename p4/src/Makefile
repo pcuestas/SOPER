@@ -40,7 +40,7 @@ clean:
 	$(RM) *.o $(ALL) *.log
 
 
-remove:
+remove_named_memory:
 	rm /dev/shm/sem.mr_mutex \
 	   /dev/shm/block \
 	   /dev/shm/netdata \
