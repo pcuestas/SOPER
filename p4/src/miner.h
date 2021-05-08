@@ -1,5 +1,12 @@
-
-
+/**
+ * @file miner.h 
+ * Fichero proporcionado como parte del enunciado.
+ * 
+ * Hemos añadido campos a la estructura NetData, 
+ * además de los #ifndef, #define, #endif.
+ * - Pablo Cuesta Sierra
+ * 
+ */
 #ifndef MINER_H
 #define MINER_H
 
@@ -40,9 +47,9 @@ typedef struct _NetData {
 
     int num_active_miners; /*número de mineros activos*/
     int num_voters; /*número de votantes*/
-    int time_out;
+    int time_out; /*flag que señaliza que los mineros han finalizado por tiempo agotado*/
     sem_t sem_round_begin;
-    sem_t sem_round_end;
+    sem_t sem_round_end; 
     sem_t sem_scrutiny;
     sem_t sem_votation_done;
     sem_t sem_start_voting;

@@ -1,3 +1,11 @@
+/**
+ * @file miner.c
+ * Fichero proporcionado como parte del enunciado.
+ * 
+ * Hemos comentado el main solamente.
+ * - Pablo Cuesta Sierra, Álvaro Zamanillo Sáez
+ * 
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "miner.h"
