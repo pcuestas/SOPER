@@ -72,7 +72,7 @@ mqd_t mr_mq_open(char *queue_name, int __oflag)
 {
     struct mq_attr attributes = {
         .mq_flags = 0,
-        .mq_maxmsg = 10,
+        .mq_maxmsg = 1,
         .mq_curmsgs = 0,
         .mq_msgsize = MSG_SIZE
     };
