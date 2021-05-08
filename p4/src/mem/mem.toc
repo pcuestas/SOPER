@@ -7,3 +7,4 @@
 \contentsline {subsection}{Nivel 5}{4}{section*.6}%
 \contentsline {section}{Mejoras}{4}{section*.7}%
 \contentsline {subsection}{Un único monitor activo}{4}{section*.8}%
+\contentsline {subsection}{Mantenimiento de la red en caso de la salida repentina de un ganador}{4}{section*.9}%

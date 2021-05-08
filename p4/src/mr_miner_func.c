@@ -201,7 +201,8 @@ void mrr_set_round(Block *b, NetData *d)
 /**
  * @brief manda SIGUSR1 a todos los mineros que tienen su pid en 
  * el array de net->miners_pid y actualiza el valor net->total_miners
- * con el número de mineros cuyo envío es exitoso (kill devuelve 0)
+ * con el número de mineros cuyo envío es exitoso (kill devuelve 0).
+ * Además actualiza el pid de los mineros no activos a -2 (para que no se les pueda designar ganadores).
  * 
  * @param net netdata (memoria compartida)
  */
