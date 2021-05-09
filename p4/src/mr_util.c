@@ -146,7 +146,7 @@ Block *mr_block_append(Block *shm_b, Block *last_block)
  * o sem_timedwait porque se agota el tiempo.
  * 0 en caso de éxito
  */
-int mr_timed_wait(sem_t *sem, int seconds, int* time_out)
+int mr_sem_timedwait(sem_t *sem, int seconds, int* time_out)
 {
     struct timespec ts;
     *time_out = 0;
@@ -214,10 +214,10 @@ void mr_blocks_print_to_file(Block *plast_block, int num_wallets, int fd)
  * 0 en caso contrario
  * 
  * @return 1 en caso de que falle clock_gettime
- * o sem_timedwait porque se agota el tiempo.
+ * o mq_timedsend porque se agota el tiempo.
  * 0 en caso de éxito
  */
-int mr_timed_mq_send(mqd_t queue, Block **last_block,  int priority, int seconds, int *time_out)
+int mr_mq_timedsend(mqd_t queue, Block **last_block,  int priority, int seconds, int *time_out)
 {
     struct timespec ts;
     *time_out = 0;
@@ -231,13 +231,13 @@ int mr_timed_mq_send(mqd_t queue, Block **last_block,  int priority, int seconds
     {
         if (errno == ETIMEDOUT)
         {
-            fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Finaliza el minado\n");
+            fprintf(stderr, "mq_timedsend() tiempo de espera agotado. Finaliza el minado\n");
             *time_out = 1;
             return 1;
         }
         else if (errno != EINTR) /*errno==EINTR en caso de que sea interrumpida la llamada por una señal*/
         {
-            perror("sem_timedwait");
+            perror("mq_timedsend");
             return 1;
         }
     }

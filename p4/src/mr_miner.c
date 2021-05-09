@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     /*BUCLE DE RONDAS DE MINADO*/
     while (n_rounds-- && !err && !got_sigint)
     { 
-        if ((err = mr_timed_wait(&(s_net_data->sem_round_end), 3, &time_out)))
+        if ((err = mr_sem_timedwait(&(s_net_data->sem_round_end), 3, &time_out)))
             break;
         sem_post(&(s_net_data->sem_round_end));
         
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         }
         else
         {   /*esperar a que el anterior ganador prepare la ronda*/
-            if ((err = mr_timed_wait(&(s_net_data->sem_round_begin), 3, &time_out)))
+            if ((err = mr_sem_timedwait(&(s_net_data->sem_round_begin), 3, &time_out)))
                 break;
         }
 
@@ -141,16 +141,16 @@ int main(int argc, char *argv[])
         }
         if (!winner)
         {   /*los perdedores de la ronda*/
-            if ((err = mr_timed_wait(&(s_net_data->sem_start_voting), 3, &time_out)))
+            if ((err = mr_sem_timedwait(&(s_net_data->sem_start_voting), 3, &time_out)))
                 break;
             mrr_vote(mutex, s_net_data, s_block, this_index);
-            if ((err = mr_timed_wait(&(s_net_data->sem_scrutiny), 3, &time_out)))
+            if ((err = mr_sem_timedwait(&(s_net_data->sem_scrutiny), 3, &time_out)))
                 break;           
         }
 
         if(s_block->is_valid)
         {
-            if((err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner,&time_out)))
+            if((err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner, &time_out)))
                 break;
         }          
         else

@@ -438,7 +438,7 @@ int mrr_winner_actions(Block *s_block, NetData *s_net_data, int this_index)
         mrr_winner_update_after_votation(s_block, s_net_data, this_index);
     else
     {
-        if ((mr_timed_wait(&(s_net_data->sem_votation_done), 3, &err)))
+        if ((mr_sem_timedwait(&(s_net_data->sem_votation_done), 3, &err)))
             return 1;
 
         if (mrr_check_votes(s_net_data))
@@ -449,7 +449,7 @@ int mrr_winner_actions(Block *s_block, NetData *s_net_data, int this_index)
     }
 
     /*para que no entren mineros en el bucle hasta que el último haya terminado:*/
-    if ((mr_timed_wait(&(s_net_data->sem_round_end), 3, &err)))
+    if ((mr_sem_timedwait(&(s_net_data->sem_round_end), 3, &err)))
         return 1;
 
     if (n_voters)

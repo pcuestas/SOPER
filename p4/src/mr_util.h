@@ -93,22 +93,27 @@ Block* mr_block_append(Block *shm_b, Block *last_block);
  * o sem_timedwait porque se agota el tiempo.
  * 0 en caso de éxito
  */
-int mr_timed_wait(sem_t *sem, int seconds, int* time_out);
+int mr_sem_timedwait(sem_t *sem, int seconds, int* time_out);
 
 
 /**
- * @brief intenta mandar un bloque a la cola de mensajes, si la cola está llena, el 
- * proceso no se quedará bloqueado más de un determinado número de segundos
+ * @brief intenta mandar un mensaje a una cola. Si la cola está llena se quedará
+ * bloqueado un tiempo máximo establecido.
+ * En caso de algún error (o que se agote el tiempo), imprime por stderr
+ * el mensaje de error correspondiente y devuelve 1;
  * 
- * @param queue cola a la que se envía el mensaje con el bloque
- * @param last_block bloque que se va a enviar
+ * @param queue cola de mensajes a la que se envía
+ * @param last_block cadena de bloques con el bloque que se va a enviar
  * @param priority prioridad del mensaje
- * @param seconds número máximo de segundos que se puede quedar bloqueado el proceso
- * @param time_out tomará el valor 1 si hay un fallo por espera agotada
+ * @param seconds segundos de espera máima
+ * @param time_out toma el valor 1 si hay fallo por espera agotada.
+ * 0 en caso contrario
  * 
- * @return 0 en caso de éxito, 1 si no.
+ * @return 1 en caso de que falle clock_gettime
+ * o mq_timedsend porque se agota el tiempo.
+ * 0 en caso de éxito
  */
-int mr_timed_mq_send(mqd_t queue, Block **last_block, int priority, int seconds, int *time_out);
+int mr_mq_timedsend(mqd_t queue, Block **last_block, int priority, int seconds, int *time_out);
 
 /**
  * @brief Imprime la cadena de bloques entera al inicio de 

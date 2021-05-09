@@ -146,7 +146,7 @@ Block *mr_block_append(Block *shm_b, Block *last_block)
  * o sem_timedwait porque se agota el tiempo.
  * 0 en caso de éxito
  */
-int mr_timed_wait(sem_t *sem, int seconds, int* time_out)
+int mr_sem_timedwait(sem_t *sem, int seconds, int* time_out)
 {
     struct timespec ts;
     *time_out = 0;
