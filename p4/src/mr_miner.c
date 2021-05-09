@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
         if(s_block->is_valid)
         {
-            if((err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner)))
+            if((err = mrr_valid_block_update(&last_block, s_block, s_net_data, queue, winner,&time_out)))
                 break;
         }          
         else
