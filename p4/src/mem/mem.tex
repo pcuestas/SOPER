@@ -186,7 +186,8 @@ do
 
     Al terminar, si el minero o el monitor ve que ya no hay más procesos enganchados a la memoria compartida, se encarga de borrar (\emph{unlink}) los segmentos de memoria compartida, el \emph{mutex} y la cola de mensajes.
 
-    \subsubsection*{Problemas de saturación de la cola de mensajes}
+\addcontentsline{toc}{subsubsection}{Problemas de saturación de la cola de mensajes}
+\subsubsection*{Problemas de saturación de la cola de mensajes}
 
     Durante esta parte vimos un error que teóricamente podría ocurrir si el número de mineros activos fuese muy superior al tamaño de la cola de mensajes. En esta situación, si el monitor terminase mientras algunos procesos estuviesen bloqueados esperando a poder mandar el mensaje a la cola, estos mineros nunca saldrían de esa espera (a no ser que un nuevo monitor se lanzase). 
     
