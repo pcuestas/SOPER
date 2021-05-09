@@ -72,7 +72,7 @@ mqd_t mr_mq_open(char *queue_name, int __oflag)
 {
     struct mq_attr attributes = {
         .mq_flags = 0,
-        .mq_maxmsg = 10,
+        .mq_maxmsg = 1,
         .mq_curmsgs = 0,
         .mq_msgsize = MSG_SIZE
     };
@@ -198,4 +198,48 @@ void mr_blocks_print_to_file(Block *plast_block, int num_wallets, int fd)
         dprintf(fd, "\n\n\n");
     }
     dprintf(fd, "A total of %d blocks were printed\n", i);
+}
+
+/**
+ * @brief intenta mandar un mensaje a una cola. Si la cola está llena se quedará
+ * bloqueado un tiempo máximo establecido.
+ * En caso de algún error (o que se agote el tiempo), imprime por stderr
+ * el mensaje de error correspondiente y devuelve 1;
+ * 
+ * @param queue cola de mensajes a la que se envía
+ * @param last_block cadena de bloques con el bloque que se va a enviar
+ * @param priority prioridad del mensaje
+ * @param seconds segundos de espera máima
+ * @param time_out toma el valor 1 si hay fallo por espera agotada.
+ * 0 en caso contrario
+ * 
+ * @return 1 en caso de que falle clock_gettime
+ * o sem_timedwait porque se agota el tiempo.
+ * 0 en caso de éxito
+ */
+int mr_timed_mq_send(mqd_t queue, Block **last_block,  int priority, int seconds, int *time_out)
+{
+    struct timespec ts;
+    *time_out = 0;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
+    {
+        perror("clock_gettime");
+        return 1;
+    }
+    ts.tv_sec += seconds;
+    while (mq_timedsend(queue, (char *)(*last_block), sizeof(Block ), priority, &ts) == -1)
+    {
+        if (errno == ETIMEDOUT)
+        {
+            fprintf(stderr, "sem_timedwait() tiempo de espera agotado. Finaliza el minado\n");
+            *time_out = 1;
+            return 1;
+        }
+        else if (errno != EINTR) /*errno==EINTR en caso de que sea interrumpida la llamada por una señal*/
+        {
+            perror("sem_timedwait");
+            return 1;
+        }
+    }
+    return 0;
 }
