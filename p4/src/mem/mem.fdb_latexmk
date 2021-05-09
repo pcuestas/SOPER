@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1620559472 "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.tex" "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.pdf" "mem" 1620559473
+["pdflatex"] 1620559472 "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.tex" "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.pdf" "mem" 1620560214
   "/etc/texmf/web2c/texmf.cnf" 1599481107 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.aux" 1620559473 2368 5fe37dff1fba990acfcd2e65fca6afaa ""
   "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.tex" 1620559472 20066 70f42f9d6e77e2276276830e2e38ea55 ""
@@ -168,10 +168,10 @@
   "mem.toc" 1620559473 966 edcaf752b12c4b2b648f09c4031a8bf2 "pdflatex"
   "pruebas/valgrind_1000_trabajadores.png" 1619948813 78404 a1987728870387ef77011cfbde20f7ef ""
   (generated)
-  "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.pdf"
-  "mem.aux"
-  "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.log"
-  "mem.log"
-  "mem.out"
   "mem.pdf"
+  "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.log"
+  "mem.out"
+  "mem.log"
+  "mem.aux"
+  "/home/pablo/repos/SOPER_p1/p4/src/mem/mem.pdf"
   "mem.toc"

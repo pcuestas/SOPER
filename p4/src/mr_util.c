@@ -72,7 +72,7 @@ mqd_t mr_mq_open(char *queue_name, int __oflag)
 {
     struct mq_attr attributes = {
         .mq_flags = 0,
-        .mq_maxmsg = 1,
+        .mq_maxmsg = 10,
         .mq_curmsgs = 0,
         .mq_msgsize = MSG_SIZE
     };
@@ -209,7 +209,7 @@ void mr_blocks_print_to_file(Block *plast_block, int num_wallets, int fd)
  * @param queue cola de mensajes a la que se envía
  * @param last_block cadena de bloques con el bloque que se va a enviar
  * @param priority prioridad del mensaje
- * @param seconds segundos de espera máima
+ * @param seconds segundos de espera máxima
  * @param time_out toma el valor 1 si hay fallo por espera agotada.
  * 0 en caso contrario
  * 
