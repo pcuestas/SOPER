@@ -234,9 +234,10 @@ void mrr_loser_modify_block(Block *s_block);
  * @param s_net_data netdata (shm)
  * @param queue cola de mensajes
  * @param winner 1 si el minero es ganador, 0 si no
+ * @param time_out tomará valor 1 si hay fallo por espera agotada
  * @return 1 en caso de error. 0 en caso contrario
  */
-int mrr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner);
+int mrr_valid_block_update(Block **last_block, Block* s_block, NetData *s_net_data, mqd_t queue, int winner, int* time_out);
 
 /**
  * @brief minero está en su última ronda, quita su pid del array

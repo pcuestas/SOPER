@@ -6,7 +6,9 @@
 \BOOKMARK [3][-]{lstnumber.-2.15}{Problemas de saturaci\363n de la cola de mensajes y muerte del monitor}{figure.1}% 6
 \BOOKMARK [2][-]{section*.7}{Nivel 3: Red de mineros sin votaci\363n}{section*.3}% 7
 \BOOKMARK [2][-]{section*.8}{Nivel 4: Red de mineros con votaci\363n}{section*.3}% 8
-\BOOKMARK [2][-]{section*.10}{Nivel 5}{section*.3}% 9
-\BOOKMARK [1][-]{section*.11}{Mejoras}{}% 10
-\BOOKMARK [2][-]{section*.12}{Un \372nico monitor activo}{section*.11}% 11
-\BOOKMARK [2][-]{section*.13}{Mantenimiento de la red en caso de la salida repentina de un minero ganador}{section*.11}% 12
+\BOOKMARK [3][-]{section*.9}{Probando la votaci\363n}{section*.8}% 9
+\BOOKMARK [2][-]{section*.10}{Nivel 5}{section*.3}% 10
+\BOOKMARK [1][-]{section*.11}{Mejoras}{}% 11
+\BOOKMARK [2][-]{section*.12}{Un \372nico monitor activo}{section*.11}% 12
+\BOOKMARK [2][-]{section*.13}{Mantenimiento de la red en caso de la salida repentina de un minero ganador \(SIGINT\)}{section*.11}% 13
+\BOOKMARK [3][-]{section*.14}{Muerte de un minero de forma repentina \(SIGKILL, etc.\)}{section*.13}% 14

@@ -517,9 +517,11 @@ void mrr_close_net_mutex(sem_t *mutex, NetData *s_net_data)
  * @param s_net_data netdata (shm)
  * @param queue cola de mensajes
  * @param winner 1 si el minero es ganador, 0 si no
+ * @param time_out tomará el valor 1 si hay fallo por espera agotada.
+ * 0 en caso contrario
  * @return 1 en caso de error. 0 en caso contrario
  */
-int mrr_valid_block_update(Block **last_block, Block *s_block, NetData *s_net_data, mqd_t queue, int winner)
+int mrr_valid_block_update(Block **last_block, Block *s_block, NetData *s_net_data, mqd_t queue, int winner, int *time_out)
 {
     /*Añadir bloque correcto a la cadena de cada minero*/
     (*last_block) = mr_block_append(s_block, *last_block);
@@ -529,9 +531,8 @@ int mrr_valid_block_update(Block **last_block, Block *s_block, NetData *s_net_da
 
     /*Si hay monitor, mandar el nuevo bloque*/
     if ((s_net_data->monitor_pid > 0) &&
-        (mq_send(queue, (char *)(*last_block), sizeof(Block), 1 + winner) == -1))
+        (mr_mq_timedsend(queue, last_block,  1+winner, 3, time_out)))
     {
-        perror("mq_send");
         return 1;
     }
     return 0;
